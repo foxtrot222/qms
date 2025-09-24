@@ -1,0 +1,132 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+% Set the title
+\title{Roles and Feature Overview in Queue Management System}
+
+% Remove author and date
+\author{TM000082}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Advanced queue management leverages technological innovation and mathematical models to handle customer queues more effectively. This document outlines the user interface for such a system, focusing specifically on the different user roles and the core features they interact with.
+
+\section{Accessing the Interface}
+
+Users can access the interface through a dedicated website, compatible with both mobile devices and personal computers, which connects to the company's central queue management server. An authentication system is utilized to differentiate between user types. Additionally, on-site kiosks will be provided for direct interaction within the office premises.
+
+\subsection{User Roles}
+
+The system defines several distinct user roles, each with specific permissions:
+
+\begin{description}
+    \item[Manager/Admin] Manages the system and has a complete overview of all operations.
+    \item[Service Provider] The staff member at the service desk who serves customers.
+    \item[Waiting Customer] A walk-in customer waiting for service.
+    \item[Scheduled Customer] A customer with a pre-booked appointment.
+    \item[Priority Customer] Individuals such as seniors or persons with disabilities (PWD) who are given precedence.
+    \item[Overdue Customer] A customer who has missed their scheduled appointment time.
+\end{description}
+
+\section{Customer Interface Features}
+
+The customer-facing portion of the system is comprised of several key components designed to create a seamless and transparent experience.
+
+\begin{description}
+    \item[Responsive Web Portal \& Kiosk] The interface is a responsive web portal accessible on any device (mobile, desktop) and via a self-service kiosk in the office. This provides high accessibility, supporting both remote and walk-in customers.
+    \item[Mandatory Service Triage] Customers must select the exact purpose of their visit (e.g., Billing, New Connection, Complaint). This ensures they are routed to the correct, specialized queue, preventing misdirection.
+    \item[Contact-Based Identification] The customer provides a mobile number or email for communication and identification. This generates a traceable transaction ID and establishes a channel for real-time alerts.
+    \item[Digital Token Issuance] A unique token number is instantly provided on-screen and delivered via SMS/Email. This offers immediate confirmation and replaces the ambiguity of a physical line.
+    \item[Flexible Booking Options] Customers have the choice between joining the immediate queue or booking a specific future appointment slot. This empowers the customer with control over their time and helps avoid unnecessary travel.
+    \item[Optimized Scheduling] The system highlights the next available low-wait window for the current day. This encourages customers to visit during non-peak hours, reducing overall wait times and crowding.
+    \item[Proactive 'Today is Impossible' Alert] If wait times become excessive, the system advises against joining the immediate queue and prompts the user to book a future appointment. This prevents customer frustration and wasted trips to the office.
+    \item[Dynamic Estimated Time Remaining (ETR)] A visible, continuously updated countdown timer is displayed, calculated based on real-time officer service speeds. This reduces waiting anxiety by making the experience transparent and predictable.
+    \item[Dedicated Token Status Page] A personalized page shows the customer's current queue position, the assigned officer/desk, and the ETR. This provides full transparency and allows for productive waiting away from the physical queue.
+    \item[Grace Period for Late Arrivals] The system reserves a customer's slot for a short grace period after their token is called before marking them as a no-show. This policy is fair and accommodates minor, unavoidable delays.
+    \item[Automatic Token Expiry] Tokens are automatically expired if the customer misses their turn after the grace period has passed. This prevents "ghost customers" from holding up the line's progress.
+    \item[Office/Desk Mapping] Upon a token being called, the system provides visual guidance to the correct officer's desk. This streamlines the final step of the process and eliminates the need for customers to ask for directions.
+    \item[Priority Customer Verification] For Priority Customers (Seniors/PWD), the system will include a verification step using official IDs like Aadhaar or a PWD ID card to ensure proper allocation of priority status.
+    \item[AI-Based Query System] An integrated question-and-answer system, likely powered by AI, will be available to assist customers with common queries and provide information without needing human intervention.
+\end{description}
+
+\section{On-Site Check-in Process}
+
+Upon arrival at the office, especially for scheduled appointments, customers must check in to activate their token in the service queue. This confirms their presence and makes them eligible to be called by a service provider. Several check-in methods are available:
+
+\begin{description}
+    \item[QR Code Scan] Customers can scan a QR code displayed at the office entrance or reception using their mobile device to instantly check in.
+    \item[Kiosk Check-in] The on-site self-service kiosk will feature a prominent "Check-in" button, allowing customers to find and confirm their appointment or token.
+    \item[Manual Token Entry] Using the web portal on their phone or a kiosk, customers can manually enter their token number and confirm their location within the office to check in.
+    \item[Receptionist Assistance] Customers can approach the receptionist, who can look up their details and manually check them into the system.
+\end{description}
+
+\section{Public Display Screen}
+
+A large public-facing screen in the office waiting area provides real-time updates to all customers. The display typically shows a list of token numbers currently being served and the corresponding service desk or officer number they should proceed to. In the event of a significant queue restructuring by a manager, the screen will display a prominent message advising customers to check their mobile notifications for updated queue information.
+
+\section{Communication and Notifications}
+
+The system actively communicates with customers through SMS and/or email to keep them informed about their queue status. Proactive notifications are sent at key moments:
+
+\begin{description}
+    \item[Significant ETR Changes] An alert is sent if the Estimated Time Remaining (ETR) changes significantly, allowing customers to adjust their plans accordingly.
+    \item[Grace Period Alert] When a customer's turn is called, they are notified that their grace period has begun, informing them how long they have to report to the service desk.
+    \item['You Are Next' Notification] An alert is sent when the customer's position in the queue becomes second, giving them advance notice to prepare.
+    \item[Queue Transfer Notification] If a customer is transferred to a new service queue, they receive an alert with their new queue details and token number.
+    \item[Queue Restructuring Alert] If a major queue change is made by management, a notification is sent to affected customers, prompting them to check for updated details.
+    \item[Reschedule Confirmation] When an appointment is rescheduled or a new token is issued, a confirmation message is sent with the updated details.
+\end{description}
+
+\section{Service Provider Interface}
+
+The service provider interface is designed for efficiency, focus, and effective queue management from the officer's perspective.
+
+\begin{description}
+    \item[Secure & Personalized Login] Officers log in with a password and are presented with a personalized view showing only the queues and appointments assigned to their specific skill set. This eliminates distractions and ensures focus on relevant service requests.
+    \item[Call Next Button & Service Timer] A prominent button allows the officer to summon the next customer, which simultaneously triggers the customer's alert and starts a service timer. This ensures a smooth flow and captures real-time service duration data essential for calculating the dynamic ETR.
+    \item[Active Token View] A dedicated area of the screen displays all relevant details of the customer currently being served (service type, token number, contact ID), ensuring all necessary information is immediately available.
+    \item[Automatic Load Balancing] The system automatically distributes tokens for a specific service (e.g., "Billing") among all available, authorized officers. This prevents any single officer from being overwhelmed and speeds up the entire service line.
+    \item[Check-In Integration] Scheduled appointments appear in an officer's queue only after the customer has physically "checked in" at the office (via kiosk or mobile app). This prevents officers from wasting time waiting for no-show appointments.
+    \item[Seamless Service Transfer] A button allows the officer to instantly transfer a customer to a different queue or officer for a follow-up service (e.g., transfer to a cashier after an initial consultation). This manages complex customer journeys smoothly without forcing the customer to restart the process.
+    \item[In-Service Rescheduling] Officers have the ability to book a future follow-up appointment for the current customer directly from their interface, efficiently closing the current session while securing time for more complex issues.
+    \item[Transaction Closure Options] Clear buttons are provided to log the outcome of each interaction: Completed Successfully, Cancelled (with a mandatory reason), or Escalated/Pending Documents. This provides accurate data to the system and stops the service timer correctly.
+    \item[Emergency Alert Button] A dedicated button allows the officer to send a discrete alert or message to a manager for assistance with complex, disruptive, or emergency situations, enabling quick support without leaving the desk.
+    \item[No-Show Management] Officers can mark a token as a "No Show" if the customer does not appear after the grace period. This removes the token from the active queue, maintains flow, and allows the next person to be called.
+\end{description}
+
+\section{Manager and Admin Interface}
+
+The admin interface provides high-level control over system configuration, user management, and data integrity.
+
+\begin{description}
+    \item[User Creation and Management] Admins have the ability to create, manage, and define access levels for all user accounts (Managers and Service Providers). This ensures only authorized personnel can access their respective system functions.
+    \item[User Deactivation] Admins can immediately suspend or delete any user account, blocking login access instantly. This is critical for security, especially in cases of staff changes or potential breaches.
+    \item[Role and Permission Definition] Admins can define and modify the specific actions each role can perform (e.g., only Managers can view reports). This provides granular control and prevents unauthorized actions.
+    \item[Officer Skill Set Definition] The interface allows for the definition and modification of skill sets linked to each officer role (e.g., authorizing a "Billing Officer" for "Billing Dispute" services). This allows the system to adapt to changes in service offerings and staff expertise.
+    \item[Service Master Data Management] Admins can add, edit, or archive the list of services available to customers. This ensures the customer-facing interface is always up-to-date with current offerings.
+    \item[System Hour Configuration] The ability to set and adjust official operating hours, defining when tokens can be issued and appointments scheduled. This sets operational boundaries and controls system availability.
+    \item[System Audit Log] A comprehensive, time-stamped record of all critical events, including logins, configuration changes, manual queue interventions, and user assignments. This is essential for accountability, security audits, and troubleshooting.
+    \item[Data Backup and Recovery] Admins can manage scheduled data backups and execute recovery procedures in the event of a system failure, ensuring business continuity and data protection.
+\end{description}
+
+\section{Service Finalization and Feedback}
+
+Once a service is concluded, the system initiates final steps to close the loop with the customer and gather valuable feedback.
+
+\begin{description}
+    \item[Service Completion Message] Upon the service provider marking the transaction as complete, the customer receives a final SMS/Email confirming that their service has been successfully concluded.
+    \item[Feedback System] Shortly after the completion message, a link to a feedback survey is sent to the customer. This allows them to rate their experience and provide optional comments, contributing to service quality analysis.
+\end{description}
+
+\section{Conclusion}
+
+The proposed queue management system provides a comprehensive, multi-faceted solution designed to streamline operations and enhance the user experience for all stakeholders. By integrating customer-centric features, efficient service provider tools, and powerful administrative controls, the system aims to reduce wait times, increase transparency, and provide management with actionable, This holistic approach transforms a traditional queuing process into a modern, efficient, and customer-friendly service interaction.
+
+\end{document}
+

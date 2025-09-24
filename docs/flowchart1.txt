@@ -1,0 +1,109 @@
+flowchart TD
+    A[System Access] --> B{User Type?}
+    
+    B -->|Customer| C[Customer Interface]
+    B -->|Service Provider| D[Service Provider Interface]
+    B -->|Manager/Admin| E[Manager/Admin Interface]
+    
+    %% Customer Flow
+    C --> F[Responsive Web Portal/Kiosk]
+    F --> G[Service Triage Selection]
+    G --> H[Contact-Based ID<br/>Mobile/Email]
+    H --> I{Booking Choice?}
+    
+    I -->|Immediate| J[Join Current Queue]
+    I -->|Future| K[Schedule Appointment]
+    
+    J --> L[Digital Token Issued<br/>SMS/Email]
+    K --> M[Appointment Confirmed<br/>SMS/Email]
+    
+    L --> N{Wait Time Acceptable?}
+    N -->|No| O[Today is Impossible Alert<br/>Redirect to Schedule]
+    N -->|Yes| P[Dynamic ETR Display]
+    O --> K
+    
+    M --> Q[Check-in Required on Arrival]
+    Q --> R{Check-in Method}
+    R -->|QR Code| S[Scan QR at Office]
+    R -->|Kiosk| T[Self-Service Kiosk]
+    R -->|Manual| U[Web Portal Token Entry]
+    R -->|Receptionist| V[Staff Assistance]
+    
+    S --> W[Token Activated in Queue]
+    T --> W
+    U --> W
+    V --> W
+    
+    P --> X[Token Status Page<br/>Position, ETR, Officer Assignment]
+    W --> X
+    
+    X --> Y[Queue Notifications<br/>ETR Changes, You Are Next, Grace Period]
+    Y --> Z[Called to Service Desk]
+    Z --> AA[Office/Desk Mapping Guidance]
+    AA --> BB[Service Interaction]
+    
+    %% Priority Customer Path
+    C --> CC{Priority Customer?<br/>Senior/PWD}
+    CC -->|Yes| DD[Priority Verification<br/>Aadhaar/PWD ID]
+    DD --> EE[Priority Queue Assignment]
+    EE --> P
+    CC -->|No| F
+    
+    %% Service Provider Flow
+    D --> FF[Secure Login<br/>Personalized Dashboard]
+    FF --> GG[View Assigned Queues<br/>Skill-based Assignment]
+    GG --> HH[Call Next Button<br/>Start Service Timer]
+    HH --> II[Active Token View<br/>Customer Details Display]
+    II --> JJ[Service Interaction]
+    
+    JJ --> KK{Service Outcome?}
+    KK -->|Complete| LL[Mark as Completed<br/>Stop Timer]
+    KK -->|Transfer| MM[Transfer to Another Queue/Officer]
+    KK -->|Reschedule| NN[Book Follow-up Appointment]
+    KK -->|No Show| OO[Mark as No Show<br/>Remove from Queue]
+    KK -->|Emergency| PP[Emergency Alert to Manager]
+    
+    LL --> QQ[Service Completion Message<br/>to Customer]
+    MM --> RR[Queue Transfer Notification<br/>to Customer]
+    NN --> SS[Reschedule Confirmation<br/>to Customer]
+    
+    %% Manager/Admin Flow
+    E --> TT[Admin Dashboard]
+    TT --> UU[User Management<br/>Create, Modify, Deactivate]
+    TT --> VV[Role & Permission Definition]
+    TT --> WW[Officer Skill Set Management]
+    TT --> XX[Service Master Data<br/>Add, Edit, Archive Services]
+    TT --> YY[System Configuration<br/>Operating Hours, Parameters]
+    TT --> ZZ[System Audit Log<br/>Monitor All Activities]
+    TT --> AAA[Data Backup & Recovery]
+    
+    %% Public Display
+    BB --> BBB[Public Display Screen<br/>Current Tokens & Desk Numbers]
+    JJ --> BBB
+    
+    %% Feedback Loop
+    QQ --> CCC[Feedback Survey Link<br/>Rating & Comments]
+    CCC --> DDD[Service Quality Analysis]
+    
+    %% AI Integration
+    F --> EEE[AI-Based Query System<br/>Common Questions & Information]
+    
+    %% Grace Period & Expiry
+    Z --> FFF{Arrived on Time?}
+    FFF -->|Yes| AA
+    FFF -->|Late but within Grace| GGG[Grace Period Alert<br/>Time to Report]
+    GGG --> AA
+    FFF -->|Missed Grace Period| HHH[Automatic Token Expiry<br/>Remove from Queue]
+    
+    %% Styling
+    classDef customerFlow fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef providerFlow fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef adminFlow fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef systemFlow fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef decisionFlow fill:#fff8e1,stroke:#ffa000,stroke-width:2px
+    
+    class C,F,G,H,I,J,K,L,M,P,Q,X,Y,Z,AA,BB,CC,DD,EE,S,T,U,V,W,CCC,DDD,EEE customerFlow
+    class D,FF,GG,HH,II,JJ,LL,MM,NN,OO,PP,QQ,RR,SS providerFlow
+    class E,TT,UU,VV,WW,XX,YY,ZZ,AAA adminFlow
+    class BBB,FFF,GGG,HHH systemFlow
+    class B,N,O,R,KK decisionFlow

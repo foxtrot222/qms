@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import mysql.connector
+
 app = Flask(__name__)
 try:
     con=mysql.connector.connect(host='localhost',
@@ -11,11 +12,11 @@ try:
 except mysql.connector.Error as e:
     print("Database connection failed:", e)
     con = None
-@app.route("/")
 
-#Home Page
+@app.route("/")
 def home():
     cur=con.cursor()
     return render_template("index.html")
+
 if __name__ == "__main__":
     app.run(debug=True)

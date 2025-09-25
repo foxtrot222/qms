@@ -1,31 +1,66 @@
 import os
+import sys
+import shutil
+import subprocess
 from dotenv import load_dotenv
 
-# Load environment variables from ../.env
-load_dotenv("../.env")
+# -----------------------------
+# Load .env
+# -----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(BASE_DIR, "../../.env")
+load_dotenv(ENV_PATH)
 
-# Read DB credentials from .env
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 DB_NAME = os.getenv("DB_NAME")
 
-# Input files
-SCHEMA_FILE = "schema.sql"
-DATA_FILE = "data.sql"
+if not DB_USER or not DB_PASS or not DB_NAME:
+    print("❌ Missing DB_USER, DB_PASS, or DB_NAME in .env file.")
+    sys.exit(1)
 
-def import_schema():
-    """Import only database schema (no data)."""
-    cmd = f"mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} < {SCHEMA_FILE}"
-    os.system(cmd)
-    print(f"Schema imported from {SCHEMA_FILE}")
+# -----------------------------
+# Files
+# -----------------------------
+SCHEMA_FILE = os.path.join(BASE_DIR, "schema.sql")
+DATA_FILE = os.path.join(BASE_DIR, "data.sql")
 
-def import_data():
-    """Import only database data (no schema)."""
-    cmd = f"mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} < {DATA_FILE}"
-    os.system(cmd)
-    print(f"Data imported from {DATA_FILE}")
+# -----------------------------
+# Locate mysql
+# -----------------------------
+MYSQL_CMD = shutil.which("mysql")
+if not MYSQL_CMD:
+    # fallback Windows default path
+    if os.name == "nt":
+        MYSQL_CMD = r"C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe"
+    else:
+        print("❌ 'mysql' command not found in PATH.")
+        sys.exit(1)
 
+# -----------------------------
+# Import functions
+# -----------------------------
+def import_file(file_path):
+    if not os.path.exists(file_path):
+        print(f"⚠️  File {file_path} not found. Skipping.")
+        return
+
+    try:
+        subprocess.run(
+            [MYSQL_CMD, f"-u{DB_USER}", f"-p{DB_PASS}", DB_NAME],
+            stdin=open(file_path, "r"),
+            check=True
+        )
+        print(f"✅ Imported {file_path}")
+    except subprocess.CalledProcessError:
+        print(f"❌ Failed to import {file_path}")
+
+
+# -----------------------------
+# Main
+# -----------------------------
 if __name__ == "__main__":
-    import_schema()
-    import_data()
-    print("✅ Import completed successfully!")
+    print("🚀 Starting database import...")
+    import_file(SCHEMA_FILE)
+    import_file(DATA_FILE)
+    print("🏁 Import script finished.")

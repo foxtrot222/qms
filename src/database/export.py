@@ -16,57 +16,51 @@ DB_PASS = os.getenv("DB_PASS")
 DB_NAME = os.getenv("DB_NAME")
 
 if not DB_USER or not DB_PASS or not DB_NAME:
-    print("❌ Missing DB_USER, DB_PASS, or DB_NAME in .env file.")
+    print("Missing DB_USER, DB_PASS, or DB_NAME in .env file.")
     sys.exit(1)
 
 # -----------------------------
-# Output files
+# Files
 # -----------------------------
 SCHEMA_FILE = os.path.join(BASE_DIR, "schema.sql")
 DATA_FILE = os.path.join(BASE_DIR, "data.sql")
 
 # -----------------------------
-# Locate mysqldump
+# Locate mysql
 # -----------------------------
-MYSQLDUMP_CMD = shutil.which("mysqldump")
-if not MYSQLDUMP_CMD:
+MYSQL_CMD = shutil.which("mysql")
+if not MYSQL_CMD:
     # fallback Windows default path
     if os.name == "nt":
-        MYSQLDUMP_CMD = r"C:/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe"
+        MYSQL_CMD = r"C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe"
     else:
-        print("❌ 'mysqldump' command not found in PATH.")
+        print("'mysql' command not found in PATH.")
         sys.exit(1)
 
 # -----------------------------
 # Export functions
 # -----------------------------
-def export_file(args, output_file):
+def export_file(file_path):
+    if not os.path.exists(file_path):
+        print(f"File {file_path} not found. Skipping.")
+        return
+
     try:
-        with open(output_file, "w", encoding="utf-8") as f:
-            subprocess.run(
-                [MYSQLDUMP_CMD] + args,
-                stdout=f,
-                check=True
-            )
-        print(f"✅ Exported to {output_file}")
+        subprocess.run(
+            [MYSQL_CMD, f"-u{DB_USER}", f"-p{DB_PASS}", DB_NAME],
+            stdin=open(file_path, "r"),
+            check=True
+        )
+        print(f"✅ Imported {file_path}")
     except subprocess.CalledProcessError:
-        print(f"❌ Failed to export to {output_file}")
+        print(f"Failed to import {file_path}")
 
-def export_schema():
-    """Export only schema (no data)"""
-    args = [f"-u{DB_USER}", f"-p{DB_PASS}", "--no-data", DB_NAME]
-    export_file(args, SCHEMA_FILE)
-
-def export_data():
-    """Export only data (no schema)"""
-    args = [f"-u{DB_USER}", f"-p{DB_PASS}", "--no-create-info", DB_NAME]
-    export_file(args, DATA_FILE)
 
 # -----------------------------
 # Main
 # -----------------------------
 if __name__ == "__main__":
-    print("🚀 Starting database export...")
-    export_schema()
-    export_data()
-    print("🏁 Export script finished.")
+    print("🚀 Starting database import...")
+    export_file(SCHEMA_FILE)
+    export_file(DATA_FILE)
+    print("🏁 Import script finished.")

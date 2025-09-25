@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: localhost    Database: QMS
 -- ------------------------------------------------------
@@ -35,15 +35,6 @@ CREATE TABLE `appointment` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `appointment`
---
-
-LOCK TABLES `appointment` WRITE;
-/*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
-/*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `customer`
 --
 
@@ -62,15 +53,6 @@ CREATE TABLE `customer` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `customer`
---
-
-LOCK TABLES `customer` WRITE;
-/*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-/*!40000 ALTER TABLE `customer` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `service_provider`
@@ -92,15 +74,6 @@ CREATE TABLE `service_provider` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `service_provider`
---
-
-LOCK TABLES `service_provider` WRITE;
-/*!40000 ALTER TABLE `service_provider` DISABLE KEYS */;
-/*!40000 ALTER TABLE `service_provider` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `services`
 --
 
@@ -118,15 +91,6 @@ CREATE TABLE `services` (
   CONSTRAINT `fk_service_provider` FOREIGN KEY (`service_provider`) REFERENCES `service_provider` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `services`
---
-
-LOCK TABLES `services` WRITE;
-/*!40000 ALTER TABLE `services` DISABLE KEYS */;
-/*!40000 ALTER TABLE `services` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `token`
@@ -151,15 +115,6 @@ CREATE TABLE `token` (
   KEY `idx_token_type_of_customer` (`type_of_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `token`
---
-
-LOCK TABLES `token` WRITE;
-/*!40000 ALTER TABLE `token` DISABLE KEYS */;
-/*!40000 ALTER TABLE `token` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -170,4 +125,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-25 14:30:18
+-- Dump completed on 2025-09-25 16:24:23

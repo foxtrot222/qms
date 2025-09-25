@@ -4,7 +4,7 @@ app = Flask(__name__)
 try:
     con=mysql.connector.connect(host='localhost',
                                 user='root',
-                                password='your_password',
+                                password='Tirth@2006',
                                 database='QMS')
     print("Database connected successfully!")
 

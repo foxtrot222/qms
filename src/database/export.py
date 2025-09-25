@@ -51,7 +51,7 @@ def export_file(file_path):
             stdin=open(file_path, "r"),
             check=True
         )
-        print(f"✅ Imported {file_path}")
+        print(f"Imported {file_path}")
     except subprocess.CalledProcessError:
         print(f"Failed to import {file_path}")
 
@@ -60,7 +60,7 @@ def export_file(file_path):
 # Main
 # -----------------------------
 if __name__ == "__main__":
-    print("🚀 Starting database import...")
+    print("Starting database import...")
     export_file(SCHEMA_FILE)
     export_file(DATA_FILE)
-    print("🏁 Import script finished.")
+    print("Export script finished.")

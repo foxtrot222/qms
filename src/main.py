@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 from dotenv import load_dotenv
 import os
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load the .env file
 load_dotenv()
@@ -42,12 +43,12 @@ def login():
 
     try:
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM service_provider WHERE officerID=%s AND password=%s"
-        cursor.execute(query, (officerId, officerPassword))
+        query = "SELECT * FROM service_provider WHERE officerID=%s"
+        cursor.execute(query, (officerId,))
         officer = cursor.fetchone()
         cursor.close()
 
-        if officer:
+        if officer and check_password_hash(officer['password'], officerPassword):
             # Set session for dashboard access
             session['user_id'] = officer['id']
             session['username'] = officer['name']

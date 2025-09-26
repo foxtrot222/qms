@@ -90,25 +90,77 @@ const officerLoginModal = document.getElementById('officerLoginModal');
 const officerLoginModalContent = document.getElementById('officer-login-modal-content');
 const closeOfficerLoginModalBtn = document.getElementById('closeOfficerLoginModalBtn');
 const officerLoginForm = document.getElementById('officerLoginForm');
+const officerLoginError = document.querySelector('#officerLoginError');
 
 if (accessDashboardBtn) {
-    const openOfficerLoginModal = () => { officerLoginModal.classList.remove('hidden'); setTimeout(() => { officerLoginModal.style.opacity = '1'; officerLoginModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
-    const closeOfficerLoginModal = () => { officerLoginModalContent.classList.add('scale-95', 'opacity-0'); officerLoginModal.style.opacity = '0'; setTimeout(() => officerLoginModal.classList.add('hidden'), 300); };
-    accessDashboardBtn.addEventListener('click', (e) => { e.preventDefault(); openOfficerLoginModal(); });
-    closeOfficerLoginModalBtn.addEventListener('click', closeOfficerLoginModal);
-    officerLoginModal.addEventListener('click', (e) => { if (e.target === officerLoginModal) closeOfficerLoginModal(); });
-    officerLoginForm.addEventListener('submit', (e) => {
+    const openModal = () => { 
+        officerLoginModal.classList.remove('hidden'); 
+        setTimeout(() => { 
+            officerLoginModal.style.opacity = '1'; 
+            officerLoginModalContent.classList.remove('scale-95', 'opacity-0'); 
+        }, 10); 
+    };
+    const closeModal = () => { 
+        officerLoginModalContent.classList.add('scale-95', 'opacity-0'); 
+        officerLoginModal.style.opacity = '0'; 
+        setTimeout(() => officerLoginModal.classList.add('hidden'), 300); 
+    };
+
+    accessDashboardBtn.addEventListener('click', e => { e.preventDefault(); openModal(); });
+    closeOfficerLoginModalBtn.addEventListener('click', closeModal);
+    officerLoginModal.addEventListener('click', e => { if (e.target === officerLoginModal) closeModal(); });
+
+    officerLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const officerIdInput = document.getElementById('officerId').value;
-        const officerPasswordInput = document.getElementById('officerPassword').value;
-        if (officerIdInput.toLowerCase() === 'test' && officerPasswordInput === '0') {
-            closeOfficerLoginModal();
-            setTimeout(() => { window.location.href = '/dashboard'; }, 350);
+        officerLoginError.classList.add('hidden');
+
+        const officerId = document.getElementById('officerId').value.trim();
+        const officerPassword = document.getElementById('officerPassword').value;
+        const submitBtn = officerLoginForm.querySelector('button[type="submit"]');
+
+        if (!officerId || !officerPassword) {
+            officerLoginError.textContent = "Provide both ID and password.";
+            officerLoginError.classList.remove('hidden');
             return;
         }
-        const loginButton = e.target.querySelector('button[type="submit"]'); loginButton.textContent = 'Logging in...'; setTimeout(() => { loginButton.textContent = 'Success!'; loginButton.classList.replace('bg-indigo-600', 'bg-green-500'); loginButton.classList.replace('hover:bg-indigo-700', 'bg-green-500'); setTimeout(() => { closeOfficerLoginModal(); officerLoginForm.reset(); setTimeout(() => { loginButton.textContent = 'Login'; loginButton.classList.replace('bg-green-500', 'bg-indigo-600'); loginButton.classList.add('hover:bg-indigo-700'); }, 500); }, 1500); }, 1000);
+
+        submitBtn.textContent = "Logging in...";
+
+        try {
+            const formData = new FormData();
+            formData.append('officerId', officerId);
+            formData.append('officerPassword', officerPassword);
+
+            const response = await fetch('/login', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (data.success) {
+                // Store officer info in sessionStorage
+                sessionStorage.setItem('officerName', data.officerName);
+                sessionStorage.setItem('officerId', officerId); // store ID for dashboard
+
+                // Redirect to dashboard
+                window.location.href = data.redirect;
+            } 
+            else {
+                officerLoginError.textContent = data.error;
+                officerLoginError.classList.remove('hidden');
+                submitBtn.textContent = "Login";
+            }
+
+        } catch (err) {
+            officerLoginError.textContent = "Login failed. Try again.";
+            officerLoginError.classList.remove('hidden');
+            submitBtn.textContent = "Login";
+            console.error(err);
+        }
     });
+
 }
+
+
+
+
 
 // === Officer Dashboard Logic ===
 const customerTimerEl = document.getElementById('customerTimer');
@@ -220,3 +272,27 @@ if (statusForm) {
         }, 1500);
     });
 }
+
+// Auto-open officer login modal if there is a flash message
+document.addEventListener("DOMContentLoaded", function() {
+    const flashMsgDiv = document.querySelector('#officerLoginModal .text-red-600');
+    if (flashMsgDiv && flashMsgDiv.textContent.trim() !== "") {
+        const modal = document.getElementById("officerLoginModal");
+        const modalContent = document.getElementById("officer-login-modal-content");
+
+        modal.classList.remove("hidden");
+        modalContent.classList.remove("scale-95", "opacity-0");
+        modalContent.classList.add("scale-100", "opacity-100");
+    }
+});
+
+// Update Officer Name on Dashboard after login
+document.addEventListener("DOMContentLoaded", () => {
+    const officerNameEl = document.getElementById('officerName');
+    const officerName = sessionStorage.getItem('officerName'); // fetched from login
+    const officerId = sessionStorage.getItem('officerId'); // optional: store ID too
+
+    if (officerNameEl && officerName) {
+        officerNameEl.textContent = `${officerName} (ID: ${officerId || ''})`;
+    }
+});

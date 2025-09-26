@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
 --
 -- Host: localhost    Database: QMS
 -- ------------------------------------------------------
@@ -34,21 +34,23 @@ LOCK TABLES `customer` WRITE;
 UNLOCK TABLES;
 
 --
+-- Dumping data for table `service`
+--
+
+LOCK TABLES `service` WRITE;
+/*!40000 ALTER TABLE `service` DISABLE KEYS */;
+INSERT INTO `service` VALUES (1,'Billing','2025-09-26 12:17:13','2025-09-26 12:17:13'),(3,'Complaint','2025-09-26 12:17:13','2025-09-26 12:17:13'),(5,'KYC','2025-09-26 12:17:13','2025-09-26 12:17:13');
+/*!40000 ALTER TABLE `service` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Dumping data for table `service_provider`
 --
 
 LOCK TABLES `service_provider` WRITE;
 /*!40000 ALTER TABLE `service_provider` DISABLE KEYS */;
+INSERT INTO `service_provider` VALUES (37,'Ravi Kumar','SP001','password','2025-09-26 12:24:36','2025-09-26 12:24:36',1),(39,'Anjali Sharma','SP002','wordpass','2025-09-26 12:24:36','2025-09-26 12:24:36',3),(41,'Suresh Gupta','SP003','drowssap','2025-09-26 12:24:36','2025-09-26 12:24:36',5);
 /*!40000 ALTER TABLE `service_provider` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `services`
---
-
-LOCK TABLES `services` WRITE;
-/*!40000 ALTER TABLE `services` DISABLE KEYS */;
-/*!40000 ALTER TABLE `services` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -69,4 +71,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-25 16:48:47
+-- Dump completed on 2025-09-26 18:45:56

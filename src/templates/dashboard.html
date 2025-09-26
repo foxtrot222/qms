@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMS - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Container for the entire page -->
+    <div class="min-h-screen flex flex-col">
+
+        <!-- Header and Navigation Bar -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-20">
+            <nav class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Website Title -->
+                    <div class="text-2xl font-bold text-blue-600">
+                        <a href="/" id="homeNavBtn">QMS</a>
+                    </div>
+                    <!-- Desktop Navigation Links -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">About</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Help</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Contact</a>
+                        <a href="#" id="orgNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Organization</a>
+                        <a href="/status" id="statusNavBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button id="mobileMenuBtn" class="text-gray-600 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Mobile Menu -->
+                <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">About</a>
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Help</a>
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Contact</a>
+                    <a href="#" id="orgNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Organization</a>
+                    <a href="/status" id="statusNavBtnMobile" class="block bg-blue-500 text-white text-center px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Officer Dashboard Section -->
+        <main id="dashboardPage" class="flex-grow container mx-auto px-6 pt-24 pb-16">
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full h-full flex flex-col" style="min-height: 80vh;">
+                <!-- Top Section: Timer and Queue -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 border-b pb-6 mb-6">
+                    <!-- Left: Timer -->
+                    <div class="bg-gray-50 p-6 rounded-lg text-center flex flex-col justify-center items-center border border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Current Service Time</h2>
+                        <div id="customerTimer" class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">00:00</div>
+                        <button id="callNextBtn" class="w-full bg-green-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-md">Call Next Customer</button>
+                    </div>
+                    <!-- Right: Queue Status -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Queue Status</h2>
+                        <div class="mb-4">
+                            <span class="font-semibold text-gray-700">Now Serving:</span>
+                            <span id="nowServingToken" class="text-lg md:text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md ml-2">C-07</span>
+                        </div>
+                        <ul id="queueList" class="space-y-2 h-40 overflow-y-auto pr-2">
+                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-08</span><span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">CHECKED-IN</span></li>
+                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-09</span><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full">IN LINE</span></li>
+                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">A-02 (Appt)</span><span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">LATE (-2)</span></li>
+                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-10</span><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full">IN LINE</span></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Middle Section: Action Buttons -->
+                <div class="flex-grow flex items-center justify-center py-6">
+                     <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                        <button class="w-full sm:w-auto bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Complete Service</button>
+                        <button class="w-full sm:w-auto bg-yellow-500 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-yellow-600 transition transform hover:scale-105 shadow-lg">Mark as Late</button>
+                        <button class="w-full sm:w-auto bg-red-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-red-700 transition transform hover:scale-105 shadow-lg">Mark as No-show</button>
+                    </div>
+                </div>
+        
+                <!-- Bottom Bar: Info -->
+                <div class="border-t pt-4 mt-6 flex flex-col sm:flex-.row justify-between items-center text-sm text-gray-600 space-y-2 sm:space-y-0">
+                    <div><span class="font-semibold">Customers in Line:</span> <span id="customerCount">4</span></div>
+                    <div><span class="font-semibold">Officer:</span> <span id="officerName">Jane Doe (ID: test)</span></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

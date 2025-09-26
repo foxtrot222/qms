@@ -97,4 +97,5 @@ if __name__ == "__main__":
     print("Starting database export...")
     import_schema()  # Export schema first
     import_data()    # Export data next
-    print("Export script finished.")
+    print("Import script finished.")
+

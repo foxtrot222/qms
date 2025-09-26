@@ -22,5 +22,13 @@ except mysql.connector.Error as e:
 #Home Page
 def home():
     return render_template("index.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/status")
+def status():
+    return render_template("status.html")
 if __name__ == "__main__":
     app.run(debug=True)

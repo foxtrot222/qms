@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMS - Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Container for the entire page -->
+    <div class="min-h-screen flex flex-col">
+
+        <!-- Header and Navigation Bar -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-20">
+            <nav class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Website Title -->
+                    <div class="text-2xl font-bold text-blue-600">
+                        <a href="/" id="homeNavBtn">QMS</a>
+                    </div>
+                    <!-- Desktop Navigation Links -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">About</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Help</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Contact</a>
+                        <a href="#" id="orgNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Organization</a>
+                        <a href="/status" id="statusNavBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button id="mobileMenuBtn" class="text-gray-600 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Mobile Menu -->
+                <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">About</a>
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Help</a>
+                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Contact</a>
+                    <a href="#" id="orgNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Organization</a>
+                    <a href="/status" id="statusNavBtnMobile" class="block bg-blue-500 text-white text-center px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Status Page Display -->
+        <div id="statusPage" class="flex-grow container mx-auto px-6 pt-32 pb-16 flex items-center justify-center">
+            <div class="bg-white p-6 md:p-8 rounded-lg shadow-xl max-w-4xl mx-auto w-full">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">Your Queue Status</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Top-Left: ETR Clock -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Estimated Time Remaining</h2>
+                        <div id="etrTimer" class="text-5xl md:text-6xl font-bold text-blue-600">15:00</div>
+                        <p id="etrMessage" class="text-gray-600 mt-2"></p>
+                    </div>
+
+                    <!-- Top-Right: Actions -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Actions</h2>
+                        <div class="w-full space-y-4">
+                            <button id="checkInBtn" class="w-full bg-green-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-md">Check-in Now</button>
+                            <button id="homeLinkStatusPage" class="w-full bg-red-100 text-red-700 font-semibold rounded-lg px-4 py-3 hover:bg-red-200 transition-all duration-300">Cancel Token</button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Left: Details -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center border">
+                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Your Details</h2>
+                         <div class="space-y-3 text-base md:text-lg">
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Name:</span> <span id="statusName" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Contact:</span> <span id="statusContact" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Service:</span> <span id="statusService" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Position:</span> <span id="statusPosition" class="font-semibold text-gray-900 text-right"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Right: Map -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Location</h2>
+                        <button id="viewMapBtn" class="w-full bg-indigo-100 text-indigo-800 font-semibold rounded-lg px-4 py-3 hover:bg-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">
+                            View Office Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Office Map -->
+    <div id="mapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="map-modal-content"><button id="closeMapModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-white/50 rounded-full p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-xl font-bold mb-4 text-gray-800">Office Layout</h2><div class="bg-gray-200 rounded-md h-96 w-full flex items-center justify-center"><img src="https://placehold.co/600x400/e2e8f0/64748b?text=Simple+Office+Map" alt="Office Map" class="max-w-full max-h-full rounded-md"></div></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

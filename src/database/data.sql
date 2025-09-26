@@ -16,15 +16,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Dumping data for table `appointment`
---
-
-LOCK TABLES `appointment` WRITE;
-/*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
-/*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Dumping data for table `customer`
 --
 
@@ -49,17 +40,8 @@ UNLOCK TABLES;
 
 LOCK TABLES `service_provider` WRITE;
 /*!40000 ALTER TABLE `service_provider` DISABLE KEYS */;
-INSERT INTO `service_provider` VALUES (37,'Ravi Kumar','SP001','password','2025-09-26 12:24:36','2025-09-26 12:24:36',1),(39,'Anjali Sharma','SP002','wordpass','2025-09-26 12:24:36','2025-09-26 12:24:36',3),(41,'Suresh Gupta','SP003','drowssap','2025-09-26 12:24:36','2025-09-26 12:24:36',5);
+INSERT INTO `service_provider` VALUES (37,'Ravi Kumar',1,'SP001','password','2025-09-26 12:24:36','2025-09-26 12:24:36'),(39,'Anjali Sharma',3,'SP002','wordpass','2025-09-26 12:24:36','2025-09-26 12:24:36'),(41,'Suresh Gupta',5,'SP003','drowssap','2025-09-26 12:24:36','2025-09-26 12:24:36');
 /*!40000 ALTER TABLE `service_provider` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `token`
---
-
-LOCK TABLES `token` WRITE;
-/*!40000 ALTER TABLE `token` DISABLE KEYS */;
-/*!40000 ALTER TABLE `token` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -71,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-26 18:45:56
+-- Dump completed on 2025-09-26 23:17:29

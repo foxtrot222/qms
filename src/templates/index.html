@@ -124,28 +124,49 @@
     <form method="POST" action="/login" id="officerLoginForm">
         <div id="officerLoginModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
             <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="officer-login-modal-content">
+                
+                <!-- Close Button -->
                 <button id="closeOfficerLoginModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
+
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Officer Login</h2>
 
                 <div class="space-y-4">
+
+                    <!-- Flash/Error Message -->
+                    <p id="officerLoginError" class="text-red-600 text-sm {% if not get_flashed_messages() %}hidden{% endif %}">
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for msg in messages %}
+                                    {{ msg }}
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+
+                    <!-- Officer ID -->
                     <div>
                         <label for="officerId" class="block text-sm font-medium text-gray-700 mb-1">Officer ID</label>
                         <input type="text" id="officerId" name="officerId" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your ID" required>
                     </div>
+
+                    <!-- Password -->
                     <div>
                         <label for="officerPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                         <input type="password" id="officerPassword" name="officerPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="w-full bg-indigo-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105">Login</button>
-                </div>
 
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105">Login</button>
+
+                </div>
             </div>
         </div>
     </form>
+
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

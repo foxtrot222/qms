@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 from dotenv import load_dotenv
 import os
 import mysql.connector
+import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def generate_next_token():
@@ -186,6 +187,56 @@ def generate_token_route():
         conn.rollback()
         return jsonify({"success": False, "error": "Database error occurred."})
 
+
+import logging
+
+# ... (rest of the imports)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# ... (rest of the code)
+
+import datetime
+
+# ... (rest of the imports)
+
+# ... (rest of the code)
+
+@app.route("/get_appointment_slots")
+def get_appointment_slots():
+    logging.info("Attempting to fetch appointment slots.")
+    try:
+        conn = get_db_connection()
+        if not conn:
+            logging.error("Database connection failed.")
+            return jsonify({"success": False, "error": "Database connection failed."})
+        
+        logging.info("Database connection successful. Executing query.")
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, time_slot FROM appointment WHERE is_booked = 0 ORDER BY time_slot")
+        slots = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        logging.info(f"Found {len(slots)} available slots.")
+
+        # Convert time objects to strings
+        for slot in slots:
+            if 'time_slot' in slot and isinstance(slot['time_slot'], datetime.timedelta):
+                total_seconds = slot['time_slot'].total_seconds()
+                hours, remainder = divmod(total_seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                time_obj = datetime.time(int(hours), int(minutes), int(seconds))
+                slot['time_slot'] = time_obj.strftime('%I:%M %p')
+
+        return jsonify({"success": True, "slots": slots})
+
+    except mysql.connector.Error as err:
+        logging.error(f"Database query failed: {err}")
+        return jsonify({"success": False, "error": "Database error occurred."})
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."})
 
 
 if __name__ == "__main__":

@@ -250,8 +250,46 @@ const appointmentModalContent = document.getElementById('appointment-modal-conte
 const joinWalkInBtn = document.getElementById('joinWalkInBtn');
 const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
 
+const appointmentSlotSelect = document.getElementById('appointmentSlot');
+
+async function loadAppointmentSlots() {
+    console.log("Attempting to load appointment slots...");
+    try {
+        const response = await fetch('/get_appointment_slots');
+        console.log("Received response from /get_appointment_slots");
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("Successfully fetched appointment slots:", data.slots);
+            appointmentSlotSelect.innerHTML = ''; // Clear existing options
+            if (data.slots.length === 0) {
+                appointmentSlotSelect.innerHTML = '<option>No available slots</option>';
+            }
+            data.slots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.id;
+                option.textContent = slot.time_slot;
+                appointmentSlotSelect.appendChild(option);
+            });
+        } else {
+            console.error('Failed to load appointment slots:', data.error);
+            appointmentSlotSelect.innerHTML = '<option>Error loading slots</option>';
+        }
+    } catch (error) {
+        console.error('Error loading appointment slots:', error);
+        appointmentSlotSelect.innerHTML = '<option>Error loading slots</option>';
+    }
+}
+
 if (appointmentModal) {
-    const openAppointmentModal = () => { appointmentModal.classList.remove('hidden'); setTimeout(() => { appointmentModal.style.opacity = '1'; appointmentModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+    const openAppointmentModal = () => { 
+        appointmentModal.classList.remove('hidden'); 
+        setTimeout(() => { 
+            appointmentModal.style.opacity = '1'; 
+            appointmentModalContent.classList.remove('scale-95', 'opacity-0'); 
+        }, 10); 
+        loadAppointmentSlots(); // Load slots when the modal is opened
+    };
     const closeAppointmentModal = () => { appointmentModalContent.classList.add('scale-95', 'opacity-0'); appointmentModal.style.opacity = '0'; setTimeout(() => appointmentModal.classList.add('hidden'), 300); };
     joinWalkInBtn.addEventListener('click', () => { closeAppointmentModal(); setTimeout(() => { window.location.href = '/status'; }, 350); });
     bookAppointmentBtn.addEventListener('click', () => {
@@ -314,7 +352,14 @@ if (statusForm) {
             if (isFirstTimeTestUser) {
                 isFirstTimeTestUser = false;
                 const closeStatusModal = () => { statusModalContent.classList.add('scale-95', 'opacity-0'); statusModal.style.opacity = '0'; setTimeout(() => { statusModal.classList.add('hidden'); otpInputContainer.classList.add('hidden'); checkStatusSubmitBtn.classList.add('hidden'); getOtpBtn.classList.remove('hidden'); statusForm.reset(); }, 300); };
-                const openAppointmentModal = () => { appointmentModal.classList.remove('hidden'); setTimeout(() => { appointmentModal.style.opacity = '1'; appointmentModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+                const openAppointmentModal = () => { 
+                    appointmentModal.classList.remove('hidden'); 
+                    setTimeout(() => { 
+                        appointmentModal.style.opacity = '1'; 
+                        appointmentModalContent.classList.remove('scale-95', 'opacity-0'); 
+                    }, 10); 
+                    loadAppointmentSlots(); // Load slots when the modal is opened
+                };
                 closeStatusModal();
                 setTimeout(openAppointmentModal, 350);
             } else {

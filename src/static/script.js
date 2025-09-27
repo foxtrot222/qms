@@ -87,7 +87,47 @@ if (generateTokenBtn) {
     generateTokenBtn.addEventListener('click', (e) => { e.preventDefault(); openTokenModal(); });
     closeModalBtn.addEventListener('click', closeTokenModal);
     tokenModal.addEventListener('click', (e) => { if (e.target === tokenModal) closeTokenModal(); });
-    tokenForm.addEventListener('submit', (e) => { e.preventDefault(); const submitButton = e.target.querySelector('button[type="submit"]'); submitButton.textContent = 'Token Sent!'; submitButton.classList.replace('bg-blue-600', 'bg-green-500'); submitButton.classList.replace('hover:bg-blue-700', 'bg-green-500'); setTimeout(() => { closeTokenModal(); tokenForm.reset(); setTimeout(() => { submitButton.textContent = 'Generate Token'; submitButton.classList.replace('bg-green-500', 'bg-blue-600'); submitButton.classList.add('hover:bg-blue-700'); }, 500); }, 2000); });
+    tokenForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.textContent = 'Generating...';
+        submitButton.disabled = true;
+
+        const formData = new FormData(tokenForm);
+
+        try {
+            const response = await fetch('/generate_token', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                submitButton.textContent = `Your Token: ${data.token}`;
+                submitButton.classList.replace('bg-blue-600', 'bg-green-500');
+                submitButton.classList.replace('hover:bg-blue-700', 'bg-green-500');
+                setTimeout(() => {
+                    closeTokenModal();
+                    tokenForm.reset();
+                    submitButton.textContent = originalButtonText;
+                    submitButton.classList.replace('bg-green-500', 'bg-blue-600');
+                    submitButton.classList.add('hover:bg-blue-700');
+                    submitButton.disabled = false;
+                }, 5000); // Keep the token displayed for 5 seconds
+            } else {
+                alert(`Error: ${data.error}`);
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error generating token:', error);
+            alert('An error occurred while generating the token.');
+            submitButton.textContent = originalButtonText;
+            submitButton.disabled = false;
+        }
+    });
 }
 
 // === Status Check Modal Logic ===

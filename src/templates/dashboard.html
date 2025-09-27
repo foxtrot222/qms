@@ -70,13 +70,9 @@
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Queue Status</h2>
                         <div class="mb-4">
                             <span class="font-semibold text-gray-700">Now Serving:</span>
-                            <span id="nowServingToken" class="text-lg md:text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md ml-2">C-07</span>
+                            <span id="nowServingToken" class="text-lg md:text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md ml-2"></span>
                         </div>
                         <ul id="queueList" class="space-y-2 h-40 overflow-y-auto pr-2">
-                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-08</span><span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">CHECKED-IN</span></li>
-                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-09</span><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full">IN LINE</span></li>
-                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">A-02 (Appt)</span><span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">LATE (-2)</span></li>
-                            <li class="flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200"><span class="font-medium text-gray-700">C-10</span><span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full">IN LINE</span></li>
                         </ul>
                     </div>
                 </div>
@@ -84,7 +80,7 @@
                 <!-- Middle Section: Action Buttons -->
                 <div class="flex-grow flex items-center justify-center py-6">
                      <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        <button class="w-full sm:w-auto bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Complete Service</button>
+                        <button id="completeServiceBtn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Complete Service</button>
                         
                         
                     </div>

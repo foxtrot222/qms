@@ -231,16 +231,94 @@ if (accessDashboardBtn) {
 
 
 
+const completeServiceBtn = document.getElementById('completeServiceBtn');
+
+let seconds = 0;
+
+if (completeServiceBtn) {
+    completeServiceBtn.addEventListener('click', async () => {
+        try {
+            const formData = new FormData();
+            formData.append('service_time', seconds);
+
+            const response = await fetch('/complete_service', { 
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                loadQueue(); // Refresh the queue
+                startCustomerTimer(); // Restart the timer
+            } else {
+                console.error('Failed to complete service:', data.error);
+                alert('Failed to complete service.');
+            }
+        } catch (error) {
+            console.error('Error completing service:', error);
+            alert('An error occurred while completing the service.');
+        }
+    });
+}
+
 // === Officer Dashboard Logic ===
 const customerTimerEl = document.getElementById('customerTimer');
 const callNextBtn = document.getElementById('callNextBtn');
 const customerCountEl = document.getElementById('customerCount');
+const nowServingToken = document.getElementById('nowServingToken');
+const queueList = document.getElementById('queueList');
+
+async function loadQueue() {
+    try {
+        const response = await fetch('/get_queue');
+        const data = await response.json();
+
+        if (data.success) {
+            queueList.innerHTML = ''; // Clear existing list
+
+            const servingNow = data.queue.find(customer => customer.position === 0);
+            if (servingNow) {
+                nowServingToken.textContent = servingNow.token_value;
+            } else {
+                nowServingToken.textContent = '---';
+            }
+
+            const inQueue = data.queue.filter(customer => customer.position > 0);
+            inQueue.forEach(customer => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200';
+                
+                const tokenSpan = document.createElement('span');
+                tokenSpan.className = 'font-medium text-gray-700';
+                tokenSpan.textContent = customer.token_value;
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full';
+                statusSpan.textContent = 'IN LINE';
+
+                li.appendChild(tokenSpan);
+                li.appendChild(statusSpan);
+                queueList.appendChild(li);
+            });
+
+            if(customerCountEl) customerCountEl.textContent = inQueue.length;
+
+        } else {
+            console.error('Failed to load queue:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading queue:', error);
+    }
+}
+
+let timerInterval;
+function formatTime(sec) { const minutes = Math.floor(sec / 60).toString().padStart(2, '0'); const secondsValue = (sec % 60).toString().padStart(2, '0'); return `${minutes}:${secondsValue}`; }
+function startCustomerTimer() { if (timerInterval) clearInterval(timerInterval); seconds = 0; if(customerTimerEl) customerTimerEl.textContent = formatTime(seconds); timerInterval = setInterval(() => { seconds++; if(customerTimerEl) customerTimerEl.textContent = formatTime(seconds); }, 1000); }
+
 if (customerTimerEl) {
-    let timerInterval; let seconds = 0;
-    function formatTime(sec) { const minutes = Math.floor(sec / 60).toString().padStart(2, '0'); const secondsValue = (sec % 60).toString().padStart(2, '0'); return `${minutes}:${secondsValue}`; }
-    function startCustomerTimer() { if (timerInterval) clearInterval(timerInterval); seconds = 0; customerTimerEl.textContent = formatTime(seconds); timerInterval = setInterval(() => { seconds++; customerTimerEl.textContent = formatTime(seconds); }, 1000); }
+    loadQueue(); // Load the queue on page load
     startCustomerTimer();
-    callNextBtn.addEventListener('click', () => { const nowServing = document.getElementById('nowServingToken'); const queueList = document.getElementById('queueList'); const nextCustomer = queueList.querySelector('li'); if (nextCustomer) { nowServing.textContent = nextCustomer.querySelector('span:first-child').textContent; nextCustomer.remove(); customerCountEl.textContent = queueList.children.length; } else { nowServing.textContent = "---"; customerCountEl.textContent = 0; } startCustomerTimer(); });
+    if(callNextBtn) callNextBtn.addEventListener('click', () => { const nowServing = document.getElementById('nowServingToken'); const queueList = document.getElementById('queueList'); const nextCustomer = queueList.querySelector('li'); if (nextCustomer) { nowServing.textContent = nextCustomer.querySelector('span:first-child').textContent; nextCustomer.remove(); customerCountEl.textContent = queueList.children.length; } else { nowServing.textContent = "---"; customerCountEl.textContent = 0; } startCustomerTimer(); });
 }
 
 

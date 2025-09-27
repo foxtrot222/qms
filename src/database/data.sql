@@ -16,13 +16,33 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Dumping data for table `appointment`
+--
+
+LOCK TABLES `appointment` WRITE;
+/*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
+INSERT INTO `appointment` VALUES (1,'10:00:00',1,1,'2025-09-27 12:27:58','2025-09-27 12:27:58'),(3,'10:30:00',1,3,'2025-09-27 12:27:58','2025-09-27 12:27:58'),(5,'11:00:00',1,5,'2025-09-27 12:27:58','2025-09-27 12:27:58'),(7,'11:30:00',0,NULL,'2025-09-27 12:32:28','2025-09-27 12:32:28'),(9,'12:00:00',0,NULL,'2025-09-27 12:32:28','2025-09-27 12:32:28'),(11,'12:30:00',0,NULL,'2025-09-27 12:32:28','2025-09-27 12:32:28');
+/*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Dumping data for table `customer`
 --
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-INSERT INTO `customer` VALUES (1,'John','email@example.com',1,1,'2025-09-27 09:11:16','2025-09-27 09:11:16'),(3,'Doe','doe@g.com',3,3,'2025-09-27 09:12:11','2025-09-27 09:12:11'),(5,'asdsa','asdsa@sd',3,5,'2025-09-27 09:12:51','2025-09-27 09:12:51');
+INSERT INTO `customer` VALUES (1,'Aarav Sharma','email@example.com',1,1,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(3,'Rohan Verma','email@example.com',5,3,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(5,'Kabir Nair','email@example.com',3,5,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(6,'Meera Joshi','email@example.com',5,6,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(7,'Alice Johnson','alice@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03'),(9,'Bob Smith','bob@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03'),(11,'Charlie Lee','charlie@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03');
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `logs`
+--
+
+LOCK TABLES `logs` WRITE;
+/*!40000 ALTER TABLE `logs` DISABLE KEYS */;
+INSERT INTO `logs` VALUES (1,'00:00:04');
+/*!40000 ALTER TABLE `logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -51,8 +71,18 @@ UNLOCK TABLES;
 
 LOCK TABLES `token` WRITE;
 /*!40000 ALTER TABLE `token` DISABLE KEYS */;
-INSERT INTO `token` VALUES (1,'A01',1,'2025-09-27 09:11:16','2025-09-27 09:11:16'),(3,'A02',3,'2025-09-27 09:12:11','2025-09-27 09:12:11'),(5,'A03',5,'2025-09-27 09:12:51','2025-09-27 09:12:51');
+INSERT INTO `token` VALUES (1,'A00',1,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(3,'A02',3,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(5,'A04',5,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(6,'A05',6,'walkin','2025-09-27 12:27:21','2025-09-27 12:27:21'),(19,'B01',7,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44'),(21,'B02',9,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44'),(23,'B03',11,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44');
 /*!40000 ALTER TABLE `token` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `walkin`
+--
+
+LOCK TABLES `walkin` WRITE;
+/*!40000 ALTER TABLE `walkin` DISABLE KEYS */;
+INSERT INTO `walkin` VALUES (5,0,6,'00:00:00','2025-09-27 12:28:03','2025-09-27 13:36:46'),(13,1,19,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53'),(15,2,21,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53'),(17,3,23,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53');
+/*!40000 ALTER TABLE `walkin` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -64,4 +94,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-27 14:43:40
+-- Dump completed on 2025-09-27 19:14:46

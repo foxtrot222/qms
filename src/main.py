@@ -319,8 +319,38 @@ def complete_service():
             # Update the positions of the remaining customers
             cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
 
-            conn.commit()
-            logging.info(f"Service completed for token_id: {token_id}")
+        # Recalculate ETR
+        cursor.execute("SELECT log FROM logs")
+        logs = cursor.fetchall()
+        
+        total_seconds_served = 0
+        num_logs = len(logs)
+        for log in logs:
+            log_time = log['log']
+            total_seconds_served += log_time.total_seconds()
+
+        if num_logs > 0:
+            avg_service_time_seconds = total_seconds_served / num_logs
+        else:
+            avg_service_time_seconds = 180 # Default to 3 minutes if no logs
+
+        total_deviation = 0
+        for log in logs:
+            log_time = log['log']
+            total_deviation += log_time.total_seconds() - avg_service_time_seconds
+
+        cursor.execute("SELECT id, position FROM walkin ORDER BY position")
+        queue = cursor.fetchall()
+
+        for customer in queue:
+            etr_seconds = (avg_service_time_seconds * customer['position']) + total_deviation
+            if etr_seconds < 0:
+                etr_seconds = 0
+            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_seconds))
+            cursor.execute("UPDATE walkin SET ETR = %s WHERE id = %s", (etr_formatted, customer['id']))
+
+        conn.commit()
+        logging.info(f"Service completed and ETR updated.")
 
         cursor.close()
         conn.close()

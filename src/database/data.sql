@@ -31,7 +31,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-INSERT INTO `customer` VALUES (1,'Aarav Sharma','email@example.com',1,1,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(2,'Diya Patel','email@example.com',3,2,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(3,'Rohan Verma','email@example.com',5,3,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(4,'Anaya Iyer','email@example.com',1,4,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(5,'Kabir Nair','email@example.com',3,5,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(6,'Meera Joshi','email@example.com',5,6,'2025-09-27 12:27:16','2025-09-27 12:27:54');
+INSERT INTO `customer` VALUES (1,'Aarav Sharma','email@example.com',1,1,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(3,'Rohan Verma','email@example.com',5,3,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(5,'Kabir Nair','email@example.com',3,5,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(6,'Meera Joshi','email@example.com',5,6,'2025-09-27 12:27:16','2025-09-27 12:27:54'),(7,'Alice Johnson','alice@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03'),(9,'Bob Smith','bob@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03'),(11,'Charlie Lee','charlie@example.com',1,NULL,'2025-09-27 13:40:03','2025-09-27 13:40:03');
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -41,6 +41,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `logs` WRITE;
 /*!40000 ALTER TABLE `logs` DISABLE KEYS */;
+INSERT INTO `logs` VALUES (1,'00:00:04');
 /*!40000 ALTER TABLE `logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -70,7 +71,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `token` WRITE;
 /*!40000 ALTER TABLE `token` DISABLE KEYS */;
-INSERT INTO `token` VALUES (1,'A00',1,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(2,'A01',2,'walkin','2025-09-27 12:27:21','2025-09-27 12:27:21'),(3,'A02',3,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(4,'A03',4,'walkin','2025-09-27 12:27:21','2025-09-27 12:27:21'),(5,'A04',5,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(6,'A05',6,'walkin','2025-09-27 12:27:21','2025-09-27 12:27:21');
+INSERT INTO `token` VALUES (1,'A00',1,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(3,'A02',3,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(5,'A04',5,'appointment','2025-09-27 12:27:21','2025-09-27 12:27:21'),(6,'A05',6,'walkin','2025-09-27 12:27:21','2025-09-27 12:27:21'),(19,'B01',7,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44'),(21,'B02',9,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44'),(23,'B03',11,'walkin','2025-09-27 13:41:44','2025-09-27 13:41:44');
 /*!40000 ALTER TABLE `token` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -80,7 +81,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `walkin` WRITE;
 /*!40000 ALTER TABLE `walkin` DISABLE KEYS */;
-INSERT INTO `walkin` VALUES (1,0,2,'2025-09-27 12:28:03','2025-09-27 12:29:59'),(3,1,4,'2025-09-27 12:28:03','2025-09-27 12:29:59'),(5,2,6,'2025-09-27 12:28:03','2025-09-27 12:29:59');
+INSERT INTO `walkin` VALUES (5,0,6,'00:00:00','2025-09-27 12:28:03','2025-09-27 13:36:46'),(13,1,19,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53'),(15,2,21,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53'),(17,3,23,'00:00:00','2025-09-27 13:43:53','2025-09-27 13:43:53');
 /*!40000 ALTER TABLE `walkin` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -93,4 +94,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-27 18:18:37
+-- Dump completed on 2025-09-27 19:14:46

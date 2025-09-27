@@ -87,7 +87,7 @@ def login():
 
         if officer and check_password_hash(officer['password'], officerPassword):
             # Set session for dashboard access
-            session['user_id'] = officer['id']
+            session['officer_id'] = officer['officerID']
             session['username'] = officer['name']
 
             # Send JSON for JS redirect
@@ -107,12 +107,13 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    if "user_id" not in session:
+    if "officer_id" not in session:
         flash("You must login first.", "error")
         return redirect(url_for("home"))
 
     officer_name = session.get('username')
-    return render_template("dashboard.html", officer_name=officer_name)
+    officer_id = session.get('officer_id')
+    return render_template("dashboard.html", officer_name=officer_name, officer_id=officer_id)
 
 
 @app.route("/logout")

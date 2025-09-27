@@ -304,8 +304,9 @@ if (appointmentModal) {
 // === Status Page Logic ===
 const etrTimerEl = document.getElementById('etrTimer');
 const etrMessageEl = document.getElementById('etrMessage');
-const checkInBtn = document.getElementById('checkInBtn');
+
 const viewMapBtn = document.getElementById('viewMapBtn');
+console.log({viewMapBtn});
 
 if (etrTimerEl) {
     function formatTime(sec) { const minutes = Math.floor(sec / 60).toString().padStart(2, '0'); const secondsValue = (sec % 60).toString().padStart(2, '0'); return `${minutes}:${secondsValue}`; }
@@ -317,7 +318,7 @@ if (etrTimerEl) {
             if (--timer < 0) { clearInterval(etrTimerInterval); etrTimerEl.textContent = "00:00"; etrMessageEl.textContent = "It's your turn!"; }
         }, 1000);
     }
-    checkInBtn.addEventListener('click', () => { checkInBtn.textContent = 'Checked-in Successfully!'; checkInBtn.classList.replace('bg-green-500', 'bg-green-600'); checkInBtn.disabled = true; });
+    
     
     // Dummy data for demonstration
     const data = { name: 'John Doe', contact: '909******', service: 'General Inquiry', position: '3rd in line', etr: 15 * 60 };
@@ -334,7 +335,14 @@ const mapModal = document.getElementById('mapModal');
 const mapModalContent = document.getElementById('map-modal-content');
 const closeMapModalBtn = document.getElementById('closeMapModalBtn');
 if (viewMapBtn) {
-    const openMapModal = () => { mapModal.classList.remove('hidden'); setTimeout(() => { mapModal.style.opacity = '1'; mapModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+    const openMapModal = () => { 
+        console.log("viewMapBtn clicked");
+        mapModal.classList.remove('hidden'); 
+        setTimeout(() => { 
+            mapModal.style.opacity = '1'; 
+            mapModalContent.classList.remove('scale-95', 'opacity-0'); 
+        }, 10); 
+    };
     const closeMapModal = () => { mapModalContent.classList.add('scale-95', 'opacity-0'); mapModal.style.opacity = '0'; setTimeout(() => mapModal.classList.add('hidden'), 300); };
     viewMapBtn.addEventListener('click', openMapModal);
     closeMapModalBtn.addEventListener('click', closeMapModal);

@@ -23,9 +23,7 @@
                     </div>
                     <!-- Desktop Navigation Links -->
                     <div class="hidden md:flex items-center space-x-8">
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">About</a>
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Help</a>
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition duration-300">Contact</a>
+                        
                         <a href="#" id="orgNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Organization</a>
                         <a href="/status" id="statusNavBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
                     </div>
@@ -38,9 +36,7 @@
                 </div>
                  <!-- Mobile Menu -->
                 <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
-                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">About</a>
-                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Help</a>
-                    <a href="#" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Contact</a>
+                    
                     <a href="#" id="orgNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Organization</a>
                     <a href="/status" id="statusNavBtnMobile" class="block bg-blue-500 text-white text-center px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
                 </div>
@@ -49,10 +45,17 @@
 
         <!-- Officer Dashboard Section -->
         <main id="dashboardPage" class="flex-grow container mx-auto px-6 pt-24 pb-16">
-            <!-- Welcome Message -->
-            <div class="mb-6">
-                <h1 class="text-xl font-bold">Hello {{ officer_name }}! You are logged in.</h1>
-            </div>
+            <!-- Dashboard Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-4">
+    <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ officer_name }}</h1>
+        <p class="text-gray-600">Officer ID: {{ officer_id }}</p>
+    </div>
+    <button id="logoutBtn" class="mt-3 sm:mt-0 w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-2 hover:bg-gray-300 transition-colors flex items-center justify-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        Logout
+    </button>
+</div>
             <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full h-full flex flex-col" style="min-height: 80vh;">
                 <!-- Top Section: Timer and Queue -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 border-b pb-6 mb-6">
@@ -60,7 +63,7 @@
                     <div class="bg-gray-50 p-6 rounded-lg text-center flex flex-col justify-center items-center border border-gray-200">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Current Service Time</h2>
                         <div id="customerTimer" class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">00:00</div>
-                        <button id="callNextBtn" class="w-full bg-green-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-md">Call Next Customer</button>
+                        
                     </div>
                     <!-- Right: Queue Status -->
                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -82,16 +85,12 @@
                 <div class="flex-grow flex items-center justify-center py-6">
                      <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                         <button class="w-full sm:w-auto bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Complete Service</button>
-                        <button class="w-full sm:w-auto bg-yellow-500 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-yellow-600 transition transform hover:scale-105 shadow-lg">Mark as Late</button>
-                        <button class="w-full sm:w-auto bg-red-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-red-700 transition transform hover:scale-105 shadow-lg">Mark as No-show</button>
+                        
+                        
                     </div>
                 </div>
         
-                <!-- Bottom Bar: Info -->
-                <div class="border-t pt-4 mt-6 flex flex-col sm:flex-.row justify-between items-center text-sm text-gray-600 space-y-2 sm:space-y-0">
-                    <div><span class="font-semibold">Customers in Line:</span> <span id="customerCount">4</span></div>
-                    <div><span class="font-semibold">Officer:</span> <span id="officerName">Jane Doe (ID: test)</span></div>
-                </div>
+                
             </div>
         </main>
     </div>

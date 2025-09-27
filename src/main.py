@@ -4,40 +4,41 @@ import os
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Path for the file that stores the last token
-LAST_TOKEN_FILE = os.path.join(os.path.dirname(__file__), 'last_token.txt')
-
-def get_last_token():
-    """Reads the last token from the file."""
-    try:
-        with open(LAST_TOKEN_FILE, 'r') as f:
-            return f.read().strip()
-    except FileNotFoundError:
-        return 'A00'  # Default starting token
-
-def save_last_token(token):
-    """Saves the last token to the file."""
-    with open(LAST_TOKEN_FILE, 'w') as f:
-        f.write(token)
-
 def generate_next_token():
-    """Generates the next token."""
-    last_token = get_last_token()
-    
-    letter = last_token[0]
-    number = int(last_token[1:])
-    
-    if number < 99:
-        number += 1
-    else:
-        number = 0
-        letter = chr(ord(letter) + 1)
-        if letter > 'Z':
-            letter = 'A' # Or handle overflow as needed
-            
-    new_token = f"{letter}{number:02d}"
-    save_last_token(new_token)
-    return new_token
+    """Generates the next token based on the last one in the database."""
+    conn = get_db_connection()
+    if not conn:
+        # Handle connection error, maybe return a default or raise an exception
+        return 'A00' 
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
+        last_token_record = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not last_token_record:
+            return 'A00'
+
+        last_token = last_token_record['value']
+        letter = last_token[0]
+        number = int(last_token[1:])
+
+        if number < 99:
+            number += 1
+        else:
+            number = 0
+            letter = chr(ord(letter) + 1)
+            if letter > 'Z':
+                letter = 'A'  # Or handle overflow
+
+        return f"{letter}{number:02d}"
+
+    except mysql.connector.Error as err:
+        print("Database query for last token failed:", err)
+        # Handle error, maybe return a default or raise an exception
+        return 'A00'
 
 # Load the .env file
 load_dotenv()

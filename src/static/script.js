@@ -145,6 +145,7 @@ const checkStatusSubmitBtn = document.getElementById('checkStatusSubmitBtn');
 if (checkStatusBtn) {
     const openStatusModal = () => { statusModal.classList.remove('hidden'); setTimeout(() => { statusModal.style.opacity = '1'; statusModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
     const closeStatusModal = () => { statusModalContent.classList.add('scale-95', 'opacity-0'); statusModal.style.opacity = '0'; setTimeout(() => { statusModal.classList.add('hidden'); otpInputContainer.classList.add('hidden'); checkStatusSubmitBtn.classList.add('hidden'); getOtpBtn.classList.remove('hidden'); statusForm.reset(); }, 300); };
+    const mobileMenu = document.getElementById('mobileMenu');
     checkStatusBtn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); });
     statusNavBtn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); });
     statusNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); mobileMenu.classList.add('hidden'); });
@@ -365,3 +366,46 @@ document.addEventListener("DOMContentLoaded", () => {
         officerNameEl.textContent = `${officerName} (ID: ${officerId || ''})`;
     }
 });
+
+document.getElementById("getOtpBtn").addEventListener("click", async () => {
+    const token = document.getElementById("token").value;
+    if (!token) return alert("Enter your token first");
+
+    const email = document.getElementById("emailAddress")?.value; // optional if needed
+
+    const response = await fetch("/request_otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        alert("OTP sent to your email");
+        document.getElementById("otpInputContainer").classList.remove("hidden");
+        document.getElementById("checkStatusSubmitBtn").classList.remove("hidden");
+    } else {
+        alert(data.error || "Failed to send OTP");
+    }
+});
+
+document.getElementById("checkStatusSubmitBtn").addEventListener("click", async () => {
+    const token = document.getElementById("token").value;
+    const otp = document.getElementById("otp").value;
+
+    const response = await fetch("/verify_otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, otp })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        alert("OTP verified! Redirecting to status page...");
+        window.location.href = "/status";
+    } else {
+        alert(data.error || "Invalid OTP");
+    }
+});
+
+

@@ -3,6 +3,19 @@ from dotenv import load_dotenv
 import os
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
+from email_utils import send_token_email
+import random
+from datetime import datetime, timedelta
+
+def generate_otp(length=6):
+    """Generates a numeric OTP of given length."""
+    return ''.join([str(random.randint(0, 9)) for _ in range(length)])
+
+def send_otp_email(to_email: str, otp: str):
+    """Sends the OTP email using your existing send_token_email function."""
+    from email_utils import send_token_email
+    send_token_email(otp, to_email)  # Reuse your existing email function
+
 
 def generate_next_token():
     """Generates the next token based on the last one in the database."""
@@ -43,6 +56,10 @@ def generate_next_token():
 # Load the .env file
 load_dotenv()
 
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL")
+FROM_NAME = os.getenv("FROM_NAME", "App")
+
 app = Flask(__name__)
 
 # Access values from .env
@@ -67,7 +84,7 @@ def get_db_connection():
 # Home Page
 def home():
     return render_template("index.html")
-
+    
 @app.route('/login', methods=['POST'])
 def login():
     conn = get_db_connection()  # Use the new function for database connection
@@ -179,12 +196,95 @@ def generate_token_route():
         cursor.close()
         conn.close()
 
+        # Send email here
+        try:
+            send_token_email(email,new_token_value)
+        except Exception as e:
+            print("Failed to send email:", e)
+
         return jsonify({"success": True, "token": new_token_value})
 
     except mysql.connector.Error as err:
         print("Database query failed:", err)
         conn.rollback()
         return jsonify({"success": False, "error": "Database error occurred."})
+
+@app.route("/request_otp", methods=['POST'])
+def request_otp():
+    email = request.form.get('email')
+    token = request.form.get('token')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Verify email + token
+    cursor.execute("""
+        SELECT c.id AS customer_id
+        FROM customer c
+        JOIN token t ON c.token_id = t.id
+        WHERE c.email=%s AND t.value=%s
+    """, (email, token))
+    customer = cursor.fetchone()
+
+    if not customer:
+        return jsonify({"success": False, "error": "Invalid email or token."})
+
+    # Generate OTP and expiry
+    otp_code = generate_otp()
+    expires_at = datetime.now() + timedelta(minutes=5)
+
+    # Save OTP to DB
+    cursor.execute("""
+        INSERT INTO otp_verification (customer_id, otp_code, expires_at)
+        VALUES (%s, %s, %s)
+    """, (customer['customer_id'], otp_code, expires_at))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # Send OTP email
+    try:
+        send_otp_email(email, otp_code)
+    except Exception as e:
+        print("Failed to send OTP email:", e)
+
+    return jsonify({"success": True, "message": "OTP sent to your email."})
+
+@app.route("/verify_otp", methods=['POST'])
+def verify_otp():
+    email = request.form.get('email')
+    otp = request.form.get('otp')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified
+        FROM otp_verification otp
+        JOIN customer c ON otp.customer_id = c.id
+        WHERE c.email=%s AND otp_code=%s
+        ORDER BY otp.id DESC LIMIT 1
+    """, (email, otp))
+
+    record = cursor.fetchone()
+    if not record:
+        return jsonify({"success": False, "error": "Invalid OTP."})
+
+    if record['verified']:
+        return jsonify({"success": False, "error": "OTP already used."})
+
+    if record['expires_at'] < datetime.now():
+        return jsonify({"success": False, "error": "OTP expired."})
+
+    # Mark OTP as verified
+    cursor.execute("UPDATE otp_verification SET verified=TRUE WHERE id=%s", (record['id'],))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # Successful login, set session
+    session['user_id'] = record['customer_id']
+    return jsonify({"success": True, "message": "OTP verified, logged in."})
 
 
 

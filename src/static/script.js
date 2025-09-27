@@ -87,7 +87,6 @@ if (generateTokenBtn) {
     generateTokenBtn.addEventListener('click', (e) => { e.preventDefault(); openTokenModal(); });
     closeModalBtn.addEventListener('click', closeTokenModal);
     tokenModal.addEventListener('click', (e) => { if (e.target === tokenModal) closeTokenModal(); });
-    notificationRadios.forEach(radio => { radio.addEventListener('change', (e) => { smsInputContainer.classList.toggle('hidden', e.target.value !== 'sms'); emailInputContainer.classList.toggle('hidden', e.target.value !== 'email'); }); });
     tokenForm.addEventListener('submit', (e) => { e.preventDefault(); const submitButton = e.target.querySelector('button[type="submit"]'); submitButton.textContent = 'Token Sent!'; submitButton.classList.replace('bg-blue-600', 'bg-green-500'); submitButton.classList.replace('hover:bg-blue-700', 'bg-green-500'); setTimeout(() => { closeTokenModal(); tokenForm.reset(); setTimeout(() => { submitButton.textContent = 'Generate Token'; submitButton.classList.replace('bg-green-500', 'bg-blue-600'); submitButton.classList.add('hover:bg-blue-700'); }, 500); }, 2000); });
 }
 

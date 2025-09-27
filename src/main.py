@@ -88,6 +88,24 @@ def logout():
 def status():
     return render_template("status.html")
 
+@app.route("/get_services")
+def get_services():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+    
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name FROM service ORDER BY name")
+        services = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "services": services})
+    except mysql.connector.Error as err:
+        print("Database query failed:", err)
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+
 
 if __name__ == "__main__":
     # Run the app on the port from .env or default to 5000

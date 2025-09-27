@@ -51,8 +51,38 @@ const notificationRadios = document.querySelectorAll('input[name="notification"]
 const smsInputContainer = document.getElementById('smsInputContainer');
 const emailInputContainer = document.getElementById('emailInputContainer');
 
+const serviceSelect = document.getElementById('service');
+
+async function loadServices() {
+    try {
+        const response = await fetch('/get_services');
+        const data = await response.json();
+
+        if (data.success) {
+            serviceSelect.innerHTML = ''; // Clear existing options
+            data.services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = service.name;
+                serviceSelect.appendChild(option);
+            });
+        } else {
+            console.error('Failed to load services:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading services:', error);
+    }
+}
+
 if (generateTokenBtn) {
-    const openTokenModal = () => { tokenModal.classList.remove('hidden'); setTimeout(() => { tokenModal.style.opacity = '1'; modalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+    const openTokenModal = () => {
+        tokenModal.classList.remove('hidden');
+        setTimeout(() => {
+            tokenModal.style.opacity = '1';
+            modalContent.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+        loadServices(); // Load services when the modal is opened
+    };
     const closeTokenModal = () => { modalContent.classList.add('scale-95', 'opacity-0'); tokenModal.style.opacity = '0'; setTimeout(() => tokenModal.classList.add('hidden'), 300); };
     generateTokenBtn.addEventListener('click', (e) => { e.preventDefault(); openTokenModal(); });
     closeModalBtn.addEventListener('click', closeTokenModal);

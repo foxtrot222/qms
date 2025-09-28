@@ -382,58 +382,55 @@ def get_queue():
 @app.route("/complete_service", methods=['POST'])
 def complete_service():
     logging.info("Attempting to complete a service.")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
     try:
         service_time_seconds = int(request.form.get('service_time', 0))
-        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+        if service_time_seconds > 1: # Log only realistic times
+            service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+            cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
 
-        conn = get_db_connection()
-        if not conn:
-            logging.error("Database connection failed.")
-            return jsonify({"success": False, "error": "Database connection failed."})
-        
-        cursor = conn.cursor(dictionary=True)
-
-        # Log the service time
-        cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
-
-        # Find the customer with position 0
-        cursor.execute("SELECT id, token_id FROM walkin WHERE position = 0")
+        # Find the customer being served
+        cursor.execute("SELECT token_id FROM walkin WHERE position = 0")
         serving = cursor.fetchone()
 
         if serving:
-            walkin_id = serving['id']
-            token_id = serving['token_id']
+            token_id_to_delete = serving['token_id']
+            # Remove references from child tables first
+            cursor.execute("DELETE FROM walkin WHERE token_id = %s", (token_id_to_delete,))
+            cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
+            # Now delete the token, which should cascade to customer
+            cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
 
-            # Delete the walkin record first
-            cursor.execute("DELETE FROM walkin WHERE id = %s", (walkin_id,))
+        # Shift the entire queue up
+        cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
 
-            # Find the customer associated with the token
-            cursor.execute("SELECT id FROM customer WHERE token_id = %s", (token_id,))
-            customer = cursor.fetchone()
-            
-            if customer:
-                customer_id = customer['id']
-                # Deleting the customer will cascade to the token
-                cursor.execute("DELETE FROM customer WHERE id = %s", (customer_id,))
+        # Recalculate all ETRs for the remaining queue
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time_decimal = avg_time_result['avg_time'] if avg_time_result['avg_time'] and avg_time_result['avg_time'] > 0 else 180
+        avg_service_time = float(avg_service_time_decimal)
 
-            # Update the positions of the remaining customers
-            cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
+        cursor.execute("SELECT id, position FROM walkin ORDER BY position")
+        remaining_queue = cursor.fetchall()
 
-            conn.commit()
-            logging.info(f"Service completed for token_id: {token_id}")
+        for person in remaining_queue:
+            etr_in_seconds = person['position'] * avg_service_time
+            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+            cursor.execute("UPDATE walkin SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
 
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"An unexpected error occurred in complete_service: {e}")
+        return jsonify({"success": False, "error": str(e)})
+    finally:
         cursor.close()
         conn.close()
 
-        return jsonify({"success": True})
-
-    except mysql.connector.Error as err:
-        logging.error(f"Database query failed: {err}")
-        conn.rollback()
-        return jsonify({"success": False, "error": "Database error occurred."})
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        return jsonify({"success": False, "error": "An unexpected error occurred."})
+    return jsonify({"success": True})
 
 
 @app.route('/get_available_slots', methods=['GET'])
@@ -463,20 +460,27 @@ def join_walkin():
             return jsonify({"success": False, "error": "Invalid token."})
         token_id = token_record['id']
 
-        # Check if anyone is being served (position 0)
+        # Calculate average service time from logs (defaults to 3 minutes if no logs)
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else 180
+
+        # Determine position
         cursor.execute("SELECT id FROM walkin WHERE position = 0")
         serving_now = cursor.fetchone()
-
         if not serving_now:
-            # If no one is being served, this person is next (position 0)
             next_pos = 0
         else:
-            # Otherwise, add to the end of the queue
             cursor.execute("SELECT MAX(position) as max_pos FROM walkin")
             max_pos_record = cursor.fetchone()
             next_pos = (max_pos_record['max_pos'] or 0) + 1
 
-        cursor.execute("INSERT INTO walkin (token_id, position) VALUES (%s, %s)", (token_id, next_pos))
+        # Calculate ETR (number of people ahead * avg service time)
+        etr_in_seconds = next_pos * avg_service_time
+        etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+
+        # Insert into walkin table
+        cursor.execute("INSERT INTO walkin (token_id, position, ETR) VALUES (%s, %s, %s)", (token_id, next_pos, etr_formatted))
         cursor.execute("UPDATE token SET type = 'walkin' WHERE id = %s", (token_id,))
         conn.commit()
     except Exception as e:

@@ -1,58 +1,27 @@
-from flask import Flask, request, render_template, redirect, url_for, session, flash , jsonify
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from dotenv import load_dotenv
 import os
 import mysql.connector
-import datetime
-import time
 from werkzeug.security import generate_password_hash, check_password_hash
+from email_utils import send_token_email
+import random
+from datetime import datetime, timedelta
 
-def generate_next_token():
-    """Generates the next token based on the last one in the database."""
-    conn = get_db_connection()
-    if not conn:
-        # Handle connection error, maybe return a default or raise an exception
-        return 'A00' 
-
-    try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
-        last_token_record = cursor.fetchone()
-        cursor.close()
-        conn.close()
-
-        if not last_token_record:
-            return 'A00'
-
-        last_token = last_token_record['value']
-        letter = last_token[0]
-        number = int(last_token[1:])
-
-        if number < 99:
-            number += 1
-        else:
-            number = 0
-            letter = chr(ord(letter) + 1)
-            if letter > 'Z':
-                letter = 'A'  # Or handle overflow
-
-        return f"{letter}{number:02d}"
-
-    except mysql.connector.Error as err:
-        print("Database query for last token failed:", err)
-        # Handle error, maybe return a default or raise an exception
-        return 'A00'
-
-# Load the .env file
+# Load environment variables
 load_dotenv()
 
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL")
+FROM_NAME = os.getenv("FROM_NAME", "App")
+
 app = Flask(__name__)
-
-# Access values from .env
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
-port = int(os.getenv("PORT", 5000))  # Default to 5000 if PORT is not set in the .env
+port = int(os.getenv("PORT", 5000))
 
-# Define the database connection function
+# ------------------- Helper Functions -------------------
+
 def get_db_connection():
+    """Establishes a database connection."""
     try:
         conn = mysql.connector.connect(
             host="localhost",
@@ -65,14 +34,68 @@ def get_db_connection():
         print(f"Database connection failed: {e}")
         return None
 
+def generate_otp(length=6):
+    """Generates a numeric OTP of given length."""
+    return ''.join([str(random.randint(0, 9)) for _ in range(length)])
+
+def send_otp_email(to_email: str, otp: str):
+    """Sends the OTP email using existing email function."""
+    send_token_email(otp, to_email)
+
+def generate_next_token():
+    """Generates the next token based on the last token in the database."""
+    conn = get_db_connection()
+    if not conn:
+        return 'A00'
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
+        last_token_record = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if not last_token_record:
+            return 'A00'
+        last_token = last_token_record['value']
+        letter = last_token[0]
+        number = int(last_token[1:])
+        if number < 99:
+            number += 1
+        else:
+            number = 0
+            letter = chr(ord(letter) + 1)
+            if letter > 'Z':
+                letter = 'A'
+        return f"{letter}{number:02d}"
+    except mysql.connector.Error as err:
+        print("Database query for last token failed:", err)
+        return 'A00'
+
+# ------------------- Cleanup Expired OTPs -------------------
+
+@app.before_request
+def cleanup_expired_otps():
+    """Automatically deletes expired OTPs before each request."""
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM otp_verification WHERE expires_at < NOW()")
+            conn.commit()
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        print("Failed to cleanup expired OTPs:", e)
+
+# ------------------- Routes -------------------
+
 @app.route("/")
-# Home Page
 def home():
     return render_template("index.html")
 
+# Officer Login
 @app.route('/login', methods=['POST'])
 def login():
-    conn = get_db_connection()  # Use the new function for database connection
+    conn = get_db_connection()
     officerId = request.form.get('officerId')
     officerPassword = request.form.get('officerPassword')
 
@@ -81,41 +104,27 @@ def login():
 
     try:
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM service_provider WHERE officerID=%s"
-        cursor.execute(query, (officerId,))
+        cursor.execute("SELECT * FROM service_provider WHERE officerID=%s", (officerId,))
         officer = cursor.fetchone()
         cursor.close()
 
         if officer and check_password_hash(officer['password'], officerPassword):
-            # Set session for dashboard access
-            session['officer_id'] = officer['officerID']
+            session['user_id'] = officer['id']
             session['username'] = officer['name']
-
-            # Send JSON for JS redirect
-            return jsonify({
-                "success": True,
-                "redirect": "/dashboard",
-                "officerName": officer['name']
-            })
-
+            return jsonify({"success": True, "redirect": "/dashboard", "officerName": officer['name']})
         else:
             return jsonify({"success": False, "error": "Invalid ID or password."})
-
     except mysql.connector.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
-
 @app.route("/dashboard")
 def dashboard():
-    if "officer_id" not in session:
+    if "user_id" not in session:
         flash("You must login first.", "error")
         return redirect(url_for("home"))
-
     officer_name = session.get('username')
-    officer_id = session.get('officer_id')
-    return render_template("dashboard.html", officer_name=officer_name, officer_id=officer_id)
-
+    return render_template("dashboard.html", officer_name=officer_name)
 
 @app.route("/logout")
 def logout():
@@ -123,16 +132,46 @@ def logout():
     flash("Logged out successfully.", "success")
     return redirect(url_for("home"))
 
-@app.route("/status")
+# Status Page
+@app.route('/status', methods=['GET'])
 def status():
-    return render_template("status.html")
+    """
+    Fetches and displays customer details based on the token stored in session.
+    Removes the need to pass token in query string (?token=...).
+    """
+    # Prefer session token if available
+    token = session.get('verified_token')  # get token from session instead of query params
 
+    if not token:
+        return jsonify({"success": False, "error": "Token is required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch customer details
+    cursor.execute("""
+        SELECT c.name, c.email AS contact, s.name AS service
+        FROM customer c
+        JOIN token t ON c.token_id = t.id
+        JOIN service s ON c.service_id = s.id
+        WHERE t.value=%s
+    """, (token,))
+    
+    customer = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not customer:
+        return jsonify({"success": False, "error": "Invalid token."})
+
+    return jsonify({"success": True, "customer": customer})
+
+# Get Services
 @app.route("/get_services")
 def get_services():
     conn = get_db_connection()
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed."})
-    
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT id, name FROM service ORDER BY name")
@@ -144,13 +183,12 @@ def get_services():
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
-
+# Generate Token
 @app.route("/generate_token", methods=['POST'])
 def generate_token_route():
     conn = get_db_connection()
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed."})
-
     try:
         name = request.form.get('name')
         email = request.form.get('emailAddress')
@@ -160,212 +198,129 @@ def generate_token_route():
             return jsonify({"success": False, "error": "Missing required fields."})
 
         cursor = conn.cursor()
-
-        # Step 1: Create a new customer record
-        insert_customer_query = "INSERT INTO customer (name, email, service_id) VALUES (%s, %s, %s)"
-        cursor.execute(insert_customer_query, (name, email, service_id))
+        # Create Customer
+        cursor.execute("INSERT INTO customer (name, email, service_id) VALUES (%s, %s, %s)", (name, email, service_id))
         customer_id = cursor.lastrowid
 
-        # Step 2: Generate a new token value
+        # Generate Token
         new_token_value = generate_next_token()
-
-        # Step 3: Create a new token record
-        insert_token_query = "INSERT INTO token (value, customer_id) VALUES (%s, %s)"
-        cursor.execute(insert_token_query, (new_token_value, customer_id))
+        cursor.execute("INSERT INTO token (value, customer_id) VALUES (%s, %s)", (new_token_value, customer_id))
         token_id = cursor.lastrowid
-
-        # Step 4: Update the customer with the token_id
-        update_customer_query = "UPDATE customer SET token_id = %s WHERE id = %s"
-        cursor.execute(update_customer_query, (token_id, customer_id))
+        cursor.execute("UPDATE customer SET token_id=%s WHERE id=%s", (token_id, customer_id))
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return jsonify({"success": True, "token": new_token_value})
+        try:
+            send_token_email(email, new_token_value)
+        except Exception as e:
+            print("Failed to send email:", e)
 
+        return jsonify({"success": True, "token": new_token_value})
     except mysql.connector.Error as err:
         print("Database query failed:", err)
         conn.rollback()
         return jsonify({"success": False, "error": "Database error occurred."})
 
+# Request OTP
+@app.route("/request_otp", methods=['POST'])
+def request_otp():
+    data = request.get_json()
+    token = data.get('token')
 
-import logging
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# ... (rest of the imports)
+    cursor.execute("""
+        SELECT c.id AS customer_id, c.email
+        FROM customer c
+        JOIN token t ON c.token_id = t.id
+        WHERE t.value=%s
+    """, (token,))
+    customer = cursor.fetchone()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+    if not customer:
+        return jsonify({"success": False, "error": "Invalid token."})
 
-# ... (rest of the code)
+    # Check for existing OTP not expired
+    cursor.execute("""
+        SELECT * FROM otp_verification
+        WHERE customer_id=%s AND verified=FALSE AND expires_at > NOW()
+        ORDER BY id DESC LIMIT 1
+    """, (customer['customer_id'],))
+    existing_otp = cursor.fetchone()
 
-import datetime
-
-# ... (rest of the imports)
-
-# ... (rest of the code)
-
-@app.route("/get_appointment_slots")
-def get_appointment_slots():
-    logging.info("Attempting to fetch appointment slots.")
-    try:
-        conn = get_db_connection()
-        if not conn:
-            logging.error("Database connection failed.")
-            return jsonify({"success": False, "error": "Database connection failed."})
-        
-        logging.info("Database connection successful. Executing query.")
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, time_slot FROM appointment WHERE is_booked = 0 ORDER BY time_slot")
-        slots = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        logging.info(f"Found {len(slots)} available slots.")
-
-        # Convert time objects to strings
-        for slot in slots:
-            if 'time_slot' in slot and isinstance(slot['time_slot'], datetime.timedelta):
-                total_seconds = slot['time_slot'].total_seconds()
-                hours, remainder = divmod(total_seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                time_obj = datetime.time(int(hours), int(minutes), int(seconds))
-                slot['time_slot'] = time_obj.strftime('%I:%M %p')
-
-        return jsonify({"success": True, "slots": slots})
-
-    except mysql.connector.Error as err:
-        logging.error(f"Database query failed: {err}")
-        return jsonify({"success": False, "error": "Database error occurred."})
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        return jsonify({"success": False, "error": "An unexpected error occurred."})
-
-
-@app.route("/get_queue")
-def get_queue():
-    logging.info("Attempting to fetch queue data.")
-    try:
-        conn = get_db_connection()
-        if not conn:
-            logging.error("Database connection failed.")
-            return jsonify({"success": False, "error": "Database connection failed."})
-        
-        logging.info("Database connection successful. Executing query.")
-        cursor = conn.cursor(dictionary=True)
-        query = """
-            SELECT
-                w.position,
-                t.value AS token_value
-            FROM
-                walkin w
-            JOIN
-                token t ON w.token_id = t.id
-            ORDER BY
-                w.position;
-        """
-        cursor.execute(query)
-        queue = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        logging.info(f"Found {len(queue)} customers in the queue.")
-
-        return jsonify({"success": True, "queue": queue})
-
-    except mysql.connector.Error as err:
-        logging.error(f"Database query failed: {err}")
-        return jsonify({"success": False, "error": "Database error occurred."})
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        return jsonify({"success": False, "error": "An unexpected error occurred."})
-
-
-@app.route("/complete_service", methods=['POST'])
-def complete_service():
-    logging.info("Attempting to complete a service.")
-    try:
-        service_time_seconds = int(request.form.get('service_time', 0))
-        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
-
-        conn = get_db_connection()
-        if not conn:
-            logging.error("Database connection failed.")
-            return jsonify({"success": False, "error": "Database connection failed."})
-        
-        cursor = conn.cursor(dictionary=True)
-
-        # Log the service time
-        cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
-
-        # Find the customer with position 0
-        cursor.execute("SELECT id, token_id FROM walkin WHERE position = 0")
-        serving = cursor.fetchone()
-
-        if serving:
-            walkin_id = serving['id']
-            token_id = serving['token_id']
-
-            # Delete the walkin record first
-            cursor.execute("DELETE FROM walkin WHERE id = %s", (walkin_id,))
-
-            # Find the customer associated with the token
-            cursor.execute("SELECT id FROM customer WHERE token_id = %s", (token_id,))
-            customer = cursor.fetchone()
-            
-            if customer:
-                customer_id = customer['id']
-                # Deleting the customer will cascade to the token
-                cursor.execute("DELETE FROM customer WHERE id = %s", (customer_id,))
-
-            # Update the positions of the remaining customers
-            cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
-
-        # Recalculate ETR
-        cursor.execute("SELECT log FROM logs")
-        logs = cursor.fetchall()
-        
-        total_seconds_served = 0
-        num_logs = len(logs)
-        for log in logs:
-            log_time = log['log']
-            total_seconds_served += log_time.total_seconds()
-
-        if num_logs > 0:
-            avg_service_time_seconds = total_seconds_served / num_logs
-        else:
-            avg_service_time_seconds = 180 # Default to 3 minutes if no logs
-
-        total_deviation = 0
-        for log in logs:
-            log_time = log['log']
-            total_deviation += log_time.total_seconds() - avg_service_time_seconds
-
-        cursor.execute("SELECT id, position FROM walkin ORDER BY position")
-        queue = cursor.fetchall()
-
-        for customer in queue:
-            etr_seconds = (avg_service_time_seconds * customer['position']) + total_deviation
-            if etr_seconds < 0:
-                etr_seconds = 0
-            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_seconds))
-            cursor.execute("UPDATE walkin SET ETR = %s WHERE id = %s", (etr_formatted, customer['id']))
-
+    if existing_otp:
+        otp_code = existing_otp['otp_code']
+        expires_at = existing_otp['expires_at']
+    else:
+        otp_code = generate_otp()
+        expires_at = datetime.now() + timedelta(minutes=5)
+        cursor.execute(
+            "INSERT INTO otp_verification (customer_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+            (customer['customer_id'], otp_code, expires_at)
+        )
         conn.commit()
-        logging.info(f"Service completed and ETR updated.")
 
+    cursor.close()
+    conn.close()
+
+    try:
+        send_otp_email(customer['email'], otp_code)
+    except Exception as e:
+        print("Failed to send OTP email:", e)
+
+    return jsonify({"success": True, "message": "OTP sent to your email."})
+
+
+# Verify OTP
+@app.route("/verify_otp", methods=['POST'])
+def verify_otp():
+    data = request.get_json()
+    token = data.get('token')
+    otp = data.get('otp')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified
+        FROM otp_verification otp
+        JOIN customer c ON otp.customer_id = c.id
+        JOIN token t ON c.token_id = t.id
+        WHERE t.value=%s AND otp_code=%s
+        ORDER BY otp.id DESC LIMIT 1
+    """, (token, otp))
+
+    record = cursor.fetchone()
+
+    if not record:
         cursor.close()
         conn.close()
+        return jsonify({"success": False, "error": "Wrong OTP. Please try again."})
 
-        return jsonify({"success": True})
+    if record['verified']:
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False, "error": "OTP already used."})
 
-    except mysql.connector.Error as err:
-        logging.error(f"Database query failed: {err}")
-        conn.rollback()
-        return jsonify({"success": False, "error": "Database error occurred."})
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        return jsonify({"success": False, "error": "An unexpected error occurred."})
+    if record['expires_at'] < datetime.now():
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False, "error": "OTP expired."})
 
+    # OTP is correct → delete it
+    cursor.execute("DELETE FROM otp_verification WHERE id=%s", (record['id'],))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
+    # ✅ Save token in session
+    session['verified_token'] = token
+
+    return jsonify({"success": True, "message": "OTP verified, access granted."})
+
+# ------------------- Run App -------------------
 if __name__ == "__main__":
-    # Run the app on the port from .env or default to 5000
     app.run(debug=True, port=port)

@@ -91,6 +91,27 @@
     <div id="mapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="map-modal-content"><button id="closeMapModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-white/50 rounded-full p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-xl font-bold mb-4 text-gray-800">Office Layout</h2><div class="bg-gray-200 rounded-md h-96 w-full flex items-center justify-center"><img src="{{ url_for('static', filename='officemap.png') }}" alt="Office Map" class="max-w-full max-h-full rounded-md"></div></div>
     </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token"); // get token from URL
+        if (!token) return;
+
+        fetch(`/status?token=${token}`) // pass token to backend
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.customer) {
+                    document.getElementById("statusName").textContent = data.customer.name;
+                    document.getElementById("statusContact").textContent = data.customer.contact || "-";
+                    document.getElementById("statusService").textContent = data.customer.service || "-";
+                    document.getElementById("statusPosition").textContent = "Waiting..."; // placeholder
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(err => console.error(err));
+    });
+    </script>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

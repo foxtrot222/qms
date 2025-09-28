@@ -36,33 +36,33 @@ if (mobileMenuBtn) {
 
 // === Token Generation Modal Logic ===
 const generateTokenBtn = document.getElementById('generateTokenBtn');
-const tokenModal = document.getElementById('tokenModal');
-const modalContent = document.getElementById('modal-content');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const tokenForm = document.getElementById('tokenForm');
-const serviceSelect = document.getElementById('service');
-
-async function loadServices() {
-    try {
-        const response = await fetch('/get_services');
-        const data = await response.json();
-        if (data.success) {
-            serviceSelect.innerHTML = '';
-            data.services.forEach(service => {
-                const option = document.createElement('option');
-                option.value = service.id;
-                option.textContent = service.name;
-                serviceSelect.appendChild(option);
-            });
-        } else {
-            console.error('Failed to load services:', data.error);
-        }
-    } catch (error) {
-        console.error('Error loading services:', error);
-    }
-}
-
 if (generateTokenBtn) {
+    const tokenModal = document.getElementById('tokenModal');
+    const modalContent = document.getElementById('modal-content');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const tokenForm = document.getElementById('tokenForm');
+    const serviceSelect = document.getElementById('service');
+
+    async function loadServices() {
+        try {
+            const response = await fetch('/get_services');
+            const data = await response.json();
+            if (data.success) {
+                serviceSelect.innerHTML = '';
+                data.services.forEach(service => {
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = service.name;
+                    serviceSelect.appendChild(option);
+                });
+            } else {
+                console.error('Failed to load services:', data.error);
+            }
+        } catch (error) {
+            console.error('Error loading services:', error);
+        }
+    }
+
     const openTokenModal = () => {
         tokenModal.classList.remove('hidden');
         setTimeout(() => {
@@ -156,7 +156,6 @@ if (statusModal) {
     closeStatusModalBtn.addEventListener('click', closeStatusModal);
     statusModal.addEventListener('click', e => { if (e.target === statusModal) closeStatusModal(); });
 
-    // Step 1: Request OTP
     getOtpBtn.addEventListener("click", async () => {
         const token = document.getElementById("token").value.trim();
         if (!token) return alert("Please enter your token.");
@@ -178,7 +177,6 @@ if (statusModal) {
         }
     });
 
-    // Step 2: Verify OTP
     checkStatusSubmitBtn.addEventListener("click", async () => {
         verifiedToken = document.getElementById("token").value.trim();
         const otp = document.getElementById("otp").value.trim();
@@ -230,13 +228,13 @@ if (statusModal) {
 
 // === Officer Login Modal Logic ===
 const accessDashboardBtn = document.getElementById('accessDashboardBtn');
-const officerLoginModal = document.getElementById('officerLoginModal');
-const officerLoginModalContent = document.getElementById('officer-login-modal-content');
-const closeOfficerLoginModalBtn = document.getElementById('closeOfficerLoginModalBtn');
-const officerLoginForm = document.getElementById('officerLoginForm');
-const officerLoginError = document.getElementById('officerLoginError');
-
 if (accessDashboardBtn) {
+    const officerLoginModal = document.getElementById('officerLoginModal');
+    const officerLoginModalContent = document.getElementById('officer-login-modal-content');
+    const closeOfficerLoginModalBtn = document.getElementById('closeOfficerLoginModalBtn');
+    const officerLoginForm = document.getElementById('officerLoginForm');
+    const officerLoginError = document.getElementById('officerLoginError');
+
     const openOfficerLoginModal = () => {
         if (!officerLoginModal) return;
         officerLoginModal.classList.remove('hidden');
@@ -328,121 +326,100 @@ if (accessDashboardBtn) {
     }
 }
 
-const completeServiceBtn = document.getElementById('completeServiceBtn');
+// === Dashboard Page Logic ===
+const dashboardPage = document.getElementById('dashboardPage');
+if (dashboardPage) {
+    const customerTimerEl = document.getElementById('customerTimer');
+    const customerCountEl = document.getElementById('customerCount');
+    const nowServingToken = document.getElementById('nowServingToken');
+    const queueList = document.getElementById('queueList');
+    const completeServiceBtn = document.getElementById('completeServiceBtn');
+    let seconds = 0;
 
-let seconds = 0;
+    function startCustomerTimer() {
+        if (etrTimerInterval) clearInterval(etrTimerInterval);
+        seconds = 0;
+        if (customerTimerEl) customerTimerEl.textContent = '00:00';
+        etrTimerInterval = setInterval(() => {
+            seconds++;
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            if (customerTimerEl) customerTimerEl.textContent = `${mins}:${secs}`;
+        }, 1000);
+    }
 
-function startCustomerTimer() {
-    if (etrTimerInterval) clearInterval(etrTimerInterval);
-    seconds = 0;
-    if (customerTimerEl) customerTimerEl.textContent = '00:00';
-    etrTimerInterval = setInterval(() => {
-        seconds++;
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        if (customerTimerEl) customerTimerEl.textContent = `${mins}:${secs}`;
-    }, 1000);
-}
-
-if (completeServiceBtn) {
-    completeServiceBtn.addEventListener('click', async () => {
+    async function loadQueue() {
         try {
-            const formData = new FormData();
-            formData.append('service_time', seconds);
-
-            const response = await fetch('/complete_service', {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch('/get_queue');
             const data = await response.json();
-
             if (data.success) {
-                loadQueue(); // Refresh the queue
-                startCustomerTimer(); // Restart the timer
+                if(queueList) queueList.innerHTML = '';
+                const servingNow = data.queue.find(customer => customer.position === 0);
+                if (servingNow) {
+                    if(nowServingToken) nowServingToken.textContent = servingNow.token_value;
+                } else {
+                    if(nowServingToken) nowServingToken.textContent = '---';
+                }
+                const inQueue = data.queue.filter(customer => customer.position > 0);
+                inQueue.forEach(customer => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200';
+                    const tokenSpan = document.createElement('span');
+                    tokenSpan.className = 'font-medium text-gray-700';
+                    tokenSpan.textContent = customer.token_value;
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full';
+                    statusSpan.textContent = 'IN LINE';
+                    li.appendChild(tokenSpan);
+                    li.appendChild(statusSpan);
+                    if(queueList) queueList.appendChild(li);
+                });
+                if(customerCountEl) customerCountEl.textContent = inQueue.length;
             } else {
-                console.error('Failed to complete service:', data.error);
-                alert('Failed to complete service.');
+                console.error('Failed to load queue:', data.error);
             }
         } catch (error) {
-            console.error('Error completing service:', error);
-            alert('An error occurred while completing the service.');
+            console.error('Error loading queue:', error);
         }
-    });
-}
-
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        window.location.href = '/logout';
-    });
-}
-
-// === Officer Dashboard Logic ===
-const customerTimerEl = document.getElementById('customerTimer');
-const callNextBtn = document.getElementById('callNextBtn');
-const customerCountEl = document.getElementById('customerCount');
-const nowServingToken = document.getElementById('nowServingToken');
-const queueList = document.getElementById('queueList');
-
-async function loadQueue() {
-    try {
-        const response = await fetch('/get_queue');
-        const data = await response.json();
-
-        if (data.success) {
-            queueList.innerHTML = ''; // Clear existing list
-
-            const servingNow = data.queue.find(customer => customer.position === 0);
-            if (servingNow) {
-                nowServingToken.textContent = servingNow.token_value;
-            } else {
-                nowServingToken.textContent = '---';
-            }
-
-            const inQueue = data.queue.filter(customer => customer.position > 0);
-            inQueue.forEach(customer => {
-                const li = document.createElement('li');
-                li.className = 'flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200';
-
-                const tokenSpan = document.createElement('span');
-                tokenSpan.className = 'font-medium text-gray-700';
-                tokenSpan.textContent = customer.token_value;
-
-                const statusSpan = document.createElement('span');
-                statusSpan.className = 'text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full';
-                statusSpan.textContent = 'IN LINE';
-
-                li.appendChild(tokenSpan);
-                li.appendChild(statusSpan);
-                queueList.appendChild(li);
-            });
-
-            if(customerCountEl) customerCountEl.textContent = inQueue.length;
-
-        } else {
-            console.error('Failed to load queue:', data.error);
-        }
-    } catch (error) {
-        console.error('Error loading queue:', error);
     }
-}
 
-// Initial load for dashboard page
-if (document.getElementById('dashboardPage')) {
+    if (completeServiceBtn) {
+        completeServiceBtn.addEventListener('click', async () => {
+            try {
+                const formData = new FormData();
+                formData.append('service_time', seconds);
+                const response = await fetch('/complete_service', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadQueue();
+                    startCustomerTimer();
+                } else {
+                    console.error('Failed to complete service:', data.error);
+                    alert('Failed to complete service.');
+                }
+            } catch (error) {
+                console.error('Error completing service:', error);
+                alert('An error occurred while completing the service.');
+            }
+        });
+    }
+
     loadQueue();
     startCustomerTimer();
 }
 
+
 // === Choice Modal Logic ===
-const appointmentModal = document.getElementById('appointmentModal');
-const appointmentModalContent = document.getElementById('appointment-modal-content');
-const appointmentSlotSelect = document.getElementById('appointmentSlot');
-const joinWalkInBtn = document.getElementById('joinWalkInBtn');
-const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
-
 async function openChoiceModal() {
-    closeStatusModal();
+    const appointmentModal = document.getElementById('appointmentModal');
+    const appointmentModalContent = document.getElementById('appointment-modal-content');
+    const appointmentSlotSelect = document.getElementById('appointmentSlot');
+    const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
 
+    closeStatusModal();
     try {
         const response = await fetch('/get_available_slots');
         const data = await response.json();
@@ -477,7 +454,12 @@ async function openChoiceModal() {
     }, 10);
 }
 
-if(joinWalkInBtn) {
+const appointmentModal = document.getElementById('appointmentModal');
+if (appointmentModal) {
+    const joinWalkInBtn = document.getElementById('joinWalkInBtn');
+    const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
+    const appointmentSlotSelect = document.getElementById('appointmentSlot');
+
     joinWalkInBtn.addEventListener('click', async () => {
         const res = await fetch('/join_walkin', {
             method: 'POST',
@@ -491,9 +473,7 @@ if(joinWalkInBtn) {
             alert(data.error);
         }
     });
-}
 
-if(bookAppointmentBtn) {
     bookAppointmentBtn.addEventListener('click', async () => {
         const slot_id = appointmentSlotSelect.value;
         if (!slot_id || appointmentSlotSelect.options[appointmentSlotSelect.selectedIndex].disabled) {
@@ -515,64 +495,74 @@ if(bookAppointmentBtn) {
 }
 
 // === Status Page Logic ===
-const cancelTokenBtn = document.getElementById('cancelTokenBtn');
-if (cancelTokenBtn) {
-    cancelTokenBtn.addEventListener('click', async () => {
-        if (confirm("Are you sure you want to cancel your token? This action cannot be undone.")) {
-            try {
-                const res = await fetch('/cancel_token', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) {
-                    alert("Your token has been cancelled.");
-                    window.location.href = '/';
-                } else {
-                    alert(`Error: ${data.error}`);
+const statusPage = document.getElementById('statusPage');
+if (statusPage) {
+    const cancelTokenBtn = document.getElementById('cancelTokenBtn');
+    if (cancelTokenBtn) {
+        cancelTokenBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to cancel your token? This action cannot be undone.")) {
+                try {
+                    const res = await fetch('/cancel_token', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert("Your token has been cancelled.");
+                        window.location.href = '/';
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error cancelling token:', error);
+                    alert('An error occurred while cancelling the token.');
                 }
-            } catch (error) {
-                console.error('Error cancelling token:', error);
-                alert('An error occurred while cancelling the token.');
             }
-        }
-    });
-}
+        });
+    }
 
-const viewMapBtn = document.getElementById('viewMapBtn');
-const mapModal = document.getElementById('mapModal');
-const closeMapModalBtn = document.getElementById('closeMapModalBtn');
-const mapModalContent = document.getElementById('map-modal-content');
+    const viewMapBtn = document.getElementById('viewMapBtn');
+    const mapModal = document.getElementById('mapModal');
+    const closeMapModalBtn = document.getElementById('closeMapModalBtn');
+    const mapModalContent = document.getElementById('map-modal-content');
 
-if (viewMapBtn) {
-    viewMapBtn.addEventListener('click', () => {
+    if (viewMapBtn) {
+        viewMapBtn.addEventListener('click', () => {
+            if (mapModal) {
+                mapModal.classList.remove('hidden');
+                setTimeout(() => {
+                    mapModal.style.opacity = '1';
+                    if (mapModalContent) {
+                        mapModalContent.classList.remove('scale-95', 'opacity-0');
+                    }
+                }, 10);
+            }
+        });
+    }
+
+    function closeMap() {
         if (mapModal) {
-            mapModal.classList.remove('hidden');
-            setTimeout(() => {
-                mapModal.style.opacity = '1';
-                if (mapModalContent) {
-                    mapModalContent.classList.remove('scale-95', 'opacity-0');
-                }
-            }, 10);
+            if (mapModalContent) {
+                mapModalContent.classList.add('scale-95', 'opacity-0');
+            }
+            mapModal.style.opacity = '0';
+            setTimeout(() => mapModal.classList.add('hidden'), 300);
         }
-    });
-}
+    }
 
-function closeMap() {
+    if (closeMapModalBtn) {
+        closeMapModalBtn.addEventListener('click', closeMap);
+    }
+
     if (mapModal) {
-        if (mapModalContent) {
-            mapModalContent.classList.add('scale-95', 'opacity-0');
-        }
-        mapModal.style.opacity = '0';
-        setTimeout(() => mapModal.classList.add('hidden'), 300);
+        mapModal.addEventListener('click', (e) => {
+            if (e.target === mapModal) {
+                closeMap();
+            }
+        });
     }
 }
 
-if (closeMapModalBtn) {
-    closeMapModalBtn.addEventListener('click', closeMap);
-}
-
-if (mapModal) {
-    mapModal.addEventListener('click', (e) => {
-        if (e.target === mapModal) {
-            closeMap();
-        }
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        window.location.href = '/logout';
     });
 }

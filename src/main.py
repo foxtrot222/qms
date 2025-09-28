@@ -161,7 +161,7 @@ def get_status_details():
             return jsonify({"success": False, "error": "Invalid token."})
 
         if details['type'] == 'walkin':
-            cursor.execute("SELECT ETR, position FROM walkin WHERE token_id = %s", (details['token_id'],))
+            cursor.execute("SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, position FROM walkin WHERE token_id = %s", (details['token_id'],))
             walkin_details = cursor.fetchone()
             if walkin_details:
                 details.update(walkin_details)
@@ -463,7 +463,8 @@ def join_walkin():
         # Calculate average service time from logs (defaults to 3 minutes if no logs)
         cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
-        avg_service_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else 180
+        avg_service_time_decimal = avg_time_result['avg_time'] if avg_time_result['avg_time'] else 180
+        avg_service_time = float(avg_service_time_decimal)
 
         # Determine position
         cursor.execute("SELECT id FROM walkin WHERE position = 0")

@@ -59,7 +59,7 @@
                     <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Actions</h2>
                         <div class="w-full space-y-4">
-                            <button id="homeLinkStatusPage" class="w-full bg-red-100 text-red-700 font-semibold rounded-lg px-4 py-3 hover:bg-red-200 transition-all duration-300">Cancel Token</button>
+                            <button id="cancelTokenBtn" class="w-full bg-red-100 text-red-700 font-semibold rounded-lg px-4 py-3 hover:bg-red-200 transition-all duration-300">Cancel Token</button>
                             <button id="logoutBtn" class="w-full bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-3 hover:bg-gray-300 transition-colors">Logout</button>
                         </div>
                     </div>
@@ -93,23 +93,51 @@
     </div>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get("token"); // get token from URL
-        if (!token) return;
-
-        fetch(`/status?token=${token}`) // pass token to backend
+        fetch('/get_status_details')
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.customer) {
-                    document.getElementById("statusName").textContent = data.customer.name;
-                    document.getElementById("statusContact").textContent = data.customer.contact || "-";
-                    document.getElementById("statusService").textContent = data.customer.service || "-";
-                    document.getElementById("statusPosition").textContent = "Waiting..."; // placeholder
+                if (data.success) {
+                    const details = data.details;
+                    document.getElementById("statusName").textContent = details.name;
+                    document.getElementById("statusContact").textContent = details.contact || "-";
+                    document.getElementById("statusService").textContent = details.service || "-";
+
+                    if (details.type === 'walkin') {
+                        document.getElementById("etrTimer").textContent = details.ETR || "Calculating...";
+                        document.getElementById("statusPosition").textContent = details.position;
+                        document.getElementById("etrMessage").textContent = "Your position in queue:";
+                    } else if (details.type === 'appointment') {
+                        document.getElementById("etrTimer").textContent = details.time_slot;
+                        document.getElementById("statusPosition").textContent = details.status; // "Confirmed"
+                        document.getElementById("etrMessage").textContent = "Your appointment is at:";
+                    }
                 } else {
                     alert(data.error);
+                    window.location.href = '/';
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                alert("An error occurred while fetching status.");
+            });
+    });
+    </script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>            document.getElementById("statusPosition").textContent = details.status; // "Confirmed"
+                        document.getElementById("etrMessage").textContent = "Your appointment is at:";
+                    }
+                } else {
+                    alert(data.error);
+                    // Redirect to home if there's an error, e.g. no token
+                    window.location.href = '/';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("An error occurred while fetching status.");
+            });
     });
     </script>
 

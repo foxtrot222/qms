@@ -1,13 +1,13 @@
 // === Global Variables & Helpers ===
 let isFirstTimeTestUser = true;
 let etrTimerInterval;
+let verifiedToken = '';
 
 // === Page Navigation ===
 const homePage = document.getElementById('homePage');
 const organizationPage = document.getElementById('organizationPage');
 const orgNavBtn = document.getElementById('orgNavBtn');
 const orgNavBtnMobile = document.getElementById('orgNavBtnMobile');
-const homeLinkStatusPage = document.getElementById('homeLinkStatusPage');
 
 if (orgNavBtn) {
     orgNavBtn.addEventListener('click', (e) => { 
@@ -22,12 +22,6 @@ if (orgNavBtnMobile) {
         if(homePage) homePage.classList.add('hidden');
         if(organizationPage) organizationPage.classList.remove('hidden');
         if(mobileMenu) mobileMenu.classList.add('hidden');
-    });
-}
-if (homeLinkStatusPage) {
-    homeLinkStatusPage.addEventListener('click', (e) => { 
-        e.preventDefault();
-        window.location.href = '/';
     });
 }
 
@@ -46,9 +40,6 @@ const tokenModal = document.getElementById('tokenModal');
 const modalContent = document.getElementById('modal-content');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const tokenForm = document.getElementById('tokenForm');
-const notificationRadios = document.querySelectorAll('input[name="notification"]');
-const smsInputContainer = document.getElementById('smsInputContainer');
-const emailInputContainer = document.getElementById('emailInputContainer');
 const serviceSelect = document.getElementById('service');
 
 async function loadServices() {
@@ -188,7 +179,7 @@ document.getElementById("getOtpBtn").addEventListener("click", async () => {
 
 // Step 2: Verify OTP
 document.getElementById("checkStatusSubmitBtn").addEventListener("click", async () => {
-    const token = document.getElementById("token").value.trim();
+    verifiedToken = document.getElementById("token").value.trim();
     const otp = document.getElementById("otp").value.trim();
     if (!otp) return alert("Please enter the OTP.");
 
@@ -196,27 +187,44 @@ document.getElementById("checkStatusSubmitBtn").addEventListener("click", async 
     btn.textContent = "Verifying...";
     btn.disabled = true;
 
-    const res = await fetch("/verify_otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, otp })
-    });
+    try {
+        const res = await fetch("/verify_otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: verifiedToken, otp })
+        });
 
-    const data = await res.json();
-    if (data.success) {
-        btn.textContent = "OTP Verified! Redirecting...";
-        // ✅ Pass token as query param
-        setTimeout(() => {
-            window.location.href = `/status?token=${token}`;
-        }, 1000);
-    } else {
-        alert(data.error);
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Error from server:", res.status, res.statusText, errorText);
+            alert(`Error from server: ${res.statusText}`);
+            btn.textContent = "Go to Status Page";
+            btn.disabled = false;
+            return;
+        }
+
+        const data = await res.json();
+        if (data.success) {
+            if (data.action === 'choose_type') {
+                openChoiceModal();
+            } else {
+                btn.textContent = "OTP Verified! Redirecting...";
+                setTimeout(() => {
+                    window.location.href = '/status';
+                }, 1000);
+            }
+        } else {
+            alert(data.error);
+            btn.textContent = "Go to Status Page";
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error("Error during OTP verification fetch:", error);
+        alert("A network error occurred during OTP verification. Please try again.");
         btn.textContent = "Go to Status Page";
         btn.disabled = false;
     }
 });
-
-
 
 // === Officer Login Modal Logic ===
 const accessDashboardBtn = document.getElementById('accessDashboardBtn');
@@ -263,7 +271,6 @@ if (accessDashboardBtn) {
 
     if (closeOfficerLoginModalBtn) {
         closeOfficerLoginModalBtn.addEventListener('click', (e) => {
-            // This button is inside a form, prevent default form submission
             e.preventDefault();
             closeOfficerLoginModal();
         });
@@ -318,8 +325,6 @@ if (accessDashboardBtn) {
         });
     }
 }
-
-
 
 const completeServiceBtn = document.getElementById('completeServiceBtn');
 
@@ -420,3 +425,146 @@ async function loadQueue() {
     }
 }
 
+// === Choice Modal Logic ===
+const appointmentModal = document.getElementById('appointmentModal');
+const appointmentModalContent = document.getElementById('appointment-modal-content');
+const appointmentSlotSelect = document.getElementById('appointmentSlot');
+const joinWalkInBtn = document.getElementById('joinWalkInBtn');
+const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
+
+async function openChoiceModal() {
+    closeStatusModal();
+
+    try {
+        const response = await fetch('/get_available_slots');
+        const data = await response.json();
+        if (data.success) {
+            appointmentSlotSelect.innerHTML = '';
+            if (data.slots.length > 0) {
+                bookAppointmentBtn.disabled = false;
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.id;
+                    option.textContent = slot.time_slot;
+                    appointmentSlotSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.textContent = "No slots available";
+                option.disabled = true;
+                appointmentSlotSelect.appendChild(option);
+                bookAppointmentBtn.disabled = true;
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching slots:', error);
+    }
+
+    appointmentModal.classList.remove('hidden');
+    setTimeout(() => {
+        appointmentModal.style.opacity = '1';
+        if(appointmentModalContent) {
+            appointmentModalContent.classList.remove('scale-95', 'opacity-0');
+        }
+    }, 10);
+}
+
+if(joinWalkInBtn) {
+    joinWalkInBtn.addEventListener('click', async () => {
+        const res = await fetch('/join_walkin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: verifiedToken })
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.location.href = '/status';
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+if(bookAppointmentBtn) {
+    bookAppointmentBtn.addEventListener('click', async () => {
+        const slot_id = appointmentSlotSelect.value;
+        if (!slot_id || appointmentSlotSelect.options[appointmentSlotSelect.selectedIndex].disabled) {
+            alert("Please select an available time slot.");
+            return;
+        }
+        const res = await fetch('/book_appointment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: verifiedToken, slot_id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.location.href = '/status';
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+// === Status Page Logic ===
+const cancelTokenBtn = document.getElementById('cancelTokenBtn');
+if (cancelTokenBtn) {
+    cancelTokenBtn.addEventListener('click', async () => {
+        if (confirm("Are you sure you want to cancel your token? This action cannot be undone.")) {
+            try {
+                const res = await fetch('/cancel_token', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Your token has been cancelled.");
+                    window.location.href = '/';
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error cancelling token:', error);
+                alert('An error occurred while cancelling the token.');
+            }
+        }
+    });
+}
+
+const viewMapBtn = document.getElementById('viewMapBtn');
+const mapModal = document.getElementById('mapModal');
+const closeMapModalBtn = document.getElementById('closeMapModalBtn');
+const mapModalContent = document.getElementById('map-modal-content');
+
+if (viewMapBtn) {
+    viewMapBtn.addEventListener('click', () => {
+        if (mapModal) {
+            mapModal.classList.remove('hidden');
+            setTimeout(() => {
+                mapModal.style.opacity = '1';
+                if (mapModalContent) {
+                    mapModalContent.classList.remove('scale-95', 'opacity-0');
+                }
+            }, 10);
+        }
+    });
+}
+
+function closeMap() {
+    if (mapModal) {
+        if (mapModalContent) {
+            mapModalContent.classList.add('scale-95', 'opacity-0');
+        }
+        mapModal.style.opacity = '0';
+        setTimeout(() => mapModal.classList.add('hidden'), 300);
+    }
+}
+
+if (closeMapModalBtn) {
+    closeMapModalBtn.addEventListener('click', closeMap);
+}
+
+if (mapModal) {
+    mapModal.addEventListener('click', (e) => {
+        if (e.target === mapModal) {
+            closeMap();
+        }
+    });
+}

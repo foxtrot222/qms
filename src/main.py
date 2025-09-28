@@ -274,20 +274,20 @@ def request_otp():
 @app.route("/verify_otp", methods=['POST'])
 def verify_otp():
     data = request.get_json()
-    token = data.get('token')
+    token_value = data.get('token')
     otp = data.get('otp')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified
+        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified, t.type
         FROM otp_verification otp
         JOIN customer c ON otp.customer_id = c.id
         JOIN token t ON c.token_id = t.id
-        WHERE t.value=%s AND otp_code=%s
+        WHERE t.value=%s AND otp.otp_code=%s
         ORDER BY otp.id DESC LIMIT 1
-    """, (token, otp))
+    """, (token_value, otp))
 
     record = cursor.fetchone()
 
@@ -309,13 +309,133 @@ def verify_otp():
     # OTP is correct → delete it
     cursor.execute("DELETE FROM otp_verification WHERE id=%s", (record['id'],))
     conn.commit()
-    cursor.close()
-    conn.close()
 
     # ✅ Save token in session
-    session['verified_token'] = token
+    session['verified_token'] = token_value
 
-    return jsonify({"success": True, "message": "OTP verified, access granted."})
+    if record['type'] is None:
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "action": "choose_type"})
+    else:
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "action": "redirect_status", "message": "OTP verified, access granted."})
+
+@app.route('/get_available_slots', methods=['GET'])
+def get_available_slots():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT id, TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE is_booked = 0 ORDER BY time_slot")
+    slots = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True, "slots": slots})
+
+@app.route('/join_walkin', methods=['POST'])
+def join_walkin():
+    data = request.get_json()
+    token_value = data.get('token')
+    if not token_value:
+        return jsonify({"success": False, "error": "Token is required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+        if not token_record:
+            return jsonify({"success": False, "error": "Invalid token."})
+        token_id = token_record['id']
+
+        cursor.execute("SELECT MAX(position) as max_pos FROM walkin")
+        max_pos_record = cursor.fetchone()
+        next_pos = (max_pos_record['max_pos'] or 0) + 1
+
+        cursor.execute("INSERT INTO walkin (token_id, position) VALUES (%s, %s)", (token_id, next_pos))
+        cursor.execute("UPDATE token SET type = 'walkin' WHERE id = %s", (token_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "message": "Successfully joined walk-in queue."})
+
+@app.route('/book_appointment', methods=['POST'])
+def book_appointment():
+    data = request.get_json()
+    token_value = data.get('token')
+    slot_id = data.get('slot_id')
+    if not token_value or not slot_id:
+        return jsonify({"success": False, "error": "Token and slot are required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+        if not token_record:
+            return jsonify({"success": False, "error": "Invalid token."})
+        token_id = token_record['id']
+
+        cursor.execute("SELECT is_booked FROM appointment WHERE id = %s FOR UPDATE", (slot_id,))
+        slot_record = cursor.fetchone()
+        if not slot_record:
+            return jsonify({"success": False, "error": "Invalid slot."})
+        if slot_record['is_booked']:
+            conn.rollback()
+            return jsonify({"success": False, "error": "Slot already taken."})
+        
+        cursor.execute("UPDATE appointment SET is_booked = 1, token_id = %s WHERE id = %s", (token_id, slot_id))
+        cursor.execute("UPDATE token SET type = 'appointment' WHERE id = %s", (token_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "message": "Appointment booked successfully."})
+
+@app.route('/cancel_token', methods=['POST'])
+def cancel_token():
+    token_value = session.get('verified_token')
+    if not token_value:
+        return jsonify({"success": False, "error": "No verified token in session."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+        if not token_record:
+            session.clear()
+            return jsonify({"success": True, "message": "Token already cancelled."})
+        token_id = token_record['id']
+
+        cursor.execute("DELETE FROM walkin WHERE token_id = %s", (token_id,))
+        cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id,))
+        cursor.execute("DELETE FROM token WHERE id = %s", (token_id,))
+        
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"Error cancelling token: {e}")
+        return jsonify({"success": False, "error": "An error occurred while cancelling the token."})
+    finally:
+        cursor.close()
+        conn.close()
+
+    session.clear()
+    return jsonify({"success": True, "message": "Token cancelled successfully."})
+
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":

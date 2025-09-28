@@ -129,38 +129,55 @@ def logout():
     return redirect(url_for("home"))
 
 # Status Page
-@app.route('/status', methods=['GET'])
-def status():
-    """
-    Fetches and displays customer details based on the token stored in session.
-    Removes the need to pass token in query string (?token=...).
-    """
-    # Prefer session token if available
-    token = session.get('verified_token')  # get token from session instead of query params
+@app.route('/status')
+def status_page():
+    if 'verified_token' not in session:
+        flash("Please verify your token first.", "error")
+        return redirect(url_for('home'))
+    return render_template('status.html')
 
-    if not token:
-        return jsonify({"success": False, "error": "Token is required."})
+@app.route('/get_status_details')
+def get_status_details():
+    token_value = session.get('verified_token')
+    if not token_value:
+        return jsonify({"success": False, "error": "No verified token in session."})
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Fetch customer details
-    cursor.execute("""
-        SELECT c.name, c.email AS contact, s.name AS service
-        FROM customer c
-        JOIN token t ON c.token_id = t.id
-        JOIN service s ON c.service_id = s.id
-        WHERE t.value=%s
-    """, (token,))
-    
-    customer = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("""
+            SELECT c.name, c.email AS contact, s.name AS service, t.type, t.id as token_id
+            FROM customer c
+            JOIN token t ON c.token_id = t.id
+            JOIN service s ON c.service_id = s.id
+            WHERE t.value = %s
+        """, (token_value,))
+        details = cursor.fetchone()
 
-    if not customer:
-        return jsonify({"success": False, "error": "Invalid token."})
+        if not details:
+            return jsonify({"success": False, "error": "Invalid token."})
 
-    return jsonify({"success": True, "customer": customer})
+        if details['type'] == 'walkin':
+            cursor.execute("SELECT ETR, position FROM walkin WHERE token_id = %s", (details['token_id'],))
+            walkin_details = cursor.fetchone()
+            if walkin_details:
+                details.update(walkin_details)
+        elif details['type'] == 'appointment':
+            cursor.execute("SELECT TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE token_id = %s", (details['token_id'],))
+            appointment_details = cursor.fetchone()
+            if appointment_details:
+                details.update(appointment_details)
+            details['status'] = 'Confirmed'
+
+    except Exception as e:
+        print(f"Error fetching status details: {e}")
+        return jsonify({"success": False, "error": "An error occurred while fetching details."})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "details": details})
 
 # Get Services
 @app.route("/get_services")

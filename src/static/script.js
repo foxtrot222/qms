@@ -261,6 +261,13 @@ if (completeServiceBtn) {
     });
 }
 
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        window.location.href = '/logout';
+    });
+}
+
 // === Officer Dashboard Logic ===
 const customerTimerEl = document.getElementById('customerTimer');
 const callNextBtn = document.getElementById('callNextBtn');

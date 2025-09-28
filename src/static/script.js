@@ -175,12 +175,12 @@ document.getElementById("getOtpBtn").addEventListener("click", async () => {
         body: JSON.stringify({ token })
     });
 
-const data = await res.json();
+    const data = await res.json();
     if (data.success) {
         alert(data.message);
         document.getElementById("otpInputContainer").classList.remove("hidden");
         document.getElementById("checkStatusSubmitBtn").classList.remove("hidden");
-        getOtpBtn.disabled = true; // prevent immediate resending
+        getOtpBtn.classList.add("hidden");
     } else {
         alert(data.error);
     }

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
-from email_utils import send_token_email
+from email_utils import send_token_email, send_otp_email
 import random
 from datetime import datetime, timedelta
 
@@ -34,9 +34,7 @@ def generate_otp(length=6):
     """Generates a numeric OTP of given length."""
     return ''.join([str(random.randint(0, 9)) for _ in range(length)])
 
-def send_otp_email(to_email: str, otp: str):
-    """Sends the OTP email using existing email function."""
-    send_token_email(to_email, otp)
+
 
 def generate_next_token():
     """Generates the next token based on the last token in the database."""

@@ -392,7 +392,7 @@ def complete_service():
             cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
 
         # Find the customer being served
-        cursor.execute("SELECT token_id FROM walkin WHERE position = 0")
+        cursor.execute("SELECT token_id FROM walkin WHERE position = 0 LIMIT 1")
         serving = cursor.fetchone()
 
         if serving:

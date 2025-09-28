@@ -217,6 +217,110 @@ document.getElementById("checkStatusSubmitBtn").addEventListener("click", async 
 });
 
 
+
+// === Officer Login Modal Logic ===
+const accessDashboardBtn = document.getElementById('accessDashboardBtn');
+const officerLoginModal = document.getElementById('officerLoginModal');
+const officerLoginModalContent = document.getElementById('officer-login-modal-content');
+const closeOfficerLoginModalBtn = document.getElementById('closeOfficerLoginModalBtn');
+const officerLoginForm = document.getElementById('officerLoginForm');
+const officerLoginError = document.getElementById('officerLoginError');
+
+if (accessDashboardBtn) {
+    const openOfficerLoginModal = () => {
+        if (!officerLoginModal) return;
+        officerLoginModal.classList.remove('hidden');
+        setTimeout(() => {
+            officerLoginModal.style.opacity = '1';
+            if (officerLoginModalContent) {
+                officerLoginModalContent.classList.remove('scale-95', 'opacity-0');
+            }
+        }, 10);
+    };
+
+    const closeOfficerLoginModal = () => {
+        if (!officerLoginModal) return;
+        if (officerLoginModalContent) {
+            officerLoginModalContent.classList.add('scale-95', 'opacity-0');
+        }
+        officerLoginModal.style.opacity = '0';
+        setTimeout(() => {
+            officerLoginModal.classList.add('hidden');
+            if (officerLoginError) {
+                officerLoginError.classList.add('hidden');
+                officerLoginError.textContent = '';
+            }
+            if (officerLoginForm) {
+                officerLoginForm.reset();
+            }
+        }, 300);
+    };
+
+    accessDashboardBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openOfficerLoginModal();
+    });
+
+    if (closeOfficerLoginModalBtn) {
+        closeOfficerLoginModalBtn.addEventListener('click', (e) => {
+            // This button is inside a form, prevent default form submission
+            e.preventDefault();
+            closeOfficerLoginModal();
+        });
+    }
+
+    if (officerLoginModal) {
+        officerLoginModal.addEventListener('click', (e) => {
+            if (e.target === officerLoginModal) {
+                closeOfficerLoginModal();
+            }
+        });
+    }
+
+    if (officerLoginForm) {
+        officerLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Logging in...';
+            submitButton.disabled = true;
+            if (officerLoginError) {
+                officerLoginError.classList.add('hidden');
+            }
+
+            const formData = new FormData(officerLoginForm);
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    if (officerLoginError) {
+                        officerLoginError.textContent = data.error || 'An unknown error occurred.';
+                        officerLoginError.classList.remove('hidden');
+                    }
+                    submitButton.textContent = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                if (officerLoginError) {
+                    officerLoginError.textContent = 'An error occurred. Please try again.';
+                    officerLoginError.classList.remove('hidden');
+                }
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+            }
+        });
+    }
+}
+
+
+
 const completeServiceBtn = document.getElementById('completeServiceBtn');
 
 let seconds = 0;

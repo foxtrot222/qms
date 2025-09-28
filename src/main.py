@@ -10,10 +10,6 @@ from datetime import datetime, timedelta
 # Load environment variables
 load_dotenv()
 
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL")
-FROM_NAME = os.getenv("FROM_NAME", "App")
-
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 port = int(os.getenv("PORT", 5000))
@@ -40,7 +36,7 @@ def generate_otp(length=6):
 
 def send_otp_email(to_email: str, otp: str):
     """Sends the OTP email using existing email function."""
-    send_token_email(otp, to_email)
+    send_token_email(to_email, otp)
 
 def generate_next_token():
     """Generates the next token based on the last token in the database."""
@@ -111,6 +107,7 @@ def login():
         if officer and check_password_hash(officer['password'], officerPassword):
             session['user_id'] = officer['id']
             session['username'] = officer['name']
+            session['officer_id_string'] = officer['officerID']
             return jsonify({"success": True, "redirect": "/dashboard", "officerName": officer['name']})
         else:
             return jsonify({"success": False, "error": "Invalid ID or password."})
@@ -124,7 +121,8 @@ def dashboard():
         flash("You must login first.", "error")
         return redirect(url_for("home"))
     officer_name = session.get('username')
-    return render_template("dashboard.html", officer_name=officer_name)
+    officer_id = session.get('officer_id_string')
+    return render_template("dashboard.html", officer_name=officer_name, officer_id=officer_id)
 
 @app.route("/logout")
 def logout():

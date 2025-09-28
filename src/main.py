@@ -145,7 +145,7 @@ def get_status_details():
         return jsonify({"success": False, "error": "No verified token in session."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(buffered=True, dictionary=True)
 
     try:
         cursor.execute("""

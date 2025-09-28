@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMS - Queue Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-illustration-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-in 2s ease-in-out forwards;
+        }
+        @keyframes draw-in {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        /* For custom scrollbar in queue list */
+        #activeTokenView::-webkit-scrollbar {
+            width: 8px;
+        }
+        #activeTokenView::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        #activeTokenView::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        #activeTokenView::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Container for the entire page -->
+    <div class="min-h-screen flex flex-col">
+
+        <!-- Header and Navigation Bar -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-20">
+            <nav class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Website Title -->
+                    <div class="text-2xl font-bold text-blue-600">
+                        <a href="#" id="homeNavBtn">QMS</a>
+                    </div>
+                    <!-- Desktop Navigation Links -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#" id="homeLinkDesktop" class="text-gray-600 hover:text-blue-600 transition duration-300">Home</a>
+                        <a href="#" id="aboutNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">About</a>
+                        <a href="#" id="helpNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Help</a>
+                        <a href="#" id="contactNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Contact</a>
+                        <a href="#" id="orgNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Organization</a>
+                        <a href="#" id="statusNavBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                        <!-- Language Button -->
+                        <button id="languageBtn" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition duration-300 px-3 py-2 rounded-md hover:bg-gray-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                            </svg>
+                            <span>EN</span>
+                        </button>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button id="mobileMenuBtn" class="text-gray-600 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Mobile Menu -->
+                <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
+                    <a href="#" id="homeLinkMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Home</a>
+                    <a href="#" id="aboutNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">About</a>
+                    <a href="#" id="helpNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Help</a>
+                    <a href="#" id="contactNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Contact</a>
+                    <a href="#" id="orgNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Organization</a>
+                    <a href="#" id="statusNavBtnMobile" class="block bg-blue-500 text-white text-center px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
+                    <button id="languageBtnMobile" class="w-full text-left text-gray-600 hover:text-blue-600 transition duration-300 py-2 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                        </svg>
+                        <span>English</span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content Section -->
+        <main id="homePage" class="flex-grow container mx-auto px-6 pt-32 pb-16 flex items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- Left Column: Illustration -->
+                <div class="flex justify-center items-center">
+                    <div class="w-full max-w-md lg:max-w-none">
+                        <!-- SVG Vector Illustration of people in a queue -->
+                        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="floorGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e0e7ff; stop-opacity:1" /><stop offset="100%" style="stop-color:#ffffff; stop-opacity:0" /></linearGradient></defs>
+                            <path d="M 0 110 C 50 120, 150 120, 200 110 L 200 120 L 0 120 Z" fill="url(#floorGradient)"/><g transform="translate(150, 60)"><circle cx="0" cy="-15" r="8" fill="#4f46e5"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#c7d2fe"/></g><g transform="translate(110, 65)" opacity="0.8"><circle cx="0" cy="-15" r="8" fill="#6366f1"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/></g><g transform="translate(70, 70)" opacity="0.6"><circle cx="0" cy="-15" r="8" fill="#818cf8"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/></g><g transform="translate(30, 75)" opacity="0.4"><circle cx="0" cy="-15" r="8" fill="#a5b4fc"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#eef2ff"/></g><path class="hero-illustration-path" d="M 30 110 Q 90 95, 150 110" stroke="#4f46e5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Right Column: Call to Action -->
+                <div class="text-center lg:text-left">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-4">
+                        Join a queue or <span class="text-blue-600">check your status.</span>
+                    </h1>
+                    <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
+                        Streamline your waiting experience. Get a token digitally and get notified when it's your turn.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="#" id="generateTokenBtn" class="w-full sm:w-auto inline-block bg-blue-600 text-white font-semibold text-center rounded-lg px-8 py-4 text-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 transform hover:scale-105">Generate Token</a>
+                        <a href="#" id="checkStatusBtn" class="w-full sm:w-auto inline-block bg-gray-200 text-gray-800 font-semibold text-center rounded-lg px-8 py-4 text-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-200 transition duration-300">Already have a token?</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- About Page Section -->
+        <main id="aboutPage" class="hidden flex-grow container mx-auto px-6 pt-32 pb-16">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                        About <span class="text-blue-600">QMS</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        Revolutionizing queue management with smart digital solutions
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+                        <p class="text-lg text-gray-600 mb-4">
+                            QMS is dedicated to eliminating the frustration of waiting in long queues. We believe that everyone's time is valuable, and our digital queue management system ensures efficient, organized, and stress-free service experiences.
+                        </p>
+                        <p class="text-lg text-gray-600">
+                            By leveraging modern technology, we help organizations serve their customers better while providing transparency and convenience through real-time updates and smart notifications.
+                        </p>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="bg-blue-100 rounded-2xl p-8 w-full max-w-md">
+                            <svg class="w-full h-48" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="100" cy="75" r="60" fill="#4f46e5" opacity="0.1"/>
+                                <circle cx="100" cy="75" r="40" fill="#6366f1" opacity="0.2"/>
+                                <circle cx="100" cy="75" r="20" fill="#4f46e5" opacity="0.3"/>
+                                <path d="M80 65 L90 75 L120 45" stroke="#4f46e5" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Time Efficiency</h3>
+                        <p class="text-gray-600">Save hours of waiting time with our smart queue prediction algorithms</p>
+                    </div>
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 7H4l5-5v5zm6 10V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h6a2 2 0 002-2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Real-time Updates</h3>
+                        <p class="text-gray-600">Get instant notifications about your queue status and estimated wait times</p>
+                    </div>
+                    <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">User Friendly</h3>
+                        <p class="text-gray-600">Simple interface designed for users of all ages and technical backgrounds</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 rounded-2xl p-8 text-center">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Join Thousands of Satisfied Users</h2>
+                    <p class="text-lg text-gray-600 mb-6">
+                        QMS is trusted by organizations and individuals across the globe for efficient queue management.
+                    </p>
+                    <div class="flex justify-center space-x-8 text-center">
+                        <div>
+                            <div class="text-3xl font-bold text-blue-600">50K+</div>
+                            <div class="text-gray-600">Active Users</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-green-600">1M+</div>
+                            <div class="text-gray-600">Tokens Generated</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-purple-600">500+</div>
+                            <div class="text-gray-600">Organizations</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Help Page Section -->
+        <main id="helpPage" class="hidden flex-grow container mx-auto px-6 pt-32 pb-16">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                        How can we <span class="text-blue-600">help you?</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        Find answers to common questions and learn how to use QMS effectively
+                    </p>
+                </div>
+
+                <!-- FAQ Section -->
+                <div class="mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I generate a token?</h3>
+                            <p class="text-gray-600">
+                                Click on the "Generate Token" button on the homepage, fill in your details including name, service type, and contact information. You'll receive your token via SMS or email based on your preference.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I check my queue status?</h3>
+                            <p class="text-gray-600">
+                                Use the "Status" button in the navigation or "Already have a token?" on the homepage. Enter your token number and the OTP sent to your registered contact to view your current position and estimated waiting time.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">What if I miss my turn?</h3>
+                            <p class="text-gray-600">
+                                Don't worry! You can check-in using the status page even if you're running late. The system will automatically adjust your position based on current queue status.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Can I book an appointment in advance?</h3>
+                            <p class="text-gray-600">
+                                Yes! When generating a token, you'll have the option to either join the current queue or schedule an appointment for the next available slot.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Is there priority service for senior citizens?</h3>
+                            <p class="text-gray-600">
+                                Absolutely! When generating your token, you can select "Senior Citizen" or "Person with Disability" for priority queue placement.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How to Use Section -->
+                <div class="mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">How to Use QMS</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-blue-600">1</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Generate Token</h3>
+                            <p class="text-gray-600 text-sm">Fill in your details and select your preferred service</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-green-600">2</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Receive Notification</h3>
+                            <p class="text-gray-600 text-sm">Get your token via SMS or email with queue details</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-yellow-600">3</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Track Status</h3>
+                            <p class="text-gray-600 text-sm">Monitor your position and estimated wait time</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-purple-600">4</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Get Served</h3>
+                            <p class="text-gray-600 text-sm">Arrive when notified and enjoy quick service</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Section -->
+                <div class="bg-blue-50 rounded-2xl p-8 text-center">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Need More Help?</h2>
+                    <p class="text-lg text-gray-600 mb-6">
+                        Our support team is here to assist you with any questions or technical issues.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 transition duration-300">
+                            Contact Support
+                        </button>
+                        <button class="bg-white text-blue-600 font-semibold rounded-lg px-6 py-3 border-2 border-blue-600 hover:bg-blue-50 transition duration-300">
+                            Live Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Contact Page Section -->
+        <main id="contactPage" class="hidden flex-grow container mx-auto px-6 pt-32 pb-16">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                        Get in <span class="text-blue-600">Touch</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <!-- Contact Information -->
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-8">Contact Information</h2>
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Address</h3>
+                                    <p class="text-gray-600">123 Queue Street, Digital City<br>Tech State 12345, India</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Phone</h3>
+                                    <p class="text-gray-600">+91 98765 43210<br>+91 87654 32109</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Email</h3>
+                                    <p class="text-gray-600">support@qms.com<br>info@qms.com</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Business Hours</h3>
+                                    <p class="text-gray-600">Mon - Fri: 9:00 AM - 6:00 PM<br>Sat: 10:00 AM - 4:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div>
+                        <div class="bg-white rounded-2xl shadow-xl p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+                            <form id="contactForm" class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                        <input type="text" id="firstName" name="firstName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    </div>
+                                    <div>
+                                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                        <input type="text" id="lastName" name="lastName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" id="contactEmail" name="contactEmail" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                </div>
+                                <div>
+                                    <label for="contactPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input type="tel" id="contactPhone" name="contactPhone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                    <select id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        <option value="">Select a subject</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="technical">Technical Support</option>
+                                        <option value="business">Business Partnership</option>
+                                        <option value="feedback">Feedback</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                    <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Tell us how we can help you..." required></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 transform hover:scale-105">
+                                    Send Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Section -->
+                <div class="mt-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Find Us</h2>
+                    <div class="bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
+                        <div class="text-center">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <p class="text-gray-500">Interactive map will be loaded here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Organization Page Section -->
+        <main id="organizationPage" class="hidden flex-grow container mx-auto px-6 pt-32 pb-16 flex items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Left Column: Illustration -->
+                <div class="flex justify-center items-center">
+                    <svg class="w-full max-w-md lg:max-w-lg" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                        <defs><linearGradient id="holoGradient1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#a5b4fc; stop-opacity:0.8"/><stop offset="100%" style="stop-color:#4f46e5;"/></linearGradient><linearGradient id="holoGradient2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#c7d2fe; stop-opacity:0.8"/><stop offset="100%" style="stop-color:#6366f1;"/></linearGradient><linearGradient id="holoGradient3" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e0e7ff; stop-opacity:0.8"/><stop offset="100%" style="stop-color:#818cf8;"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                        <g transform="translate(0, 140) scale(1, -1)" filter="url(#glow)" opacity="0.9"><path d="M 10 10 L 50 30 L 190 30 L 150 10 Z" fill="#e0e7ff" opacity="0.2"/><rect x="40" y="30" width="20" height="80" fill="url(#holoGradient1)"/><rect x="75" y="30" width="20" height="50" fill="url(#holoGradient2)"/><rect x="110" y="30" width="20" height="100" fill="url(#holoGradient3)"/><rect x="145" y="30" width="20" height="70" fill="url(#holoGradient1)"/></g>
+                    </svg>
+                </div>
+                <!-- Right Column: Call to Action -->
+                <div class="text-center lg:text-left">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                        Manage your queue.
+                    </h1>
+                    <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
+                        Access the dashboard to manage queues, view analytics, and streamline your operations.
+                    </p>
+                    <div class="flex justify-center lg:justify-start">
+                        <a href="#" id="accessDashboardBtn" class="w-full sm:w-auto inline-block bg-indigo-600 text-white font-semibold text-center rounded-lg px-8 py-4 text-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-300 transform hover:scale-105">
+                            Access Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status Page Display -->
+        <div id="statusPage" class="hidden flex-grow container mx-auto px-6 pt-32 pb-16 flex items-center justify-center">
+            <div class="bg-white p-6 md:p-8 rounded-lg shadow-xl max-w-4xl mx-auto w-full">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">Your Queue Status</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Top-Left: ETR Clock -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Estimated Time Remaining</h2>
+                        <div id="etrTimer" class="text-5xl md:text-6xl font-bold text-blue-600">15:00</div>
+                        <p id="etrMessage" class="text-gray-600 mt-2"></p>
+                    </div>
+
+                    <!-- Top-Right: Actions -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Actions</h2>
+                        <div class="w-full space-y-4">
+                            <button id="checkInBtn" class="w-full bg-green-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-md">Check-in Now</button>
+                            <button id="homeLinkStatusPage" class="w-full bg-red-100 text-red-700 font-semibold rounded-lg px-4 py-3 hover:bg-red-200 transition-all duration-300">Cancel Token</button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Left: Details -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center border">
+                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Your Details</h2>
+                         <div class="space-y-3 text-base md:text-lg">
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Name:</span> <span id="statusName" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Contact:</span> <span id="statusContact" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Service:</span> <span id="statusService" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Position:</span> <span id="statusPosition" class="font-semibold text-gray-900 text-right"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Right: Map -->
+                    <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Location</h2>
+                        <button id="viewMapBtn" class="w-full bg-indigo-100 text-indigo-800 font-semibold rounded-lg px-4 py-3 hover:bg-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">
+                            View Office Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Officer Dashboard Section -->
+        <main id="dashboardPage" class="hidden flex-grow container mx-auto px-6 pt-24 pb-16">
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full h-full flex flex-col" style="min-height: 80vh;">
+                <!-- Dashboard Header -->
+                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Jane Doe</h1>
+                        <p class="text-gray-600">Officer ID: test</p>
+                    </div>
+                    <button id="logoutBtn" class="mt-3 sm:mt-0 w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-2 hover:bg-gray-300 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Logout
+                    </button>
+                </div>
+
+                <!-- Top Section: Stats and Timer -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Left: Timer -->
+                    <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg text-center flex flex-col justify-center items-center border border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Current Service Time</h2>
+                        <div id="customerTimer" class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">00:00</div>
+                        <button id="callNextBtn" class="w-full bg-blue-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-md">Call Next Customer</button>
+                    </div>
+                    <!-- Right: Queue Stats -->
+                    <div class="lg:col-span-2 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Queue Overview</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                            <div class="bg-white p-4 rounded-lg shadow-sm border">
+                                <p class="text-2xl md:text-3xl font-bold text-blue-600" id="nowServingToken">C-07</p>
+                                <p class="text-xs text-gray-500 font-medium">Now Serving</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm border">
+                                <p class="text-2xl md:text-3xl font-bold text-gray-700" id="customerCount">4</p>
+                                <p class="text-xs text-gray-500 font-medium">Customers in Line</p>
+                            </div>
+                             <div class="bg-white p-4 rounded-lg shadow-sm border col-span-2 md:col-span-1">
+                                <p class="text-2xl md:text-3xl font-bold text-gray-700">03:45</p>
+                                <p class="text-xs text-gray-500 font-medium">Avg. Time / Customer</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Middle Section: Active Token View -->
+                <div class="flex-grow flex flex-col bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 px-2">Active Token Queue</h3>
+                    <div id="activeTokenView" class="flex-grow space-y-3 pr-2 overflow-y-auto">
+                        <!-- Token Item 1 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md shadow-sm border gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md">C-08</span>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Billing Inquiry</p>
+                                    <p class="text-sm text-gray-500">Contact ID: ***-***-3456</p>
+                                </div>
+                            </div>
+                             <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full w-24 text-center">CHECKED-IN</span>
+                                <button class="bg-gray-200 text-gray-700 text-xs font-semibold rounded-md px-3 py-2 hover:bg-gray-300 w-full sm:w-auto">Notify</button>
+                             </div>
+                        </div>
+                        <!-- Token Item 2 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md shadow-sm border gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xl font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-md">C-09</span>
+                                <div>
+                                    <p class="font-semibold text-gray-800">New Registration</p>
+                                    <p class="text-sm text-gray-500">Contact ID: ***@test.com</p>
+                                </div>
+                            </div>
+                             <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full w-24 text-center">IN LINE</span>
+                                <button class="bg-gray-200 text-gray-700 text-xs font-semibold rounded-md px-3 py-2 hover:bg-gray-300 w-full sm:w-auto">Notify</button>
+                            </div>
+                        </div>
+                        <!-- Token Item 3 -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md shadow-sm border gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xl font-bold text-red-600 bg-red-100 px-3 py-1 rounded-md">A-02</span>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Appointment</p>
+                                    <p class="text-sm text-gray-500">Contact ID: ***-***-8899</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full w-24 text-center">LATE (-2)</span>
+                                <button class="bg-gray-200 text-gray-700 text-xs font-semibold rounded-md px-3 py-2 hover:bg-gray-300 w-full sm:w-auto">Notify</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Section: Action Buttons -->
+                <div class="py-6">
+                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <button class="bg-green-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-green-600 transition shadow">Complete</button>
+                        <button class="bg-yellow-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-yellow-600 transition shadow">Mark Late</button>
+                        <button class="bg-slate-600 text-white font-semibold rounded-lg p-3 text-sm hover:bg-slate-700 transition shadow">No-show</button>
+                        <button class="bg-teal-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-teal-600 transition shadow">Transfer</button>
+                        <button class="bg-purple-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-purple-600 transition shadow">Reschedule</button>
+                        <button class="bg-red-600 text-white font-semibold rounded-lg p-3 text-sm hover:bg-red-700 transition shadow col-span-2 lg:col-span-1">Emergency Alert</button>
+                    </div>
+                </div>
+        
+                <!-- Bottom Bar: Info -->
+                <div class="border-t pt-4 mt-auto flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600 space-y-2 sm:space-y-0">
+                    <div></div>
+                    <div><span class="font-semibold">Officer:</span> <span id="officerName">Jane Doe (ID: test)</span></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- All Modals -->
+    <!-- Modal for Token Generation -->
+    <div id="tokenModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="modal-content"><button id="closeModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-2xl font-bold mb-6 text-gray-800">Generate Your Token</h2><form id="tokenForm" class="space-y-4"><div><label for="service" class="block text-sm font-medium text-gray-700 mb-1">Select your service</label><select id="service" name="service" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"><option>General Inquiry</option><option>Billing Department</option><option>Support Desk</option><option>New Registration</option></select></div><div><label for="name" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label><input type="text" id="name" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., John Doe" required></div><div class="space-y-2 pt-2"><p class="block text-sm font-medium text-gray-700">Special Category (optional)</p><div class="flex items-center"><input id="senior" name="senior" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="senior" class="ml-2 block text-sm text-gray-900">Senior Citizen</label></div><div class="flex items-center"><input id="disability" name="disability" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="disability" class="ml-2 block text-sm text-gray-900">Person with Disability</label></div></div><div><label class="block text-sm font-medium text-gray-700 mb-2">Get token via:</label><div class="flex gap-6"><label class="flex items-center cursor-pointer"><input type="radio" name="notification" value="sms" class="form-radio h-4 w-4 text-blue-600" checked><span class="ml-2 text-sm text-gray-700">SMS</span></label><label class="flex items-center cursor-pointer"><input type="radio" name="notification" value="email" class="form-radio h-4 w-4 text-blue-600"><span class="ml-2 text-sm text-gray-700">Email</span></label></div></div><div id="smsInputContainer"><label for="sms" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label><div class="relative rounded-md shadow-sm"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-gray-500 sm:text-sm">+91</span></div><input type="tel" id="sms" name="sms" class="w-full block pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="9876543210"></div></div><div id="emailInputContainer" class="hidden"><label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label><input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="you@example.com"></div><button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Generate Token</button></form></div>
+    </div>
+    <!-- Modal for Status Check -->
+    <div id="statusModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="status-modal-content"><button id="closeStatusModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-2xl font-bold mb-6 text-gray-800">Check Your Status</h2><form id="statusForm" class="space-y-4"><div><label for="token" class="block text-sm font-medium text-gray-700 mb-1">Enter your token</label><input type="text" id="token" name="token" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., A1B2-C3D4" required></div><button id="getOtpBtn" type="button" class="w-full bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-3 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-200 transition-colors">Get OTP</button><div id="otpInputContainer" class="hidden"><label for="otp" class="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label><input type="text" id="otp" name="otp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="6-digit code"></div><button type="submit" id="checkStatusSubmitBtn" class="hidden w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Go to Status Page</button></form></div>
+    </div>
+    <!-- Modal for Appointment/Walk-in Choice -->
+    <div id="appointmentModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg relative transform transition-all duration-300 scale-95 opacity-0" id="appointment-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800">Choose Your Option</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"><div><div class="border-2 border-gray-200 p-6 rounded-lg text-center flex flex-col justify-between hover:border-blue-500 hover:shadow-md transition-all h-full"><div><h3 class="font-bold text-lg text-gray-800 mb-2">Join a Walk-in</h3><p class="text-sm text-gray-600 mb-4">Get service today. The estimated wait time is currently:</p><p class="font-semibold text-2xl text-blue-600 mb-4">~15 Mins</p></div><button id="joinWalkInBtn" class="w-full mt-2 bg-blue-100 text-blue-800 font-semibold rounded-lg px-4 py-3 hover:bg-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-colors">Join Now</button></div></div><div><div class="border-2 border-gray-200 p-6 rounded-lg text-center flex flex-col justify-between hover:border-indigo-500 hover:shadow-md transition-all h-full"><div><h3 class="font-bold text-lg text-gray-800 mb-2">Fix Appointment</h3><p class="text-sm text-gray-600 mb-4">Schedule a visit for tomorrow to avoid waiting.</p><select id="appointmentSlot" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-4"><option>10:00 AM - 10:30 AM</option><option>11:00 AM - 11:30 AM</option><option>02:00 PM - 02:30 PM</option><option>03:00 PM - 03:30 PM</option></select></div><button id="bookAppointmentBtn" class="w-full bg-indigo-100 text-indigo-800 font-semibold rounded-lg px-4 py-3 hover:bg-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">Book Slot</button></div></div></div></div>
+    </div>
+    <!-- Modal for Officer Login -->
+    <div id="officerLoginModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="officer-login-modal-content"><button id="closeOfficerLoginModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-2xl font-bold mb-6 text-gray-800">Officer Login</h2><form id="officerLoginForm" class="space-y-4"><div><label for="officerId" class="block text-sm font-medium text-gray-700 mb-1">Officer ID</label><input type="text" id="officerId" name="officerId" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your ID" required></div><div><label for="officerPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" id="officerPassword" name="officerPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="••••••••" required></div><button type="submit" class="w-full bg-indigo-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105">Login</button></form></div>
+    </div>
+    <!-- Modal for Office Map -->
+    <div id="mapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="map-modal-content"><button id="closeMapModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-white/50 rounded-full p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-xl font-bold mb-4 text-gray-800">Office Layout</h2><div class="bg-gray-200 rounded-md h-96 w-full flex items-center justify-center"><img src="https://placehold.co/600x400/e2e8f0/64748b?text=Simple+Office+Map" alt="Office Map" class="max-w-full max-h-full rounded-md"></div></div>
+    </div>
+
+    <!-- Language Selection Modal -->
+    <div id="languageModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="language-modal-content">
+            <button id="closeLanguageModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Select Language</h2>
+            <div class="space-y-3">
+                <button class="w-full text-left px-4 py-3 rounded-lg border hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center justify-between" onclick="changeLanguage('en')">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🇺🇸</span>
+                        <span class="font-medium">English</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold" id="enCheckmark">✓</span>
+                </button>
+                <button class="w-full text-left px-4 py-3 rounded-lg border hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center justify-between" onclick="changeLanguage('hi')">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🇮🇳</span>
+                        <span class="font-medium">हिंदी (Hindi)</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold hidden" id="hiCheckmark">✓</span>
+                </button>
+                <button class="w-full text-left px-4 py-3 rounded-lg border hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center justify-between" onclick="changeLanguage('gu')">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🇮🇳</span>
+                        <span class="font-medium">ગુજરાતી (Gujarati)</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold hidden" id="guCheckmark">✓</span>
+                </button>
+                <button class="w-full text-left px-4 py-3 rounded-lg border hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center justify-between" onclick="changeLanguage('es')">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🇪🇸</span>
+                        <span class="font-medium">Español (Spanish)</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold hidden" id="esCheckmark">✓</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // === Global Variables & Helpers ===
+        let isFirstTimeTestUser = true;
+        let etrTimerInterval;
+        let currentLanguage = 'en';
+
+        // === Language System ===
+        const translations = {
+            en: {
+                navAbout: "About",
+                navHelp: "Help",
+                navContact: "Contact",
+                navOrganization: "Organization",
+                navStatus: "Status",
+                langLabel: "EN"
+            },
+            hi: {
+                navAbout: "के बारे में",
+                navHelp: "सहायता",
+                navContact: "संपर्क",
+                navOrganization: "संगठन",
+                navStatus: "स्थिति",
+                langLabel: "हि"
+            },
+            gu: {
+                navAbout: "વિશે",
+                navHelp: "મદદ",
+                navContact: "સંપર્ક",
+                navOrganization: "સંસ્થા",
+                navStatus: "સ્થિતિ",
+                langLabel: "ગુ"
+            },
+            es: {
+                navAbout: "Acerca de",
+                navHelp: "Ayuda",
+                navContact: "Contacto",
+                navOrganization: "Organización",
+                navStatus: "Estado",
+                langLabel: "ES"
+            }
+        };
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            
+            // Update navigation
+            document.getElementById('aboutNavBtn').textContent = t.navAbout;
+            document.getElementById('helpNavBtn').textContent = t.navHelp;
+            document.getElementById('contactNavBtn').textContent = t.navContact;
+            document.getElementById('orgNavBtn').textContent = t.navOrganization;
+            document.getElementById('statusNavBtn').textContent = t.navStatus;
+            document.getElementById('aboutNavBtnMobile').textContent = t.navAbout;
+            document.getElementById('helpNavBtnMobile').textContent = t.navHelp;
+            document.getElementById('contactNavBtnMobile').textContent = t.navContact;
+            document.getElementById('orgNavBtnMobile').textContent = t.navOrganization;
+            document.getElementById('statusNavBtnMobile').textContent = t.navStatus;
+            
+            // Update language button
+            document.querySelector('#languageBtn span').textContent = t.langLabel;
+            document.querySelector('#languageBtnMobile span').textContent = lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : lang === 'gu' ? 'ગુજરાતી' : 'Español';
+            
+            // Update checkmarks
+            document.querySelectorAll('[id$="Checkmark"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(lang + 'Checkmark').classList.remove('hidden');
+            
+            closeLanguageModal();
+        }
+
+        // === Page Navigation ===
+        const homePage = document.getElementById('homePage');
+        const aboutPage = document.getElementById('aboutPage');
+        const helpPage = document.getElementById('helpPage');
+        const contactPage = document.getElementById('contactPage');
+        const organizationPage = document.getElementById('organizationPage');
+        const statusPage = document.getElementById('statusPage');
+        const dashboardPage = document.getElementById('dashboardPage');
+        const homeNavBtn = document.getElementById('homeNavBtn');
+        const homeLinkDesktop = document.getElementById('homeLinkDesktop');
+        const homeLinkMobile = document.getElementById('homeLinkMobile');
+        const aboutNavBtn = document.getElementById('aboutNavBtn');
+        const aboutNavBtnMobile = document.getElementById('aboutNavBtnMobile');
+        const helpNavBtn = document.getElementById('helpNavBtn');
+        const helpNavBtnMobile = document.getElementById('helpNavBtnMobile');
+        const contactNavBtn = document.getElementById('contactNavBtn');
+        const contactNavBtnMobile = document.getElementById('contactNavBtnMobile');
+        const orgNavBtn = document.getElementById('orgNavBtn');
+        const orgNavBtnMobile = document.getElementById('orgNavBtnMobile');
+        const homeLinkStatusPage = document.getElementById('homeLinkStatusPage');
+
+        const showPage = (pageToShow) => {
+            [homePage, aboutPage, helpPage, contactPage, organizationPage, statusPage, dashboardPage].forEach(page => {
+                page.classList.add('hidden');
+            });
+            pageToShow.classList.remove('hidden');
+        };
+        
+        homeNavBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(homePage); });
+        homeLinkDesktop.addEventListener('click', (e) => { e.preventDefault(); showPage(homePage); });
+        homeLinkMobile.addEventListener('click', (e) => { e.preventDefault(); showPage(homePage); mobileMenu.classList.add('hidden'); });
+        aboutNavBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(aboutPage); });
+        aboutNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); showPage(aboutPage); mobileMenu.classList.add('hidden'); });
+        helpNavBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(helpPage); });
+        helpNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); showPage(helpPage); mobileMenu.classList.add('hidden'); });
+        contactNavBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(contactPage); });
+        contactNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); showPage(contactPage); mobileMenu.classList.add('hidden'); });
+        orgNavBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(organizationPage); });
+        orgNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); showPage(organizationPage); mobileMenu.classList.add('hidden'); });
+        homeLinkStatusPage.addEventListener('click', (e) => { e.preventDefault(); showPage(homePage); });
+
+        // === Mobile Menu ===
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // === Language Modal ===
+        const languageBtn = document.getElementById('languageBtn');
+        const languageBtnMobile = document.getElementById('languageBtnMobile');
+        const languageModal = document.getElementById('languageModal');
+        const languageModalContent = document.getElementById('language-modal-content');
+        const closeLanguageModalBtn = document.getElementById('closeLanguageModalBtn');
+
+        const openLanguageModal = () => { languageModal.classList.remove('hidden'); setTimeout(() => { languageModal.style.opacity = '1'; languageModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeLanguageModal = () => { languageModalContent.classList.add('scale-95', 'opacity-0'); languageModal.style.opacity = '0'; setTimeout(() => languageModal.classList.add('hidden'), 300); };
+
+        languageBtn.addEventListener('click', (e) => { e.preventDefault(); openLanguageModal(); });
+        languageBtnMobile.addEventListener('click', (e) => { e.preventDefault(); openLanguageModal(); mobileMenu.classList.add('hidden'); });
+        closeLanguageModalBtn.addEventListener('click', closeLanguageModal);
+        languageModal.addEventListener('click', (e) => { if (e.target === languageModal) closeLanguageModal(); });
+
+        // === Contact Form ===
+        const contactForm = document.getElementById('contactForm');
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            setTimeout(() => {
+                submitBtn.textContent = 'Message Sent!';
+                submitBtn.classList.replace('bg-blue-600', 'bg-green-500');
+                submitBtn.classList.replace('hover:bg-blue-700', 'bg-green-500');
+                setTimeout(() => {
+                    contactForm.reset();
+                    submitBtn.textContent = 'Send Message';
+                    submitBtn.classList.replace('bg-green-500', 'bg-blue-600');
+                    submitBtn.classList.add('hover:bg-blue-700');
+                    submitBtn.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+
+        // === Token Generation Modal Logic ===
+        const generateTokenBtn = document.getElementById('generateTokenBtn');
+        const tokenModal = document.getElementById('tokenModal');
+        const modalContent = document.getElementById('modal-content');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const tokenForm = document.getElementById('tokenForm');
+        const notificationRadios = document.querySelectorAll('input[name="notification"]');
+        const smsInputContainer = document.getElementById('smsInputContainer');
+        const emailInputContainer = document.getElementById('emailInputContainer');
+
+        const openTokenModal = () => { tokenModal.classList.remove('hidden'); setTimeout(() => { tokenModal.style.opacity = '1'; modalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeTokenModal = () => { modalContent.classList.add('scale-95', 'opacity-0'); tokenModal.style.opacity = '0'; setTimeout(() => tokenModal.classList.add('hidden'), 300); };
+        generateTokenBtn.addEventListener('click', (e) => { e.preventDefault(); openTokenModal(); });
+        closeModalBtn.addEventListener('click', closeTokenModal);
+        tokenModal.addEventListener('click', (e) => { if (e.target === tokenModal) closeTokenModal(); });
+        notificationRadios.forEach(radio => { radio.addEventListener('change', (e) => { smsInputContainer.classList.toggle('hidden', e.target.value !== 'sms'); emailInputContainer.classList.toggle('hidden', e.target.value !== 'email'); }); });
+        tokenForm.addEventListener('submit', (e) => { e.preventDefault(); const submitButton = e.target.querySelector('button[type="submit"]'); submitButton.textContent = 'Token Sent!'; submitButton.classList.replace('bg-blue-600', 'bg-green-500'); submitButton.classList.replace('hover:bg-blue-700', 'bg-green-500'); setTimeout(() => { closeTokenModal(); tokenForm.reset(); setTimeout(() => { submitButton.textContent = 'Generate Token'; submitButton.classList.replace('bg-green-500', 'bg-blue-600'); submitButton.classList.add('hover:bg-blue-700'); }, 500); }, 2000); });
+
+        // === Status Check Modal Logic ===
+        const checkStatusBtn = document.getElementById('checkStatusBtn');
+        const statusNavBtn = document.getElementById('statusNavBtn');
+        const statusNavBtnMobile = document.getElementById('statusNavBtnMobile');
+        const statusModal = document.getElementById('statusModal');
+        const statusModalContent = document.getElementById('status-modal-content');
+        const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
+        const statusForm = document.getElementById('statusForm');
+        const getOtpBtn = document.getElementById('getOtpBtn');
+        const otpInputContainer = document.getElementById('otpInputContainer');
+        const checkStatusSubmitBtn = document.getElementById('checkStatusSubmitBtn');
+
+        const openStatusModal = () => { statusModal.classList.remove('hidden'); setTimeout(() => { statusModal.style.opacity = '1'; statusModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeStatusModal = () => { statusModalContent.classList.add('scale-95', 'opacity-0'); statusModal.style.opacity = '0'; setTimeout(() => { statusModal.classList.add('hidden'); otpInputContainer.classList.add('hidden'); checkStatusSubmitBtn.classList.add('hidden'); getOtpBtn.classList.remove('hidden'); statusForm.reset(); }, 300); };
+        checkStatusBtn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); });
+        statusNavBtn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); });
+        statusNavBtnMobile.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); mobileMenu.classList.add('hidden'); });
+        closeStatusModalBtn.addEventListener('click', closeStatusModal);
+        statusModal.addEventListener('click', (e) => { if (e.target === statusModal) closeStatusModal(); });
+        getOtpBtn.addEventListener('click', (e) => { e.preventDefault(); otpInputContainer.classList.remove('hidden'); checkStatusSubmitBtn.classList.remove('hidden'); getOtpBtn.classList.add('hidden'); });
+
+        // === Officer Login Modal Logic ===
+        const accessDashboardBtn = document.getElementById('accessDashboardBtn');
+        const officerLoginModal = document.getElementById('officerLoginModal');
+        const officerLoginModalContent = document.getElementById('officer-login-modal-content');
+        const closeOfficerLoginModalBtn = document.getElementById('closeOfficerLoginModalBtn');
+        const officerLoginForm = document.getElementById('officerLoginForm');
+
+        const openOfficerLoginModal = () => { officerLoginModal.classList.remove('hidden'); setTimeout(() => { officerLoginModal.style.opacity = '1'; officerLoginModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeOfficerLoginModal = () => { officerLoginModalContent.classList.add('scale-95', 'opacity-0'); officerLoginModal.style.opacity = '0'; setTimeout(() => officerLoginModal.classList.add('hidden'), 300); };
+        accessDashboardBtn.addEventListener('click', (e) => { e.preventDefault(); openOfficerLoginModal(); });
+        closeOfficerLoginModalBtn.addEventListener('click', closeOfficerLoginModal);
+        officerLoginModal.addEventListener('click', (e) => { if (e.target === officerLoginModal) closeOfficerLoginModal(); });
+        officerLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const officerIdInput = document.getElementById('officerId').value;
+            const officerPasswordInput = document.getElementById('officerPassword').value;
+            if (officerIdInput.toLowerCase() === 'test' && officerPasswordInput === '0') {
+                closeOfficerLoginModal();
+                setTimeout(() => { showPage(dashboardPage); startCustomerTimer(); }, 350);
+                return;
+            }
+            const loginButton = e.target.querySelector('button[type="submit"]'); loginButton.textContent = 'Logging in...'; setTimeout(() => { loginButton.textContent = 'Success!'; loginButton.classList.replace('bg-indigo-600', 'bg-green-500'); loginButton.classList.replace('hover:bg-indigo-700', 'bg-green-500'); setTimeout(() => { closeOfficerLoginModal(); officerLoginForm.reset(); setTimeout(() => { loginButton.textContent = 'Login'; loginButton.classList.replace('bg-green-500', 'bg-indigo-600'); loginButton.classList.add('hover:bg-indigo-700'); }, 500); }, 1500); }, 1000);
+        });
+
+        // === Officer Dashboard Logic ===
+        const logoutBtn = document.getElementById('logoutBtn');
+        const customerTimerEl = document.getElementById('customerTimer');
+        const callNextBtn = document.getElementById('callNextBtn');
+        const customerCountEl = document.getElementById('customerCount');
+        let timerInterval; let seconds = 0;
+        function formatTime(sec) { const minutes = Math.floor(sec / 60).toString().padStart(2, '0'); const secondsValue = (sec % 60).toString().padStart(2, '0'); return `${minutes}:${secondsValue}`; }
+        function startCustomerTimer() { if (timerInterval) clearInterval(timerInterval); seconds = 0; customerTimerEl.textContent = formatTime(seconds); timerInterval = setInterval(() => { seconds++; customerTimerEl.textContent = formatTime(seconds); }, 1000); }
+        callNextBtn.addEventListener('click', () => { 
+            const nowServing = document.getElementById('nowServingToken'); 
+            const activeTokenView = document.getElementById('activeTokenView'); 
+            const nextCustomer = activeTokenView.querySelector('div'); 
+            if (nextCustomer) { 
+                nowServing.textContent = nextCustomer.querySelector('span:first-child').textContent; 
+                nextCustomer.remove(); 
+                customerCountEl.textContent = activeTokenView.children.length; 
+            } else { 
+                nowServing.textContent = "---"; 
+                customerCountEl.textContent = 0; 
+            } 
+            startCustomerTimer(); 
+        });
+        logoutBtn.addEventListener('click', (e) => { e.preventDefault(); showPage(homePage); });
+
+
+        // === Appointment/Walk-in Modal Logic ===
+        const appointmentModal = document.getElementById('appointmentModal');
+        const appointmentModalContent = document.getElementById('appointment-modal-content');
+        const joinWalkInBtn = document.getElementById('joinWalkInBtn');
+        const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
+
+        const openAppointmentModal = () => { appointmentModal.classList.remove('hidden'); setTimeout(() => { appointmentModal.style.opacity = '1'; appointmentModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeAppointmentModal = () => { appointmentModalContent.classList.add('scale-95', 'opacity-0'); appointmentModal.style.opacity = '0'; setTimeout(() => appointmentModal.classList.add('hidden'), 300); };
+
+        // === Status Page Logic ===
+        const etrTimerEl = document.getElementById('etrTimer');
+        const etrMessageEl = document.getElementById('etrMessage');
+        const checkInBtn = document.getElementById('checkInBtn');
+        const viewMapBtn = document.getElementById('viewMapBtn');
+
+        function startETRTimer(duration) {
+            let timer = duration; if (etrTimerInterval) clearInterval(etrTimerInterval);
+            etrTimerEl.textContent = formatTime(timer); // Initialize display
+            etrTimerInterval = setInterval(() => {
+                etrTimerEl.textContent = formatTime(timer);
+                if (--timer < 0) { clearInterval(etrTimerInterval); etrTimerEl.textContent = "00:00"; etrMessageEl.textContent = "It's your turn!"; }
+            }, 1000);
+        }
+        checkInBtn.addEventListener('click', () => { checkInBtn.textContent = 'Checked-in Successfully!'; checkInBtn.classList.replace('bg-green-500', 'bg-green-600'); checkInBtn.disabled = true; });
+        const displayStatus = (data) => {
+            document.getElementById('statusName').textContent = data.name; document.getElementById('statusContact').textContent = data.contact; document.getElementById('statusService').textContent = data.service; document.getElementById('statusPosition').textContent = data.position;
+            checkInBtn.textContent = 'Check-in Now'; checkInBtn.classList.replace('bg-green-600', 'bg-green-500'); checkInBtn.disabled = false;
+            startETRTimer(data.etr); showPage(statusPage);
+        };
+        joinWalkInBtn.addEventListener('click', () => { closeAppointmentModal(); setTimeout(() => { displayStatus({ name: 'John', contact: '909******', service: 'General Inquiry', position: '3rd in line', etr: 15 * 60 }); }, 350); });
+        bookAppointmentBtn.addEventListener('click', () => {
+            closeAppointmentModal();
+            setTimeout(() => {
+                displayStatus({ name: 'John', contact: '909******', service: 'General Inquiry', position: 'Appointment', etr: 0 });
+                if (etrTimerInterval) clearInterval(etrTimerInterval);
+                etrTimerEl.textContent = "Confirmed"; etrMessageEl.textContent = `For tomorrow at ${document.getElementById('appointmentSlot').value}`;
+            }, 350);
+        });
+        
+        // === Map Modal Logic ===
+        const mapModal = document.getElementById('mapModal');
+        const mapModalContent = document.getElementById('map-modal-content');
+        const closeMapModalBtn = document.getElementById('closeMapModalBtn');
+        const openMapModal = () => { mapModal.classList.remove('hidden'); setTimeout(() => { mapModal.style.opacity = '1'; mapModalContent.classList.remove('scale-95', 'opacity-0'); }, 10); };
+        const closeMapModal = () => { mapModalContent.classList.add('scale-95', 'opacity-0'); mapModal.style.opacity = '0'; setTimeout(() => mapModal.classList.add('hidden'), 300); };
+        viewMapBtn.addEventListener('click', openMapModal);
+        closeMapModalBtn.addEventListener('click', closeMapModal);
+        mapModal.addEventListener('click', (e) => { if (e.target === mapModal) closeMapModal(); });
+
+        // === Main Form Submission Logic ===
+        statusForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const tokenInput = document.getElementById('token').value;
+            const otpInput = document.getElementById('otp').value;
+
+            if (tokenInput.toLowerCase() === 'test' && otpInput === '0') {
+                if (isFirstTimeTestUser) {
+                    isFirstTimeTestUser = false;
+                    closeStatusModal();
+                    setTimeout(openAppointmentModal, 350);
+                } else {
+                     closeStatusModal();
+                     setTimeout(() => {
+                         displayStatus({ name: 'John', contact: '909******', service: 'General Inquiry', position: '2nd in line', etr: 10 * 60 });
+                    }, 350);
+                }
+                return;
+            }
+            
+            const submitBtn = document.getElementById('checkStatusSubmitBtn');
+            submitBtn.textContent = 'Verifying...';
+            setTimeout(() => {
+                 console.log("Invalid Token/OTP (simulation)");
+                 submitBtn.textContent = 'Go to Status Page';
+                 closeStatusModal();
+            }, 1500);
+        });
+
+    </script>
+</body>
+</html>
+
+
+
+
+

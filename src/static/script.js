@@ -118,113 +118,115 @@ if (generateTokenBtn) {
 }
 
 // === Status Check Modal Logic (Token → OTP → Verify) ===
-const checkStatusBtn = document.getElementById('checkStatusBtn');
-const statusNavBtn = document.getElementById('statusNavBtn');
-const statusNavBtnMobile = document.getElementById('statusNavBtnMobile');
 const statusModal = document.getElementById('statusModal');
-const statusModalContent = document.getElementById('status-modal-content');
-const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
-const statusForm = document.getElementById('statusForm');
-const getOtpBtn = document.getElementById('getOtpBtn');
-const otpInputContainer = document.getElementById('otpInputContainer');
-const checkStatusSubmitBtn = document.getElementById('checkStatusSubmitBtn');
+if (statusModal) {
+    const checkStatusBtn = document.getElementById('checkStatusBtn');
+    const statusNavBtn = document.getElementById('statusNavBtn');
+    const statusNavBtnMobile = document.getElementById('statusNavBtnMobile');
+    const statusModalContent = document.getElementById('status-modal-content');
+    const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
+    const statusForm = document.getElementById('statusForm');
+    const getOtpBtn = document.getElementById('getOtpBtn');
+    const otpInputContainer = document.getElementById('otpInputContainer');
+    const checkStatusSubmitBtn = document.getElementById('checkStatusSubmitBtn');
 
-function openStatusModal() {
-    statusModal.classList.remove('hidden');
-    setTimeout(() => {
-        statusModal.style.opacity = '1';
-        statusModalContent.classList.remove('scale-95', 'opacity-0');
-        statusModalContent.classList.add('scale-100', 'opacity-100');
-    }, 10);
-}
-
-function closeStatusModal() {
-    statusModalContent.classList.add('scale-95', 'opacity-0');
-    statusModalContent.classList.remove('scale-100', 'opacity-100');
-    statusModal.style.opacity = '0';
-    setTimeout(() => {
-        statusModal.classList.add('hidden');
-        otpInputContainer.classList.add('hidden');
-        checkStatusSubmitBtn.classList.add('hidden');
-        getOtpBtn.classList.remove('hidden');
-        statusForm.reset();
-    }, 300);
-}
-
-[checkStatusBtn, statusNavBtn, statusNavBtnMobile].forEach(btn => { if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); }); });
-closeStatusModalBtn.addEventListener('click', closeStatusModal);
-statusModal.addEventListener('click', e => { if (e.target === statusModal) closeStatusModal(); });
-
-// Step 1: Request OTP
-document.getElementById("getOtpBtn").addEventListener("click", async () => {
-    const token = document.getElementById("token").value.trim();
-    if (!token) return alert("Please enter your token.");
-
-    const res = await fetch("/request_otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-        alert(data.message);
-        document.getElementById("otpInputContainer").classList.remove("hidden");
-        document.getElementById("checkStatusSubmitBtn").classList.remove("hidden");
-        getOtpBtn.classList.add("hidden");
-    } else {
-        alert(data.error);
+    function openStatusModal() {
+        statusModal.classList.remove('hidden');
+        setTimeout(() => {
+            statusModal.style.opacity = '1';
+            statusModalContent.classList.remove('scale-95', 'opacity-0');
+            statusModalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
-});
 
-// Step 2: Verify OTP
-document.getElementById("checkStatusSubmitBtn").addEventListener("click", async () => {
-    verifiedToken = document.getElementById("token").value.trim();
-    const otp = document.getElementById("otp").value.trim();
-    if (!otp) return alert("Please enter the OTP.");
+    function closeStatusModal() {
+        statusModalContent.classList.add('scale-95', 'opacity-0');
+        statusModalContent.classList.remove('scale-100', 'opacity-100');
+        statusModal.style.opacity = '0';
+        setTimeout(() => {
+            statusModal.classList.add('hidden');
+            otpInputContainer.classList.add('hidden');
+            checkStatusSubmitBtn.classList.add('hidden');
+            getOtpBtn.classList.remove('hidden');
+            statusForm.reset();
+        }, 300);
+    }
 
-    const btn = document.getElementById("checkStatusSubmitBtn");
-    btn.textContent = "Verifying...";
-    btn.disabled = true;
+    [checkStatusBtn, statusNavBtn, statusNavBtnMobile].forEach(btn => { if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); openStatusModal(); }); });
+    closeStatusModalBtn.addEventListener('click', closeStatusModal);
+    statusModal.addEventListener('click', e => { if (e.target === statusModal) closeStatusModal(); });
 
-    try {
-        const res = await fetch("/verify_otp", {
+    // Step 1: Request OTP
+    getOtpBtn.addEventListener("click", async () => {
+        const token = document.getElementById("token").value.trim();
+        if (!token) return alert("Please enter your token.");
+
+        const res = await fetch("/request_otp", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: verifiedToken, otp })
+            body: JSON.stringify({ token })
         });
-
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error("Error from server:", res.status, res.statusText, errorText);
-            alert(`Error from server: ${res.statusText}`);
-            btn.textContent = "Go to Status Page";
-            btn.disabled = false;
-            return;
-        }
 
         const data = await res.json();
         if (data.success) {
-            if (data.action === 'choose_type') {
-                openChoiceModal();
-            } else {
-                btn.textContent = "OTP Verified! Redirecting...";
-                setTimeout(() => {
-                    window.location.href = '/status';
-                }, 1000);
-            }
+            alert(data.message);
+            document.getElementById("otpInputContainer").classList.remove("hidden");
+            document.getElementById("checkStatusSubmitBtn").classList.remove("hidden");
+            getOtpBtn.classList.add("hidden");
         } else {
             alert(data.error);
+        }
+    });
+
+    // Step 2: Verify OTP
+    checkStatusSubmitBtn.addEventListener("click", async () => {
+        verifiedToken = document.getElementById("token").value.trim();
+        const otp = document.getElementById("otp").value.trim();
+        if (!otp) return alert("Please enter the OTP.");
+
+        const btn = document.getElementById("checkStatusSubmitBtn");
+        btn.textContent = "Verifying...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch("/verify_otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: verifiedToken, otp })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("Error from server:", res.status, res.statusText, errorText);
+                alert(`Error from server: ${res.statusText}`);
+                btn.textContent = "Go to Status Page";
+                btn.disabled = false;
+                return;
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                if (data.action === 'choose_type') {
+                    openChoiceModal();
+                } else {
+                    btn.textContent = "OTP Verified! Redirecting...";
+                    setTimeout(() => {
+                        window.location.href = '/status';
+                    }, 1000);
+                }
+            } else {
+                alert(data.error);
+                btn.textContent = "Go to Status Page";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error("Error during OTP verification fetch:", error);
+            alert("A network error occurred during OTP verification. Please try again.");
             btn.textContent = "Go to Status Page";
             btn.disabled = false;
         }
-    } catch (error) {
-        console.error("Error during OTP verification fetch:", error);
-        alert("A network error occurred during OTP verification. Please try again.");
-        btn.textContent = "Go to Status Page";
-        btn.disabled = false;
-    }
-});
+    });
+}
 
 // === Officer Login Modal Logic ===
 const accessDashboardBtn = document.getElementById('accessDashboardBtn');
@@ -423,6 +425,12 @@ async function loadQueue() {
     } catch (error) {
         console.error('Error loading queue:', error);
     }
+}
+
+// Initial load for dashboard page
+if (document.getElementById('dashboardPage')) {
+    loadQueue();
+    startCustomerTimer();
 }
 
 // === Choice Modal Logic ===

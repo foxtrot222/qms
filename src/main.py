@@ -6,6 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from email_utils import send_token_email, send_otp_email
 import random
 from datetime import datetime, timedelta
+import logging
+import time
 
 # Load environment variables
 load_dotenv()
@@ -339,6 +341,101 @@ def verify_otp():
         conn.close()
         return jsonify({"success": True, "action": "redirect_status", "message": "OTP verified, access granted."})
 
+@app.route("/get_queue")
+def get_queue():
+    logging.info("Attempting to fetch queue data.")
+    try:
+        conn = get_db_connection()
+        if not conn:
+            logging.error("Database connection failed.")
+            return jsonify({"success": False, "error": "Database connection failed."})
+        
+        logging.info("Database connection successful. Executing query.")
+        cursor = conn.cursor(dictionary=True)
+        query = """
+            SELECT
+                w.position,
+                t.value AS token_value
+            FROM
+                walkin w
+            JOIN
+                token t ON w.token_id = t.id
+            ORDER BY
+                w.position;
+        """
+        cursor.execute(query)
+        queue = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        logging.info(f"Found {len(queue)} customers in the queue.")
+
+        return jsonify({"success": True, "queue": queue})
+
+    except mysql.connector.Error as err:
+        logging.error(f"Database query failed: {err}")
+        return jsonify({"success": False, "error": "Database error occurred."})
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."})
+
+
+@app.route("/complete_service", methods=['POST'])
+def complete_service():
+    logging.info("Attempting to complete a service.")
+    try:
+        service_time_seconds = int(request.form.get('service_time', 0))
+        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+
+        conn = get_db_connection()
+        if not conn:
+            logging.error("Database connection failed.")
+            return jsonify({"success": False, "error": "Database connection failed."})
+        
+        cursor = conn.cursor(dictionary=True)
+
+        # Log the service time
+        cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
+
+        # Find the customer with position 0
+        cursor.execute("SELECT id, token_id FROM walkin WHERE position = 0")
+        serving = cursor.fetchone()
+
+        if serving:
+            walkin_id = serving['id']
+            token_id = serving['token_id']
+
+            # Delete the walkin record first
+            cursor.execute("DELETE FROM walkin WHERE id = %s", (walkin_id,))
+
+            # Find the customer associated with the token
+            cursor.execute("SELECT id FROM customer WHERE token_id = %s", (token_id,))
+            customer = cursor.fetchone()
+            
+            if customer:
+                customer_id = customer['id']
+                # Deleting the customer will cascade to the token
+                cursor.execute("DELETE FROM customer WHERE id = %s", (customer_id,))
+
+            # Update the positions of the remaining customers
+            cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
+
+            conn.commit()
+            logging.info(f"Service completed for token_id: {token_id}")
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except mysql.connector.Error as err:
+        logging.error(f"Database query failed: {err}")
+        conn.rollback()
+        return jsonify({"success": False, "error": "Database error occurred."})
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."})
+
+
 @app.route('/get_available_slots', methods=['GET'])
 def get_available_slots():
     conn = get_db_connection()
@@ -366,9 +463,18 @@ def join_walkin():
             return jsonify({"success": False, "error": "Invalid token."})
         token_id = token_record['id']
 
-        cursor.execute("SELECT MAX(position) as max_pos FROM walkin")
-        max_pos_record = cursor.fetchone()
-        next_pos = (max_pos_record['max_pos'] or 0) + 1
+        # Check if anyone is being served (position 0)
+        cursor.execute("SELECT id FROM walkin WHERE position = 0")
+        serving_now = cursor.fetchone()
+
+        if not serving_now:
+            # If no one is being served, this person is next (position 0)
+            next_pos = 0
+        else:
+            # Otherwise, add to the end of the queue
+            cursor.execute("SELECT MAX(position) as max_pos FROM walkin")
+            max_pos_record = cursor.fetchone()
+            next_pos = (max_pos_record['max_pos'] or 0) + 1
 
         cursor.execute("INSERT INTO walkin (token_id, position) VALUES (%s, %s)", (token_id, next_pos))
         cursor.execute("UPDATE token SET type = 'walkin' WHERE id = %s", (token_id,))

@@ -1,0 +1,1008 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{amsfonts}
+
+\usepackage{titlesec}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries}
+  {\thechapter\ }{0pt}{}
+
+
+% Define colors
+\definecolor{primaryblue}{RGB}{0,51,102}
+\definecolor{accentorange}{RGB}{255,102,0}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=primaryblue,
+    citecolor=primaryblue
+}
+
+\begin{document}
+
+% Title Page
+\begin{titlepage}
+    \centering
+    
+    % Top spacing
+    \vspace*{1cm}
+    
+    % Main title with box
+    \begin{tikzpicture}
+        \node[rectangle, draw=primaryblue, line width=2pt, inner sep=15pt, text width=0.9\textwidth, align=center] {
+            {\Huge\bfseries\color{primaryblue} Vikas Saptah Hackathon 2025}\\[0.3cm]
+            {\Large\color{accentorange} 6th Edition}
+        };
+    \end{tikzpicture}
+    
+    \vspace{1.5cm}
+    
+    % Organized by section
+    {\Large\textbf{Organized by}}\\[0.5cm]
+    {\large Gujarat Knowledge Society}\\[0.2cm]
+    {\normalsize Under}\\[0.2cm]
+    {\large\textbf{Student Start-up and Innovation Policy (SSIP 2.0)}}\\[0.2cm]
+    {\large Education Department Gujarat}
+    
+    \vspace{2cm}
+    
+    % Divider line
+    \textcolor{primaryblue}{\rule{0.8\textwidth}{2pt}}
+    
+    \vspace{1.5cm}
+    
+    % Project Details
+    {\LARGE\textbf{Queue Management System}}\\[0.3cm]
+    {\Large\textbf{for DISCOM Offices}}\\[0.5cm]
+    
+    \vspace{0.5cm}
+    
+    {\large\textbf{Industry:}}\\[0.2cm]
+    {\large Gujarat Urja Vikas Nigam (GUVNL)}
+    
+    \vspace{1cm}
+    
+    % Team Information
+    \begin{tabular}{rl}
+        \textbf{Team ID:} & TM000082 \\[0.2cm]
+        \textbf{Problem ID:} & PS000029 \\[0.2cm]
+        \textbf{Team Leader:} & Kavathiya Tirth Hareshbhai \\[0.2cm]
+        \textbf{Faculty Mentor:} & Dr. Shankar Parmar \\
+    \end{tabular}
+    
+    \vfill
+    
+    % Institution
+    {\large Government Engineering College, Bharuch}\\[0.2cm]
+    {\normalsize Computer Engineering Department}
+    
+    \vspace{0.5cm}
+    
+    % Date
+    {\large\today}
+    
+\end{titlepage}
+
+% Abstract Page
+\newpage
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The answer to old queuing systems, excessive customer wait times, and jammed service halls is the Advanced Queue Management System (QMS). The latest, multi-dimensional platform is meant to take the place of lines and offer a smooth, clear service experience available through mobile, desktop, and kiosks. The primary goal of the QMS is to significantly reduce customer wait times, do away with congestion, increase operational transparency, and improve employee productivity.
+
+The QMS's intelligence lies in its robust mathematical model that goes beyond basic first-in, first-out reasoning. It actively handles a rich blend of customer types such as Walk-ins, Scheduled appointments, and Priority guests and regularly computes an up-to-date Estimated Time of Resolution (ETR). The system employs a proprietary "smart shuffling" algorithm to proactively rebalance the entire service process across multiple queues. This guarantees the overall waiting time for all individuals in the system is kept at a minimum, resulting in clearly more efficient delivery of service.
+
+The QMS offers clear, intuitive digital technology for all interested parties. Customers are provided with digital tokens and real-time queue updates by email or SMS (using Twilio SendGrid), so they can follow their position anywhere. Service Providers use an efficient, live dashboard for streamlined task management and customer finalization, eliminating manual paperwork. Administrators maintain full control over policy setting, staff assignment, and auditing all system activity. Built using Flask, the QMS currently features fully operational digital token issuance and live status updates. This technological approach is projected to yield high returns, including 80-90\% customer satisfaction and up to 35\% increased staff productivity.
+
+% Table of Contents
+\newpage
+\tableofcontents
+
+% Team Details Page
+\newpage
+\chapter*{Team Details}
+\addcontentsline{toc}{chapter}{Team Details}
+
+\section*{Hackathon Information}
+\begin{tabular}{p{5cm}p{10cm}}
+    \toprule
+    \textbf{Parameter} & \textbf{Details} \\
+    \midrule
+    Team ID & TM000082 \\
+    Industry Name & Gujarat Urja Vikas Nigam (GUVNL) \\
+    Problem ID & PS000029 \\
+    Problem Statement & Queue management system for DISCOM Offices \\
+    \bottomrule
+\end{tabular}
+
+\vspace{1cm}
+
+\section*{Team Leadership}
+\begin{tabular}{p{5cm}p{10cm}}
+    \toprule
+    \textbf{Role} & \textbf{Name} \\
+    \midrule
+    Team Leader & Kavathiya Tirth Hareshbhai \\
+    Faculty Mentor & Dr. Shankar Parmar \\
+    \bottomrule
+\end{tabular}
+
+\vspace{1cm}
+
+\section*{Team Members}
+\begin{center}
+\begin{tabular}{clp{6cm}l}
+    \toprule
+    \textbf{Sr.} & \textbf{Name} & \textbf{Role} \\
+    \midrule
+    1 & Kavathiya Tirth Hareshbhai & Team Leader \\
+    2 & Satyajeetsinh Mahida & Team Member \\
+    3 & Bhatiya Kavya Bhavin & Team Member \\
+    4 & Swapnil Patil & Team Member \\
+    5 & Prajapati Aditya Nanjibhai & Team Member \\
+    6 & Purohit Rutva Akshaybhai & Team Member \\
+    7 & Ahir Hevinkumar Keshavbhai & Team Member \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+
+\noindent\textit{All team members are 3rd Semester Computer Engineering students at Government Engineering College, Bharuch.}
+
+% Problem Statement Chapter
+\newpage
+\chapter{Problem Statement}
+
+\section{Challenge Description}
+
+It is a regular scene at government and even private offices to find a large number of people standing in long queues waiting for their turns. This experience is often frustrating for customers and leads to inefficiencies, such as inquiries directed at non-relevant staff. This environment increases consumer dissatisfaction while simultaneously reducing staff efficiency. 
+
+An effective queue management system must not only minimize customer waiting times but also empower staff to provide service more efficiently. Kiosk and mobile-based systems offer a modern solution to these limitations.
+
+\section{Target Users}
+
+The solution is designed for Government/Private Offices, hospitals, and any organization dealing with a high volume of customer interactions.
+
+\section{Expected Outcomes}
+
+The implementation of this queue management system is expected to deliver the following outcomes:
+
+\begin{itemize}
+    \item A proper system for appointment, allocation, and direction
+    \item Faster processing of customer requests
+    \item Reduced customer wait times and relief from long queues
+    \item Real-time performance monitoring for management
+    \item Time-saving for both companies and customers
+\end{itemize}
+
+\section{Potential Impact}
+
+The successful implementation of this system will result in significant benefits across multiple dimensions:
+
+\begin{itemize}
+    \item \textbf{Improved workforce efficiency:} Staff can focus on their designated tasks without being overwhelmed by misdirected inquiries
+    \item \textbf{Better management of consumers:} Leading to increased satisfaction through organized service delivery
+    \item \textbf{Improved productivity and operational efficiencies:} Streamlined processes reduce bottlenecks and optimize resource utilization
+\end{itemize}
+
+% Existing Solutions Chapter
+\newpage
+\chapter{Existing Queue Management Solutions Worldwide}
+
+Queue management systems (QMS) have become an essential part of modern service delivery, enhancing customer experience by reducing waiting times, providing transparency, and improving efficiency. Several companies and solutions exist globally, each addressing different aspects of queue handling.
+
+\section{Commercial Queue Management Solutions}
+
+\subsection{Q'SOFT EQMS by ATT Systems}
+
+One notable solution is Q'SOFT EQMS developed by ATT Systems. It integrates AI-powered queue management with support for both walk-ins and appointments. The system also offers real-time analytics, kiosks, mobile apps, and feedback modules. A unique feature is its robotics integration (Q'Bot), making it suitable for large-scale enterprises with customizable workflows.
+
+\subsection{Zeour Advanced Queuing Solutions}
+
+Zeour focuses on smart digital transformation. It provides mobile and virtual queue options, real-time dashboards, and system integration. Its modern user interface and flexible design make it suitable for organizations seeking digital-first strategies.
+
+\subsection{Greetly}
+
+Greetly combines visitor management with queue management features. It supports check-in via kiosk or smartphone, multiple languages, virtual queues, and customizable workflows. This makes it particularly strong in workplaces and environments where first impressions and visitor handling are critical.
+
+\subsection{QLess}
+
+QLess is a cloud-based queue and line management system, among the earliest of its kind. It allows appointment scheduling, virtual service handling, and includes strong business intelligence tools. With a global customer base, it is widely recognized for providing insight-driven solutions.
+
+\subsection{Qmatic}
+
+Qmatic has been a leading name in traditional queue management. Its system includes ticket kiosks, virtual queue options, and appointment scheduling. With a strong emphasis on display systems and physical infrastructure, Qmatic is ideal for walk-in-heavy industries such as government services and healthcare.
+
+\subsection{Qminder}
+
+Qminder provides a simpler alternative with kiosk-based check-ins and customer notifications through SMS or chat in some plans. It offers analytics for business insights and is designed for organizations wanting minimal setup but with digital functionality.
+
+\section{Research and Academic Contributions}
+
+Beyond commercial solutions, research and academic contributions also play a significant role in advancing queue management technology.
+
+An \textit{Automated Queue Management System} study (2016) compared queue algorithms and demonstrated dynamic switching to optimize customer wait times in banking systems. This research provided valuable insights into algorithmic approaches to queue optimization.
+
+More recently, the \textit{Massimo} project (2024) introduced a queue monitoring and management framework using machine learning and computer vision to detect crowding and improve public service flow. This represents the cutting edge of AI-driven queue management solutions.
+
+\section{Conclusion}
+
+In conclusion, existing queue management solutions around the world range from enterprise-scale platforms with advanced AI and robotics to simpler, kiosk-based systems. Together with ongoing research, these solutions provide a robust foundation for efficient, fair, and customer-centric queue handling. The diversity of approaches demonstrates the evolution of queue management from traditional ticket systems to sophisticated AI-powered platforms that integrate seamlessly with modern digital ecosystems.
+
+% Proposed Solution Chapter
+\newpage
+\chapter{Proposed Solution by Our Team}
+
+Our team proposes a hybrid Queue Management System (QMS) that addresses the key limitations of existing solutions while introducing innovative features for efficiency and fairness.
+
+\section{Core Features}
+
+\subsection{Digital Token Generation}
+
+The system includes digital token generation through mobile, web, or kiosk interfaces, which reduces congestion and streamlines entry. This multi-channel approach ensures accessibility for all user demographics.
+
+\subsection{Priority-Based Insertion Logic}
+
+A priority-based insertion logic ensures that vulnerable groups such as senior citizens and persons with disabilities (PWDs) are given fair and inclusive access to services. This feature promotes social equity while maintaining system efficiency.
+
+\subsection{Dynamic Estimated Time to Response (ETR)}
+
+Dynamic ETR calculations, supported by average service time and real-time deviations, provide accurate predictions for customers, thereby enhancing transparency. This feature helps manage customer expectations and reduces perceived wait times.
+
+\subsection{Grace Period Handling}
+
+A grace period handling mechanism is included to accommodate late arrivals without disrupting overall flow. This ensures flexibility while maintaining queue integrity.
+
+\subsection{Multi-Queue Balancing}
+
+The solution features a multi-queue balancing algorithm to distribute load efficiently across service desks, avoiding bottlenecks. This optimization ensures maximum throughput and minimizes overall wait times.
+
+\section{User Interfaces}
+
+\subsection{Officer Dashboard}
+
+Officers are empowered with a dedicated dashboard for queue control, token calling, and service monitoring. This interface streamlines their workflow and enables efficient service delivery.
+
+\subsection{Administrator Panel}
+
+Administrators gain a configuration panel to define services, map desks, set hours, and manage user roles securely. This centralized control ensures system flexibility and security.
+
+\subsection{AI-Powered Customer Assistant}
+
+An AI-powered customer assistant is integrated to handle common queries and provide guidance, reducing the burden on staff while improving customer experience.
+
+\section{Technology Stack}
+
+The system is designed using a modern and robust technology stack:
+
+\begin{itemize}
+    \item \textbf{Frontend:} Tailwind CSS for web-responsive interface design
+    \item \textbf{Backend:} Flask framework for efficient server-side processing
+    \item \textbf{Database:} MySQL for reliable data management
+    \item \textbf{Authentication:} Firebase Auth and OAuth 2.0 for secure access control
+    \item \textbf{Communication:} Twilio and SendGrid for real-time alerts and notifications
+    \item \textbf{AI Assistant:} Azure OpenAI/Dialogflow for intelligent query handling
+    \item \textbf{Hosting:} AWS with GitHub Actions for continuous deployment
+    \item \textbf{Kiosk Hardware:} Raspberry Pi with touch-enabled screens for physical interfaces
+\end{itemize}
+
+\section{Future Enhancements}
+
+To ensure long-term relevance and scalability, the following enhancements are planned:
+
+\begin{itemize}
+    \item \textbf{Geo-fencing:} Location-based check-in for improved user convenience
+    \item \textbf{Voice-enabled kiosk interaction:} Accessibility enhancement for diverse user groups
+    \item \textbf{Government ID auto-verification:} Streamlined identity validation process
+    \item \textbf{Predictive analytics:} Peak-hour forecasting for proactive resource management
+    \item \textbf{Blockchain-based audit trails:} Immutable record-keeping for transparency and accountability
+    \item \textbf{Multilingual support:} Pan-India deployment capability with regional language integration
+\end{itemize}
+
+\section{Solution Summary}
+
+This holistic approach ensures scalability, inclusivity, transparency, and efficiency, making our solution a next-generation queue management framework. By combining proven technologies with innovative features, we address the specific needs of DISCOM offices while creating a platform that can be adapted to various public and private sector applications.
+
+% Roles and Features Chapter
+\newpage
+\chapter{Roles and Feature Overview in Queue Management System}
+
+\section{Introduction}
+
+Advanced queue management leverages technological innovation and mathematical models to handle customer queues more effectively. This document outlines the user interface for such a system, focusing specifically on the different user roles and the core features they interact with.
+
+\section{Accessing the Interface}
+
+Users can access the interface through a dedicated website, compatible with both mobile devices and personal computers, which connects to the company's central queue management server. An authentication system is utilized to differentiate between user types. Additionally, on-site kiosks will be provided for direct interaction within the office premises.
+
+\subsection{User Roles}
+
+The system defines several distinct user roles, each with specific permissions:
+
+\begin{description}
+    \item[Manager/Admin] Manages the system and has a complete overview of all operations.
+    \item[Service Provider] The staff member at the service desk who serves customers.
+    \item[Waiting Customer] A walk-in customer waiting for service.
+    \item[Scheduled Customer] A customer with a pre-booked appointment.
+    \item[Priority Customer] Individuals such as seniors or persons with disabilities (PWD) who are given precedence.
+    \item[Overdue Customer] A customer who has missed their scheduled appointment time.
+\end{description}
+
+\section{Customer Interface Features}
+
+The customer-facing portion of the system is comprised of several key components designed to create a seamless and transparent experience.
+
+\begin{description}
+    \item[Responsive Web Portal \& Kiosk] The interface is a responsive web portal accessible on any device (mobile, desktop) and via a self-service kiosk in the office. This provides high accessibility, supporting both remote and walk-in customers.
+    \item[Mandatory Service Triage] Customers must select the exact purpose of their visit (e.g., Billing, New Connection, Complaint). This ensures they are routed to the correct, specialized queue, preventing misdirection.
+    \item[Contact-Based Identification] The customer provides a mobile number or email for communication and identification. This generates a traceable transaction ID and establishes a channel for real-time alerts.
+    \item[Digital Token Issuance] A unique token number is instantly provided on-screen and delivered via SMS/Email. This offers immediate confirmation and replaces the ambiguity of a physical line.
+    \item[Flexible Booking Options] Customers have the choice between joining the immediate queue or booking a specific future appointment slot. This empowers the customer with control over their time and helps avoid unnecessary travel.
+    \item[Optimized Scheduling] The system highlights the next available low-wait window for the current day. This encourages customers to visit during non-peak hours, reducing overall wait times and crowding.
+    \item[Proactive 'Today is Impossible' Alert] If wait times become excessive, the system advises against joining the immediate queue and prompts the user to book a future appointment. This prevents customer frustration and wasted trips to the office.
+    \item[Dynamic Estimated Time Remaining (ETR)] A visible, continuously updated countdown timer is displayed, calculated based on real-time officer service speeds. This reduces waiting anxiety by making the experience transparent and predictable.
+    \item[Dedicated Token Status Page] A personalized page shows the customer's current queue position, the assigned officer/desk, and the ETR. This provides full transparency and allows for productive waiting away from the physical queue.
+    \item[Grace Period for Late Arrivals] The system reserves a customer's slot for a short grace period after their token is called before marking them as a no-show. This policy is fair and accommodates minor, unavoidable delays.
+    \item[Automatic Token Expiry] Tokens are automatically expired if the customer misses their turn after the grace period has passed. This prevents "ghost customers" from holding up the line's progress.
+    \item[Office/Desk Mapping] Upon a token being called, the system provides visual guidance to the correct officer's desk. This streamlines the final step of the process and eliminates the need for customers to ask for directions.
+    \item[Priority Customer Verification] For Priority Customers (Seniors/PWD), the system will include a verification step using official IDs like Aadhaar or a PWD ID card to ensure proper allocation of priority status.
+    \item[AI-Based Query System] An integrated question-and-answer system, likely powered by AI, will be available to assist customers with common queries and provide information without needing human intervention.
+\end{description}
+
+\section{On-Site Check-in Process}
+
+Upon arrival at the office, especially for scheduled appointments, customers must check in to activate their token in the service queue. This confirms their presence and makes them eligible to be called by a service provider. Several check-in methods are available:
+
+\begin{description}
+    \item[QR Code Scan] Customers can scan a QR code displayed at the office entrance or reception using their mobile device to instantly check in.
+    \item[Kiosk Check-in] The on-site self-service kiosk will feature a prominent "Check-in" button, allowing customers to find and confirm their appointment or token.
+    \item[Manual Token Entry] Using the web portal on their phone or a kiosk, customers can manually enter their token number and confirm their location within the office to check in.
+    \item[Receptionist Assistance] Customers can approach the receptionist, who can look up their details and manually check them into the system.
+\end{description}
+
+\section{Public Display Screen}
+
+A large public-facing screen in the office waiting area provides real-time updates to all customers. The display typically shows a list of token numbers currently being served and the corresponding service desk or officer number they should proceed to. In the event of a significant queue restructuring by a manager, the screen will display a prominent message advising customers to check their mobile notifications for updated queue information.
+
+\section{Communication and Notifications}
+
+The system actively communicates with customers through SMS and/or email to keep them informed about their queue status. Proactive notifications are sent at key moments:
+
+\begin{description}
+    \item[Significant ETR Changes] An alert is sent if the Estimated Time Remaining (ETR) changes significantly, allowing customers to adjust their plans accordingly.
+    \item[Grace Period Alert] When a customer's turn is called, they are notified that their grace period has begun, informing them how long they have to report to the service desk.
+    \item['You Are Next' Notification] An alert is sent when the customer's position in the queue becomes second, giving them advance notice to prepare.
+    \item[Queue Transfer Notification] If a customer is transferred to a new service queue, they receive an alert with their new queue details and token number.
+    \item[Queue Restructuring Alert] If a major queue change is made by management, a notification is sent to affected customers, prompting them to check for updated details.
+    \item[Reschedule Confirmation] When an appointment is rescheduled or a new token is issued, a confirmation message is sent with the updated details.
+\end{description}
+
+\section{Service Provider Interface}
+
+The service provider interface is designed for efficiency, focus, and effective queue management from the officer's perspective.
+
+\begin{description}
+    \item[Secure \& Personalized Login] Officers log in with a password and are presented with a personalized view showing only the queues and appointments assigned to their specific skill set. This eliminates distractions and ensures focus on relevant service requests.
+    \item[Call Next Button \& Service Timer] A prominent button allows the officer to summon the next customer, which simultaneously triggers the customer's alert and starts a service timer. This ensures a smooth flow and captures real-time service duration data essential for calculating the dynamic ETR.
+    \item[Active Token View] A dedicated area of the screen displays all relevant details of the customer currently being served (service type, token number, contact ID), ensuring all necessary information is immediately available.
+    \item[Automatic Load Balancing] The system automatically distributes tokens for a specific service (e.g., "Billing") among all available, authorized officers. This prevents any single officer from being overwhelmed and speeds up the entire service line.
+    \item[Check-In Integration] Scheduled appointments appear in an officer's queue only after the customer has physically "checked in" at the office (via kiosk or mobile app). This prevents officers from wasting time waiting for no-show appointments.
+    \item[Seamless Service Transfer] A button allows the officer to instantly transfer a customer to a different queue or officer for a follow-up service (e.g., transfer to a cashier after an initial consultation). This manages complex customer journeys smoothly without forcing the customer to restart the process.
+    \item[In-Service Rescheduling] Officers have the ability to book a future follow-up appointment for the current customer directly from their interface, efficiently closing the current session while securing time for more complex issues.
+    \item[Transaction Closure Options] Clear buttons are provided to log the outcome of each interaction: Completed Successfully, Cancelled (with a mandatory reason), or Escalated/Pending Documents. This provides accurate data to the system and stops the service timer correctly.
+    \item[Emergency Alert Button] A dedicated button allows the officer to send a discrete alert or message to a manager for assistance with complex, disruptive, or emergency situations, enabling quick support without leaving the desk.
+    \item[No-Show Management] Officers can mark a token as a "No Show" if the customer does not appear after the grace period. This removes the token from the active queue, maintains flow, and allows the next person to be called.
+\end{description}
+
+\section{Manager and Admin Interface}
+
+The admin interface provides high-level control over system configuration, user management, and data integrity.
+
+\begin{description}
+    \item[User Creation and Management] Admins have the ability to create, manage, and define access levels for all user accounts (Managers and Service Providers). This ensures only authorized personnel can access their respective system functions.
+    \item[User Deactivation] Admins can immediately suspend or delete any user account, blocking login access instantly. This is critical for security, especially in cases of staff changes or potential breaches.
+    \item[Role and Permission Definition] Admins can define and modify the specific actions each role can perform (e.g., only Managers can view reports). This provides granular control and prevents unauthorized actions.
+    \item[Officer Skill Set Definition] The interface allows for the definition and modification of skill sets linked to each officer role (e.g., authorizing a "Billing Officer" for "Billing Dispute" services). This allows the system to adapt to changes in service offerings and staff expertise.
+    \item[Service Master Data Management] Admins can add, edit, or archive the list of services available to customers. This ensures the customer-facing interface is always up-to-date with current offerings.
+    \item[System Hour Configuration] The ability to set and adjust official operating hours, defining when tokens can be issued and appointments scheduled. This sets operational boundaries and controls system availability.
+    \item[System Audit Log] A comprehensive, time-stamped record of all critical events, including logins, configuration changes, manual queue interventions, and user assignments. This is essential for accountability, security audits, and troubleshooting.
+    \item[Data Backup and Recovery] Admins can manage scheduled data backups and execute recovery procedures in the event of a system failure, ensuring business continuity and data protection.
+\end{description}
+
+\section{Service Finalization and Feedback}
+
+Once a service is concluded, the system initiates final steps to close the loop with the customer and gather valuable feedback.
+
+\begin{description}
+    \item[Service Completion Message] Upon the service provider marking the transaction as complete, the customer receives a final SMS/Email confirming that their service has been successfully concluded.
+    \item[Feedback System] Shortly after the completion message, a link to a feedback survey is sent to the customer. This allows them to rate their experience and provide optional comments, contributing to service quality analysis.
+\end{description}
+
+\section{Conclusion}
+
+The proposed queue management system provides a comprehensive, multi-faceted solution designed to streamline operations and enhance the user experience for all stakeholders. By integrating customer-centric features, efficient service provider tools, and powerful administrative controls, the system aims to reduce wait times, increase transparency, and provide management with actionable insights. This holistic approach transforms a traditional queuing process into a modern, efficient, and customer-friendly service interaction.
+
+% Mathematical Model Chapter
+\newpage
+\chapter{A Mathematical Model of Queue Management System}
+
+\section{Introduction}
+
+A mathematical model of a queue management system is needed to implement a technological solution to solve day-to-day challenges in queue handling at offices. This document serves as a foundational mathematical framework, designed to simplify the implementation of a technological solution. By breaking down complex queueing dynamics into a set of defined rules, principles, and equations, this model provides a clear blueprint for developing an effective and intelligent queue management system.
+
+\section{The Complexity of Modern Queueing Systems}
+At its core, an office provides certain services to its customers. The key participants are the \textbf{Service Provider}, who delivers the service, and the \textbf{Customer}, who receives it. However, the complexity of managing the interaction between them grows significantly when we consider the different types of customers that a modern system must handle:
+\begin{itemize}
+    \item \textbf{Waiting Customer:} A standard walk-in customer.
+    \item \textbf{Scheduled Customer:} A customer with a pre-booked appointment.
+    \item \textbf{Priority Customer:} Individuals such as seniors or persons with disabilities (PWD) who are given precedence.
+    \item \textbf{Overdue Customer:} A customer who has missed their scheduled appointment time.
+\end{itemize}
+
+The simplest queueing model involves a single service provider with a single line of walk-in customers. Complexity can be layered on by adding multiple queues for the same service. A truly complex system, however, is one that must juggle appointments, priority customers, and latecomers simultaneously.
+
+While this document provides rules to manage these interactions, these rules can fail because real-world scenarios are not perfect. In such cases, a purely mathematical model is not the right answer; we must use computational technologies to manage the system. For instance, consider a single desk handling multiple services with a mix of appointments, latecomers, and priority customers. This mayhem of variables creates chaos that can lead to system failure. While there should be an engineering fail-safe in the technological implementation, there cannot be a perfect mathematical fail-safe for every real-world contingency.
+
+\section{Single Queue Management}
+
+This section outlines the model for a system with a single queue and a single service provider. This is the foundational model upon which more complex scenarios will be built.
+
+\subsection{Service Time Metrics}
+To effectively manage the queue, it's crucial to track the time taken to serve each customer. This allows the system to build predictive metrics.
+
+\subsubsection{Average Service Time}
+The average time per customer is calculated as a rolling average. This provides an up-to-date measure of the service provider's performance. It is defined as the sum of all previous service durations divided by the total number of customers served.
+
+Let $T_{avg}$ be the average service time and $T_i$ be the service time for the $i$-th customer. For $n$ customers served, the average service time is:
+\begin{equation}
+    T_{avg} = \frac{\sum_{i=1}^{n} T_i}{n}
+\end{equation}
+For the very first customer ($n=1$), a predefined base service time, $T_{base}$, can be used as the initial average to start the calculation.
+
+\subsubsection{Service Time Deviation}
+We can measure how much the service time for a particular customer deviates from the current average. This metric, which we'll denote as $\Delta t$, helps in identifying anomalies or trends in service duration. The deviation is calculated as:
+\begin{equation}
+    \Delta t = T_{actual} - T_{avg}
+\end{equation}
+where $T_{actual}$ is the time taken for the current customer. This value is continuously tracked and can be used for effective resource management.
+
+\subsubsection{Root Mean Square (RMS) of Service Time}
+The RMS is a statistical measure that gives a higher weight to larger values. In this context, it will be more sensitive to customers who take an unusually long time to serve. The RMS of the service times for $n$ customers is defined as:
+\begin{equation}
+    \text{RMS}_T = \sqrt{\frac{\sum_{i=1}^{n} T_i^2}{n}}
+\end{equation}
+Where $T_i$ is the service time for the $i$-th customer.
+
+\subsection{Queue Closure Condition}
+To avoid creating a queue that cannot be fully served within business hours, the system needs a rule to stop admitting new customers. The queue for walk-in customers will remain open only as long as the following condition holds true:
+\begin{equation}
+    \frac{T_{rem}}{T_{avg}} > N_{queue}
+\end{equation}
+Where:
+\begin{itemize}
+    \item $T_{rem}$ is the operational time remaining for the service provider.
+    \item $T_{avg}$ is the current average service time per customer.
+    \item $N_{queue}$ is the number of customers currently waiting in the queue.
+\end{itemize}
+This inequality ensures that the projected time to serve everyone currently in the queue is less than the time remaining in the workday. Once the number of customers in the queue is equal to or greater than the number of customers that can be served in the remaining time, no new walk-in customers are admitted.
+
+\subsection{Estimated Time to Response (ETR)}
+Providing an estimated wait time is a critical feature of a queue management system. The Estimated Time to Response (ETR) for the $i$-th customer in the queue can be calculated by considering the average service time and the actual performance of the service provider on preceding customers.
+
+The ETR for the $i$-th customer is given by:
+\begin{equation}
+    \text{ETR}_i = (T_{avg} \cdot (i - 1)) + \sum_{j=1}^{i-1} \Delta t_j
+\end{equation}
+Where:
+\begin{itemize}
+    \item $\text{ETR}_i$ is the estimated time until the $i$-th customer is served.
+    \item $T_{avg}$ is the average service time.
+    \item $i$ is the position of the customer in the queue.
+    \item $\Delta t_j$ is the Service Time Deviation for the $j$-th customer who has already been served.
+\end{itemize}
+This formula provides a dynamic estimate. The first term, $(T_{avg} \cdot (i - 1))$, calculates a baseline ETR based purely on the average service time for the customers ahead. The second term, $\sum_{j=1}^{i-1} \Delta t_j$, adjusts this estimate by summing the total extra or less time taken for all customers who have already completed their service. This ensures the ETR adapts to the service provider's real-time performance.
+
+\subsection{System Stability and Dynamic ETR}
+The standard ETR calculation is effective under normal conditions. However, on days with high variability in service times (e.g., a busy Monday), the average service time, $T_{avg}$, may not fully capture the potential for large delays. To account for this, we can introduce a more stable, dynamic ETR that incorporates the Root Mean Square (RMS) of service times.
+
+\subsubsection{Weighted Dynamic ETR}
+We can now define a dynamic ETR that blends the average service time with the RMS value using a weighting factor, $w$. This allows the system to switch between a standard estimate and a more conservative one.
+\begin{equation}
+    \text{ETR}_i^{\text{dynamic}} = \left[ w \cdot T_{avg} + (1 - w) \cdot \text{RMS}_T \right] \cdot (i - 1) + \sum_{j=1}^{i-1} \Delta t_j
+\end{equation}
+The weighting factor $w$ is a value between 0 and 1.
+\begin{itemize}
+    \item When $w$ is close to 1, the ETR relies heavily on the average, suitable for stable, predictable days.
+    \item When $w$ is close to 0, the ETR gives more weight to the RMS value. This makes the estimate more conservative and accounts for greater volatility in service times.
+\end{itemize}
+The power of this model lies in its adaptability. By using data analytics, the system can learn to adjust the weight $w$ based on historical data. For instance, it could automatically lower $w$ on days that are historically busier (like Mondays) and raise it during typically quieter periods, leading to more accurate and reliable wait time predictions for customers.
+
+\subsection{Integrating Scheduled Appointments}
+Implementing a system for scheduled appointments is a strategic decision for the operating company. Should they choose to offer this feature, the model must be adapted to manage a hybrid queue of both walk-in customers and those with appointments. 
+
+\subsubsection{Appointment Availability Condition}
+The system must determine if new appointments can be offered. This is based on the projected service completion time for a hypothetical new walk-in customer relative to the closing time. The number of available appointment slots, $S_{avail}$, can be calculated as follows:
+\begin{equation}
+    S_{avail} = \left\lfloor \frac{T_{close} - (T_{now} + ETR_{N_{queue}+1})}{t_{slot}} \right\rfloor
+\end{equation}
+Where:
+\begin{itemize}
+    \item $T_{close}$ is the closing time of the business (e.g., 5:00 PM).
+    \item $T_{now}$ is the current time.
+    \item $ETR_{N_{queue}+1}$ is the Estimated Time to Response for a hypothetical \textit{new} walk-in customer who would join the end of the current queue.
+    \item $t_{slot}$ is the duration of a single appointment slot, determined by the company.
+    \item $\lfloor \cdot \rfloor$ is the floor function, as only full slots can be offered.
+\end{itemize}
+The term $(T_{now} + ETR_{N_{queue}+1})$ represents the projected time of day when the last potential walk-in would begin service. The formula calculates the remaining time in the workday after this point and determines how many appointment slots can fit. New appointments can be offered only if $S_{avail} > 0$.
+
+\paragraph{Scope of Availability} It is important to note that this formula is intended for booking available slots on the \textbf{present day only}. It ensures that appointments are not booked beyond the closing time of the current business day. The process for scheduling appointments for future days is considered a separate function and is not governed by this real-time availability calculation.
+
+\subsubsection{Calculating Walk-in ETR with Appointments}
+When the system must handle both walk-ins and appointments, a walk-in's Estimated Time of Response (ETR) must be calculated \textbf{iteratively} to be accurate. The wait time is repeatedly adjusted to account for the "chain reaction" of delays caused by scheduled appointments until the final ETR becomes stable. The core logic is to find a "stable" ETR where adding the delay from all preceding appointments no longer pushes the ETR past any new appointments.
+
+\paragraph{Definitions:}
+\begin{description}
+    \item[$ETR_{\text{base}}$] The initial ETR for the walk-in, based only on the existing walk-in queue.
+    \item[$t_{\text{slot}}$] The fixed duration of one appointment slot (e.g., 20 minutes).
+    \item[$T_{\text{now}}$] The current time when the walk-in requests service.
+    \item[$m_{\text{final}}$] The \textbf{final, stable count} of appointments between $T_{\text{now}}$ and the final, projected service time ($T_{\text{now}} + ETR_{\text{final}}$).
+\end{description}
+
+\paragraph{Final State Formula:}
+The process is iterative, but the final, correct ETR will satisfy this equation:
+\begin{equation}
+    ETR_{\text{final}} = ETR_{\text{base}} + m_{\text{final}} \cdot t_{\text{slot}}
+\end{equation}
+Finding $m_{\text{final}}$ requires an iterative algorithm where the ETR is calculated, the number of appointments within that new timeframe is counted, and the ETR is recalculated with the new appointment count until the number of appointments no longer increases.
+
+\subsection{Managing Overdue Customers (Latecomers)}
+A fair and flexible system must have a clear policy for customers who arrive after their expected service time. The management of a late customer is handled with a dynamic approach triggered by their check-in status.
+
+\subsubsection{Handling Walk-in Latecomers}
+The process is divided into two phases.
+\begin{description}
+    \item[Phase 1: Customer is Late (Not Checked In)] When a customer's turn arrives but they have not checked in, they are marked as `Late` and temporarily skipped. This immediately shortens the ETR for all subsequent customers, as the queue is effectively one person shorter.
+    \item[Phase 2: Late Customer Arrives (Checks In)] When the late customer physically checks in, their new position in the queue is determined by a configurable company policy, represented by a \textbf{Lateness Placement Factor} ($W_L$). This factor, a value between 0 and 1, allows a business to choose how strictly to handle latecomers.
+    \begin{itemize}
+        \item \textbf{$W_L = 1$ (Strict Policy):} The customer is sent to the very end of the line.
+        \item \textbf{$W_L = 0$ (Lenient Policy):} The customer is placed at the front of the waiting queue (immediately after the person currently being served).
+        \item \textbf{$0 < W_L < 1$ (Hybrid Policy):} The customer is placed proportionally along the length of the queue. A value of $W_L=0.5$ would place them in the middle of the current line.
+    \end{itemize}
+    The new position, $P_{new}$, is calculated as follows:
+    \begin{equation}
+        P_{new} = \text{round}(1 + W_L \cdot N_{queue})
+    \end{equation}
+    Where $N_{queue}$ is the number of customers currently in the queue. Once the late customer is re-inserted at this new position, the ETR for all subsequent customers is recalculated.
+\end{description}
+
+\paragraph{Grace Period for Walk-ins} To prevent penalties for minor delays, a grace period is implemented. If a customer checks in within this window, they retain their original spot. The grace period is calculated dynamically:
+\begin{equation}
+    T_{grace} = (T_{avg} \cdot w_{grace}) + T_{base\_grace}
+\end{equation}
+Where $T_{avg}$ is the average service time, $w_{grace}$ is a weighting factor ($< 1$) adjusted via data analytics, and $T_{base\_grace}$ is a fixed base grace time.
+
+\subsubsection{Handling Appointment Latecomers}
+Customers who miss their scheduled appointment are also granted a grace period, calculated with the same formula as for walk-ins. If they arrive after their grace period has expired, they are given two options to ensure fairness to punctual customers:
+\begin{enumerate}
+    \item \textbf{Join the Walk-in Queue:} Forfeit their appointment and enter the queue as a new walk-in customer.
+    \item \textbf{Reschedule:} Book the next available future appointment slot.
+\end{enumerate}
+
+\subsection{Managing Priority Customers}
+This model handles priority customers by physically inserting them into the queue at a position determined by a pre-defined ratio, ensuring a fair and predictable wait for everyone.
+
+\subsubsection{Logic: Priority Insertion System}
+A company can define multiple levels of priority (e.g., for seniors, persons with disabilities, expectant mothers), each with its own configurable ratio, $R$. This ratio dictates the guaranteed spacing of that priority type within the queue. For example, a ratio of $R=4$ means there will be at least 3 regular customers between each customer of that priority type.
+
+\subsubsection{Insertion Algorithm}
+When a priority customer arrives, their position in the queue is determined algorithmically. This ensures the correct spacing is maintained and the queue is reordered transparently.
+
+\paragraph{Algorithm Steps:}
+\begin{enumerate}
+    \item \textbf{Identify Type and Ratio:} When a priority customer of type $X$ with ratio $R_X$ arrives, the system identifies their specific rules.
+    \item \textbf{Find Last Position:} The system scans the current queue from front to back to find the position of the last customer who is also of type $X$. Let this position be $P_{last\_X}$.
+    \item \textbf{Calculate New Position:} The insertion position for the new customer, $P_{new}$, is calculated.
+    \begin{itemize}
+        \item If a customer of type $X$ was found, the new position is $P_{new} = P_{last\_X} + R_X$.
+        \item If no customer of type $X$ was found in the queue, the new position is $P_{new} = R_X$.
+    \end{itemize}
+    \item \textbf{Insert and Reorder:} The new priority customer is inserted at position $P_{new}$. All subsequent customers are shifted back one spot. If the calculated position $P_{new}$ is greater than the current length of the queue, the customer is simply placed at the end.
+\end{enumerate}
+
+\section{Multi-Queue Management}
+The model is extended to a system with multiple officers, each managing a separate queue but providing the identical service. This introduces the challenge of distributing customers and managing potential imbalances between the queues.
+
+\subsection{Customer Distribution}
+A multi-queue system requires a sophisticated method for assigning customers to a queue.
+\subsubsection{Initial Assignment: Round-Robin}
+When customers first arrive, they are assigned to the available queues in a round-robin fashion to ensure an initially balanced distribution. However, this can lead to imbalances if one officer is significantly slower than others.
+
+\subsubsection{Dynamic Assignment: Lowest ETR Principle}
+To overcome this limitation, a dynamic principle is introduced: \textbf{A new customer is always assigned to the queue with the lowest ETR for them.} The system calculates their potential ETR for each queue and directs them to the one providing the shortest estimated wait time. This ensures customers are routed to the most efficient service point at that moment.
+
+\subsection{Managing Different Customer Types}
+The principles for handling scheduled, priority, and overdue customers can be extended to the multi-queue environment through effective technological implementation. For example, a business can leverage technology to dedicate specific queues for specific functions (e.g., one for appointments, one for walk-ins) or apply priority logic globally. The core ETR and service time metrics for each individual queue remain the same. The key is the intelligent, system-level application of these rules.
+
+\subsection{Intelligent Reshuffling for Queue Balancing}
+Even with intelligent initial assignment, variations in service times can cause queues to become imbalanced. To counteract this, the system employs a continuous optimization algorithm to dynamically rebalance the queues. The goal is not simply to equalize queue lengths, but to minimize the \textbf{Total System ETR} (the sum of ETRs for all customers).
+
+\paragraph{Algorithm Logic}
+\begin{enumerate}
+    \item Calculate the current Total System ETR.
+    \item For each customer in the system, simulate moving them to every other available empty slot (in their current queue or another queue).
+    \item For each simulated move, recalculate what the new Total System ETR would be.
+    \item If a move is found that results in a lower Total System ETR, make that move permanent.
+    \item Repeat this process until no single customer move can be found that further reduces the Total System ETR. The system is now in an optimized state.
+\end{enumerate}
+This "smart shuffling" method ensures that customers are arranged in a way that is demonstrably more efficient for the group as a whole, providing a gentle and continuous rebalancing mechanism.
+
+\section{Conclusion}
+This document has detailed a comprehensive mathematical model for a modern queue management system, progressing from a foundational single queue to a complex, multi-queue environment. The model incorporates a dynamic ETR, configurable policies for diverse customer types (including appointments, priority, and latecomers), and intelligent algorithms for customer assignment and queue balancing. The principles and equations outlined provide a robust and adaptable framework that balances operational efficiency with customer fairness, serving as a solid foundation upon which a powerful and practical queue management technology can be built.
+
+% Flowchart and Interface Chapter
+\newpage
+\chapter{Flowcharts and Interface Design}
+
+\section{Introduction}
+
+This chapter presents the visual representation of our Queue Management System through interface screenshots and system flowcharts that illustrate the user experience and technical workflow.
+
+\section{User Interface Demonstrations}
+
+\subsection{Customer Interface - Mobile View}
+
+The customer interface is designed with a mobile-first approach for accessibility and ease of use.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{screenshot(1).png}
+    \caption{Customer Interface - Token generation and queue joining process}
+    \label{fig:customer_interface}
+\end{figure}
+
+\subsection{Service Provider Dashboard}
+
+The service provider dashboard is optimized for efficiency during high-volume operations.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{screenshot(2).png}
+    \caption{Service Provider Dashboard - Queue management interface}
+    \label{fig:provider_dashboard}
+\end{figure}
+
+\newpage
+\section{System Flowcharts}
+
+\subsection{User Flow Diagram}
+
+The user flow diagram illustrates how different roles interact with the system.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.70\textwidth]{flowchart(1).png}
+    \caption{User Flow Diagram - Interaction paths for all user roles}
+    \label{fig:user_flow}
+\end{figure}
+
+\subsection{System Design Flowchart}
+
+The system design flowchart provides a technical overview of the backend architecture.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.90\textwidth]{FlowChart (2).png}
+    \caption{System Design Flowchart - Technical architecture and data flow}
+    \label{fig:system_design}
+\end{figure}
+
+\newpage
+\chapter{Work Done Till Date}
+
+\section{Overview}
+
+The Queue Management System (QMS) has been successfully developed and deployed as a functional prototype that manages customer queues electronically, significantly enhancing operational efficiency. The current implementation demonstrates core functionality across customer token generation, real-time queue monitoring, and service provider management.
+
+\section{Technology Stack Used}
+
+The system has been built using a modern, scalable technology stack:
+
+\subsection{Frontend Technologies}
+\begin{itemize}
+    \item \textbf{HTML5 \& CSS3:} For semantic markup and styling
+    \item \textbf{Tailwind CSS:} Utility-first CSS framework for responsive design
+    \item \textbf{JavaScript:} Client-side interactivity and dynamic content
+    \item \textbf{Web-Responsive Design:} Ensures compatibility across mobile phones, desktops, and kiosk terminals
+\end{itemize}
+
+\subsection{Backend Technologies}
+\begin{itemize}
+    \item \textbf{Python 3.x:} Primary programming language
+    \item \textbf{Flask Framework:} Lightweight web framework for server-side logic
+    \item \textbf{RESTful APIs:} For communication between frontend and backend
+    \item \textbf{MySQL:} Relational database management system
+    \item \textbf{Flask-SQLAlchemy:} Database ORM for Python
+\end{itemize}
+
+\subsection{Communication \& Notification Services}
+\begin{itemize}
+    \item \textbf{Twilio SendGrid:} Email notification service for token delivery and OTP verification
+    \item \textbf{SMTP Integration:} For reliable email communications
+\end{itemize}
+
+\subsection{Development \& Deployment Tools}
+\begin{itemize}
+    \item \textbf{Git:} Version control system
+    \item \textbf{GitHub:} Code repository and collaboration platform
+    \item \textbf{GitHub Actions:} CI/CD pipeline for automated deployment
+\end{itemize}
+
+\section{Implemented Features}
+
+\subsection{Customer Interface}
+Customers can successfully:
+\begin{itemize}
+    \item Generate digital tokens by entering personal details and selecting service types
+    \item Choose between walk-in and appointment queues
+    \item Monitor their real-time queue position
+    \item View estimated waiting time (ETR)
+    \item Receive token details via email notifications
+    \item Access the system from any device (mobile, desktop, or kiosk)
+\end{itemize}
+
+\subsection{Service Provider Dashboard}
+Service personnel have access to:
+\begin{itemize}
+    \item Live list of waiting customers with complete details
+    \item Service type information for each customer
+    \item Queue management controls
+    \item Task completion functionality
+    \item Streamlined workflow without manual paperwork
+\end{itemize}
+
+\subsection{Core System Features}
+The following critical features are fully operational:
+\begin{itemize}
+    \item \textbf{Digital Token Generation:} Automated, unique token creation
+    \item \textbf{Real-Time Queue Updates:} Live synchronization of queue status
+    \item \textbf{Email Notifications:} Token delivery and OTP authentication
+    \item \textbf{Database Schema:} Well-structured tables for customers, tokens, and service providers
+    \item \textbf{Authentication System:} Secure login and session management
+\end{itemize}
+
+\section{Prototype Status}
+
+The current prototype demonstrates:
+
+\subsection{Successfully Implemented}
+\begin{itemize}
+    \item Complete customer token generation workflow
+    \item Real-time queue monitoring system
+    \item Service provider dashboard with live customer list
+    \item Email-based notification system
+    \item Responsive web interface across all device types
+    \item MySQL database integration with Flask backend
+    \item Basic authentication and session management
+\end{itemize}
+
+\subsection{Achievements}
+The implemented system has achieved:
+\begin{itemize}
+    \item Elimination of physical queues and manual token distribution
+    \item Reduction in customer waiting anxiety through real-time updates
+    \item Streamlined staff workflow by removing manual paperwork
+    \item Improved service delivery through organized customer information
+    \item Device-agnostic accessibility for all users
+\end{itemize}
+
+\section{Challenges Overcome}
+
+During development, the team successfully addressed several technical challenges:
+
+\begin{itemize}
+    \item \textbf{Database Integration:} Resolved MySQL connection and authentication issues with Flask
+    \item \textbf{Schema Design:} Created a uniform database schema accommodating customers, tokens, and service providers
+    \item \textbf{Frontend Integration:} Overcame file path issues when integrating CSS and JavaScript with Flask templates
+    \item \textbf{Security Implementation:} Established secure login authentication and session management
+    \item \textbf{Email Service Integration:} Resolved SMTP configuration and email formatting challenges
+    \item \textbf{Version Control:} Managed Git issues related to unstaged files and branch management
+    \item \textbf{System Integration:} Successfully integrated all modules (backend, database, frontend) into a cohesive system
+\end{itemize}
+
+\newpage
+\chapter{Future Enhancements and Conclusion}
+
+\section{Planned Future Enhancements}
+
+While the current prototype demonstrates core functionality, several advanced features are planned for future implementation to create a truly comprehensive queue management solution.
+
+\subsection{Advanced Queue Management Features}
+
+\subsubsection{Priority Customer Integration}
+\begin{itemize}
+    \item Implement priority insertion algorithm for seniors and PWD customers
+    \item Add Aadhaar and PWD ID card verification system
+    \item Configure priority ratios and automatic queue reordering
+\end{itemize}
+
+\subsubsection{Appointment Management System}
+\begin{itemize}
+    \item Dynamic appointment slot calculation based on real-time queue status
+    \item Future date booking functionality
+    \item Appointment reminder system
+    \item Grace period handling for late arrivals
+    \item Reschedule and cancellation options
+\end{itemize}
+
+\subsubsection{Multi-Queue Load Balancing}
+\begin{itemize}
+    \item Implement intelligent queue distribution across multiple service desks
+    \item Dynamic ETR-based customer assignment
+    \item Smart reshuffling algorithm to minimize total system wait time
+    \item Real-time queue rebalancing based on service provider performance
+\end{itemize}
+
+\subsection{Enhanced User Features}
+
+\subsubsection{Mobile Application}
+\begin{itemize}
+    \item Native iOS and Android applications
+    \item Push notification support
+    \item QR code-based check-in functionality
+    \item Offline token viewing capability
+\end{itemize}
+
+\subsubsection{AI-Powered Assistance}
+\begin{itemize}
+    \item Integration with Azure OpenAI or Dialogflow
+    \item Intelligent chatbot for common customer queries
+    \item Natural language processing for service selection
+    \item Automated FAQ responses
+\end{itemize}
+
+\subsubsection{SMS Notification System}
+\begin{itemize}
+    \item Twilio SMS integration for real-time alerts
+    \item "You Are Next" notifications
+    \item Significant ETR change alerts
+    \item Grace period warnings
+\end{itemize}
+
+\subsection{Administrative Enhancements}
+
+\subsubsection{Comprehensive Admin Panel}
+\begin{itemize}
+    \item User role and permission management system
+    \item Service type configuration and mapping
+    \item Officer skill set definition and assignment
+    \item System operating hours configuration
+    \item Comprehensive audit log with time-stamped records
+\end{itemize}
+
+\subsubsection{Analytics and Reporting}
+\begin{itemize}
+    \item Real-time dashboard with performance metrics
+    \item Historical data analysis using Python data science libraries
+    \item Peak hour prediction using machine learning
+    \item Customer satisfaction trend analysis
+    \item Staff productivity reports
+    \item Service time optimization recommendations
+\end{itemize}
+
+\subsection{Advanced Technical Features}
+
+\subsubsection{Geo-fencing and Location Services}
+\begin{itemize}
+    \item Location-based automatic check-in
+    \item Proximity alerts when customer approaches office
+    \item Distance-based ETR adjustments
+\end{itemize}
+
+\subsubsection{Kiosk Hardware Integration}
+\begin{itemize}
+    \item Raspberry Pi-powered touch-screen kiosks
+    \item Thermal printer integration for physical token backup
+    \item Voice-enabled interaction for accessibility
+    \item Multilingual interface support
+\end{itemize}
+
+\subsubsection{Security Enhancements}
+\begin{itemize}
+    \item Multi-factor authentication (MFA) implementation
+    \item OAuth 2.0 and Firebase Auth integration
+    \item Government ID auto-verification system
+    \item Blockchain-based audit trails for transparency
+    \item Data encryption at rest and in transit
+\end{itemize}
+
+\subsubsection{Scalability and Performance}
+\begin{itemize}
+    \item AWS cloud deployment with auto-scaling
+    \item Load balancer implementation
+    \item Redis caching for improved performance
+    \item WebSocket integration for real-time updates
+    \item Database optimization and indexing
+\end{itemize}
+
+\subsection{Regional Adaptation}
+
+\subsubsection{Pan-India Deployment Features}
+\begin{itemize}
+    \item Support for 22+ Indian languages
+    \item Regional holiday calendar integration
+    \item State-specific ID verification (Aadhaar, driving license, voter ID)
+    \item Localized SMS and email templates
+\end{itemize}
+
+\section{Expected Impact After Full Implementation}
+
+\subsection{Quantitative Improvements}
+\begin{itemize}
+    \item \textbf{40-60\% reduction} in average customer wait times
+    \item \textbf{80-90\% customer satisfaction} rating
+    \item \textbf{25-35\% increase} in staff productivity
+    \item \textbf{60-70\% reduction} in physical crowding
+    \item \textbf{Significant decrease} in customer complaints
+\end{itemize}
+
+\subsection{Qualitative Benefits}
+\begin{itemize}
+    \item Elimination of queue-related anxiety and frustration
+    \item Fair and transparent service delivery
+    \item Improved staff work-life balance through even workload distribution
+    \item Enhanced accessibility for all customer demographics
+    \item Data-driven decision making for management
+    \item Better resource allocation and space optimization
+\end{itemize}
+
+\section{Potential Risks and Mitigation Strategies}
+
+\subsection{Implementation Risks}
+\begin{itemize}
+    \item \textbf{User Adoption:} Non-tech-savvy customers may face difficulties
+    \begin{itemize}
+        \item \textit{Mitigation:} Provide on-site assistance, multilingual tutorials, and maintain kiosk options
+    \end{itemize}
+    \item \textbf{System Dependency:} Over-reliance on technology for critical services
+    \begin{itemize}
+        \item \textit{Mitigation:} Implement fallback manual procedures and ensure system redundancy
+    \end{itemize}
+    \item \textbf{Complex Deployment:} Integration with existing infrastructure
+    \begin{itemize}
+        \item \textit{Mitigation:} Phased rollout with pilot testing and comprehensive training programs
+    \end{itemize}
+    \item \textbf{Data Privacy Concerns:} Handling sensitive customer information
+    \begin{itemize}
+        \item \textit{Mitigation:} Implement robust encryption, comply with data protection regulations
+    \end{itemize}
+\end{itemize}
+
+\section{Conclusion}
+
+The Queue Management System developed by our team represents a comprehensive solution to the persistent challenges of customer queue management in DISCOM offices and similar high-traffic service environments. By combining robust mathematical modeling with modern technology, we have created a system that prioritizes efficiency, fairness, and transparency.
+
+The current prototype successfully demonstrates the viability of digital token generation, real-time queue monitoring, and streamlined service provider workflows. The system has already proven its capability to eliminate physical queues, reduce customer anxiety, and improve staff efficiency through organized information management.
+
+Looking ahead, the planned enhancements will transform this functional prototype into an enterprise-grade solution featuring AI-powered assistance, predictive analytics, multi-queue optimization, and comprehensive administrative controls. The integration of priority customer handling, appointment management, and intelligent load balancing will ensure that the system can handle the complex, real-world scenarios encountered in busy government and private offices.
+
+Our solution addresses not just the immediate problem of long queues, but creates a framework for continuous improvement through data analytics and feedback integration. The system's scalability ensures it can grow from a single-office deployment to a pan-India implementation, adapting to regional requirements and serving diverse customer demographics.
+
+By modernizing the queue management process, we are contributing to a broader vision of digital governance and customer-centric service delivery. This project demonstrates that with thoughtful engineering, mathematical rigor, and user-focused design, traditional operational challenges can be transformed into opportunities for innovation and excellence.
+
+The Queue Management System is more than a technological solution—it is a commitment to respecting customer time, empowering staff, and setting new standards for public service efficiency in India.
+
+\end{document}

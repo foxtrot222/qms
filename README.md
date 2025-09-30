@@ -14,7 +14,7 @@ A Project For Vikas Saptah Hackathon 2025
 
 Install the required Python packages using pip:
 ```bash
-pip install flask python-dotenv mysql-connector-python werkzeug sendgrid pyngrok
+pip install -r requirements.txt
 ```
 
 ### 2. Database Setup

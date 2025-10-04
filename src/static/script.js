@@ -497,6 +497,7 @@ if (appointmentModal) {
 // === Status Page Logic ===
 const statusPage = document.getElementById('statusPage');
 if (statusPage) {
+    // === Cancel Token ===
     const cancelTokenBtn = document.getElementById('cancelTokenBtn');
     if (cancelTokenBtn) {
         cancelTokenBtn.addEventListener('click', async () => {
@@ -518,6 +519,7 @@ if (statusPage) {
         });
     }
 
+    // === Map Modal ===
     const viewMapBtn = document.getElementById('viewMapBtn');
     const mapModal = document.getElementById('mapModal');
     const closeMapModalBtn = document.getElementById('closeMapModalBtn');
@@ -558,11 +560,53 @@ if (statusPage) {
             }
         });
     }
+
+    // === Countdown Timer ===
+    async function loadETR() {
+        try {
+            const res = await fetch('/get_status_details');
+            const data = await res.json();
+
+            if (data.success && data.details.etr_seconds) {
+                let etrSeconds = data.details.etr_seconds;
+
+                function updateETR() {
+                    let hours = Math.floor(etrSeconds / 3600);
+                    let minutes = Math.floor((etrSeconds % 3600) / 60);
+                    let seconds = etrSeconds % 60;
+
+                    document.getElementById("etrTimer").textContent =
+                        `${hours.toString().padStart(2, "0")}:` +
+                        `${minutes.toString().padStart(2, "0")}:` +
+                        `${seconds.toString().padStart(2, "0")}`;
+
+                    if (etrSeconds <= 0) {
+                        document.getElementById("etrMessage").textContent = "It's your turn!";
+                        clearInterval(timerInterval);
+                    }
+
+                    etrSeconds--;
+                }
+
+                updateETR(); // run once immediately
+                let timerInterval = setInterval(updateETR, 1000);
+            } else {
+                document.getElementById("etrMessage").textContent = "No ETR available.";
+            }
+        } catch (err) {
+            console.error("Error fetching ETR:", err);
+            document.getElementById("etrMessage").textContent = "Error fetching ETR.";
+        }
+    }
+
+    loadETR();
 }
 
+// === Logout ===
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
         window.location.href = '/logout';
     });
 }
+

@@ -1,7 +1,6 @@
-from flask import Blueprint,render_template , request , redirect ,url_for ,flash, jsonify ,session
+from flask import Blueprint , request , jsonify
 from models.db import get_db_connection
-from datetime import time
-
+import time
 appointment_bp=Blueprint('appointment',__name__)
 
 @appointment_bp.route('/get_available_slots', methods=['GET'])

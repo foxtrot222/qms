@@ -34,7 +34,7 @@ def get_status_details():
             return jsonify({"success": False, "error": "Invalid token."})
 
         if details['type'] == 'walkin':
-            cursor.execute("SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, position FROM walkin WHERE token_id = %s", (details['token_id'],))
+            cursor.execute("SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM walkin WHERE token_id = %s", (details['token_id'],))
             walkin_details = cursor.fetchone()
             if walkin_details:
                 details.update(walkin_details)

@@ -581,10 +581,17 @@ if (statusPage) {
 }
 
 // === Logout ===
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        window.location.href = '/logout';
+const userLogoutBtn = document.getElementById('userLogoutBtn');
+if (userLogoutBtn) {
+    userLogoutBtn.addEventListener('click', () => {
+        window.location.href = '/user/logout';
+    });
+}
+
+const orgLogoutBtn = document.getElementById('orgLogoutBtn');
+if (orgLogoutBtn) {
+    orgLogoutBtn.addEventListener('click', () => {
+        window.location.href = '/org/logout';
     });
 }
 

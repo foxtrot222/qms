@@ -8,6 +8,7 @@ from routes import org_register_blueprints
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SESSION_COOKIE_NAME'] = 'org_session'
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 
 # ------------------- Get Port or Find Next Available -------------------

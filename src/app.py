@@ -6,6 +6,7 @@ from routes import register_blueprints
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SESSION_COOKIE_NAME'] = 'user_session'
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 port = int(os.getenv("PORT", 5000))
 register_blueprints(app)

@@ -10,7 +10,13 @@ def organization():
 
 @org_bp.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    if 'user_id' not in session:
+        flash("Please log in to access the dashboard.", "warning")
+        return redirect(url_for('org.organization'))
+
+    officer_name = session.get('username')
+    officer_id = session.get('officer_id_string')
+    return render_template('dashboard.html', officer_name=officer_name, officer_id=officer_id)
 
 # Officer Login
 @org_bp.route('/login', methods=['GET','POST'])
@@ -42,8 +48,8 @@ def login():
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
-@org_bp.route("/logout")
+@org_bp.route("/org/logout")
 def logout():
     session.clear()
     flash("Logged out successfully.", "success")
-    return redirect(url_for("auth.home"))
+    return redirect(url_for("org.organization"))

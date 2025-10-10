@@ -2,16 +2,23 @@ from models.db import get_db_connection
 import mysql.connector
 from flask import Blueprint,render_template , request , redirect ,url_for ,flash, jsonify ,session
 from werkzeug.security import check_password_hash
-auth_bp = Blueprint('auth', __name__)
+org_bp = Blueprint('org', __name__)
 
-@auth_bp.route("/")
-def home():
-    return render_template("index.html")
+@org_bp.route('/')
+def organization():
+    return render_template('organization.html')
+
+@org_bp.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 # Officer Login
-@auth_bp.route('/login', methods=['POST'])
+@org_bp.route('/login', methods=['GET','POST'])
 def login():
     conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed. Please try again later.")
+        return redirect(url_for("org.login"))
     officerId = request.form.get('officerId')
     officerPassword = request.form.get('officerPassword')
 
@@ -35,16 +42,7 @@ def login():
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
-@auth_bp.route("/dashboard")
-def dashboard():
-    if "user_id" not in session:
-        flash("You must login first.", "error")
-        return redirect(url_for("auth.home"))
-    officer_name = session.get('username')
-    officer_id = session.get('officer_id_string')
-    return render_template("dashboard.html", officer_name=officer_name, officer_id=officer_id)
-
-@auth_bp.route("/logout")
+@org_bp.route("/logout")
 def logout():
     session.clear()
     flash("Logged out successfully.", "success")

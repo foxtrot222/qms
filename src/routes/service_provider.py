@@ -1,7 +1,7 @@
 from flask import Blueprint,render_template , request , redirect ,url_for ,flash, jsonify ,session
 from models.db import get_db_connection
 import mysql.connector
-from datetime import time
+import time
 import logging
 service_provider_bp=Blueprint("service_provider",__name__)
 

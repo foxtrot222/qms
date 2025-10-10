@@ -3,28 +3,6 @@ let isFirstTimeTestUser = true;
 let etrTimerInterval;
 let verifiedToken = '';
 
-// === Page Navigation ===
-const homePage = document.getElementById('homePage');
-const organizationPage = document.getElementById('organizationPage');
-const orgNavBtn = document.getElementById('orgNavBtn');
-const orgNavBtnMobile = document.getElementById('orgNavBtnMobile');
-
-if (orgNavBtn) {
-    orgNavBtn.addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        if(homePage) homePage.classList.add('hidden');
-        if(organizationPage) organizationPage.classList.remove('hidden');
-    });
-}
-if (orgNavBtnMobile) {
-    orgNavBtnMobile.addEventListener('click', (e) => { 
-        e.preventDefault(); 
-        if(homePage) homePage.classList.add('hidden');
-        if(organizationPage) organizationPage.classList.remove('hidden');
-        if(mobileMenu) mobileMenu.classList.add('hidden');
-    });
-}
-
 // === Mobile Menu ===
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const mobileMenu = document.getElementById('mobileMenu');

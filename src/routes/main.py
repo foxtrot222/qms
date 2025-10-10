@@ -17,7 +17,3 @@ def help():
 @main_bp.route('/contact')
 def contact():
     return render_template('contact.html')
-
-@main_bp.route('/organization')
-def organization():
-    return render_template('organization.html')

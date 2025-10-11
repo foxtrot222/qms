@@ -18,7 +18,6 @@ def dashboard():
     officer_id = session.get('officer_id_string')
     return render_template('dashboard.html', officer_name=officer_name, officer_id=officer_id)
 
-# Officer Login
 @org_bp.route('/login', methods=['GET','POST'])
 def login():
     conn = get_db_connection()
@@ -35,14 +34,24 @@ def login():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM service_provider WHERE officerID=%s", (officerId,))
         officer = cursor.fetchone()
-        cursor.close()
 
         if officer and check_password_hash(officer['password'], officerPassword):
+            # Get service details
+            cursor.execute("SELECT name FROM service WHERE id = %s", (officer['service_id'],))
+            service_record = cursor.fetchone()
+            table_name = service_record['name'].lower() if service_record else None
+            
+            cursor.close()
+
             session['user_id'] = officer['id']
             session['username'] = officer['name']
             session['officer_id_string'] = officer['officerID']
+            session['service_id'] = officer['service_id']
+            session['table_name'] = table_name
+
             return jsonify({"success": True, "redirect": "/dashboard", "officerName": officer['name']})
         else:
+            cursor.close()
             return jsonify({"success": False, "error": "Invalid ID or password."})
     except mysql.connector.Error as err:
         print("Database query failed:", err)

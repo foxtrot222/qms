@@ -8,30 +8,36 @@ service_provider_bp=Blueprint("service_provider",__name__)
 @service_provider_bp.route("/get_queue")
 def get_queue():
     logging.info("Attempting to fetch queue data.")
+    table_name = session.get('table_name')
+    if not table_name:
+        logging.error("No table name in session.")
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
     try:
         conn = get_db_connection()
         if not conn:
             logging.error("Database connection failed.")
             return jsonify({"success": False, "error": "Database connection failed."})
         
-        logging.info("Database connection successful. Executing query.")
+        logging.info(f"Database connection successful. Executing query on table: {table_name}")
         cursor = conn.cursor(dictionary=True)
-        query = """
+        
+        query = f"""
             SELECT
-                w.position,
+                q.position,
                 t.value AS token_value
             FROM
-                walkin w
+                {table_name} q
             JOIN
-                token t ON w.token_id = t.id
+                token t ON q.token_id = t.id
             ORDER BY
-                w.position;
+                q.position;
         """
         cursor.execute(query)
         queue = cursor.fetchall()
         cursor.close()
         conn.close()
-        logging.info(f"Found {len(queue)} customers in the queue.")
+        logging.info(f"Found {len(queue)} customers in the {table_name} queue.")
 
         return jsonify({"success": True, "queue": queue})
 
@@ -46,6 +52,11 @@ def get_queue():
 @service_provider_bp.route("/complete_service", methods=['POST'])
 def complete_service():
     logging.info("Attempting to complete a service.")
+    table_name = session.get('table_name')
+    if not table_name:
+        logging.error("No table name in session for complete_service.")
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -55,34 +66,34 @@ def complete_service():
             service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
             cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
 
-        # Find the customer being served
-        cursor.execute("SELECT token_id FROM walkin WHERE position = 0 LIMIT 1")
+        # Find the customer being served from the correct table
+        cursor.execute(f"SELECT token_id FROM {table_name} WHERE position = 0 LIMIT 1")
         serving = cursor.fetchone()
 
         if serving:
             token_id_to_delete = serving['token_id']
-            # Remove references from child tables first
-            cursor.execute("DELETE FROM walkin WHERE token_id = %s", (token_id_to_delete,))
+            # Remove from the service queue table
+            cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id_to_delete,))
+            # Also remove from appointment if they had one
             cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
             # Now delete the token, which should cascade to customer
             cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
 
-        # Shift the entire queue up
-        cursor.execute("UPDATE walkin SET position = position - 1 WHERE position > 0")
+        # Shift the entire queue for the specific service up
+        cursor.execute(f"UPDATE {table_name} SET position = position - 1 WHERE position > 0")
 
         # Recalculate all ETRs for the remaining queue
         cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
-        avg_service_time_decimal = avg_time_result['avg_time'] if avg_time_result['avg_time'] and avg_time_result['avg_time'] > 0 else 180
-        avg_service_time = float(avg_service_time_decimal)
+        avg_service_time = float(avg_time_result['avg_time'] or 180)
 
-        cursor.execute("SELECT id, position FROM walkin ORDER BY position")
+        cursor.execute(f"SELECT id, position FROM {table_name} ORDER BY position")
         remaining_queue = cursor.fetchall()
 
         for person in remaining_queue:
             etr_in_seconds = person['position'] * avg_service_time
             etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
-            cursor.execute("UPDATE walkin SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
 
         conn.commit()
 

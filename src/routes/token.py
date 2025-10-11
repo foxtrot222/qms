@@ -57,7 +57,7 @@ def generate_token_route():
 
         # Generate Token
         new_token_value = generate_next_token()
-        cursor.execute("INSERT INTO token (value, customer_id) VALUES (%s, %s)", (new_token_value, customer_id))
+        cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_id, service_id))
         token_id = cursor.lastrowid
         cursor.execute("UPDATE customer SET token_id=%s WHERE id=%s", (token_id, customer_id))
 
@@ -86,15 +86,31 @@ def cancel_token():
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))
+        cursor.execute("SELECT id, type FROM token WHERE value = %s", (token_value,))
         token_record = cursor.fetchone()
         if not token_record:
             session.clear()
             return jsonify({"success": True, "message": "Token already cancelled."})
+        
         token_id = token_record['id']
+        service_id_str = token_record['type']
 
-        cursor.execute("DELETE FROM walkin WHERE token_id = %s", (token_id,))
+        # If it's a walk-in, delete from the corresponding service table
+        if service_id_str and service_id_str != 'appointment':
+            try:
+                service_id = int(service_id_str)
+                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                service_record = cursor.fetchone()
+                if service_record:
+                    table_name = service_record['name'].lower()
+                    cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id,))
+            except (ValueError, TypeError):
+                pass  # Type is not a valid service ID
+
+        # Handle appointment cancellation
         cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id,))
+        
+        # Delete the token, which should cascade to customer
         cursor.execute("DELETE FROM token WHERE id = %s", (token_id,))
         
         conn.commit()

@@ -2,6 +2,7 @@
 let isFirstTimeTestUser = true;
 let etrTimerInterval;
 let verifiedToken = '';
+let verifiedServiceId = null;
 
 // === Mobile Menu ===
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -183,6 +184,7 @@ if (statusModal) {
             const data = await res.json();
             if (data.success) {
                 if (data.action === 'choose_type') {
+                    verifiedServiceId = data.service_id;
                     openChoiceModal();
                 } else {
                     btn.textContent = "OTP Verified! Redirecting...";
@@ -398,6 +400,7 @@ async function openChoiceModal() {
     const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
 
     closeStatusModal();
+    updateEstimatedWaitTime(verifiedServiceId);
     try {
         const response = await fetch('/get_available_slots');
         const data = await response.json();
@@ -473,9 +476,9 @@ if (appointmentModal) {
 }
 
 // === Estimated Waiting Time of new customer in walk-in line ===
-async function updateEstimatedWaitTime() {
+async function updateEstimatedWaitTime(service_id) {
     try {
-        const response = await fetch('/estimated_wait_time');
+        const response = await fetch(`/estimated_wait_time?service_id=${service_id}`);
         const data = await response.json();
 
         if (data.success) {
@@ -506,11 +509,9 @@ async function updateEstimatedWaitTime() {
 // === Status Page Logic ===
 const statusPage = document.getElementById('statusPage');
 if (statusPage) {
-    // === Customer Details ===
-    // Function to fetch and display customer details
-    async function loadCustomerDetails() {
+    async function loadStatusDetails() {
         try {
-            const response = await fetch('/get_customer_details');
+            const response = await fetch('/get_status_details');
             const data = await response.json();
 
             if (data.success && data.details) {
@@ -520,26 +521,55 @@ if (statusPage) {
                 document.getElementById('statusName').textContent = details.name || 'N/A';
                 document.getElementById('statusContact').textContent = details.contact || 'N/A';
                 document.getElementById('statusService').textContent = details.service || 'N/A';
-                document.getElementById('statusPosition').textContent = details.position ?? '0';
+                document.getElementById('statusPosition').textContent = details.position ?? 'N/A';
+
+                // Handle ETR countdown
+                if (details.etr_seconds) {
+                    let etrSeconds = details.etr_seconds;
+
+                    function updateETR() {
+                        let hours = Math.floor(etrSeconds / 3600);
+                        let minutes = Math.floor((etrSeconds % 3600) / 60);
+                        let seconds = etrSeconds % 60;
+
+                        document.getElementById("etrTimer").textContent =
+                            `${hours.toString().padStart(2, "0")}:` +
+                            `${minutes.toString().padStart(2, "0")}:` +
+                            `${seconds.toString().padStart(2, "0")}`;
+
+                        if (etrSeconds <= 0) {
+                            document.getElementById("etrMessage").textContent = "It's your turn!";
+                            clearInterval(timerInterval);
+                        }
+
+                        etrSeconds--;
+                    }
+
+                    updateETR(); // run once immediately
+                    let timerInterval = setInterval(updateETR, 1000);
+                } else {
+                    document.getElementById("etrMessage").textContent = "No ETR available.";
+                }
 
                 // Optional: show extra info if you want
-                if (details.type === 'walkin' && details.ETR) {
+                if (details.type !== 'appointment' && details.ETR) {
                     console.log(`Estimated Time Remaining: ${details.ETR}`);
                 } else if (details.type === 'appointment' && details.time_slot) {
                     console.log(`Appointment Time: ${details.time_slot}`);
+                    document.getElementById("etrMessage").textContent = `Your appointment is at ${details.time_slot}.`;
+                    document.getElementById("etrTimer").textContent = details.time_slot;
                 }
 
             } else {
-                console.error('Failed to load customer details:', data.error || 'Unknown error');
+                console.error('Failed to load status details:', data.error || 'Unknown error');
             }
         } catch (error) {
-            console.error('Error fetching customer details:', error);
+            console.error('Error fetching status details:', error);
         }
     }
 
     // Run when page is ready
-    document.addEventListener('DOMContentLoaded', loadCustomerDetails);
-
+    document.addEventListener('DOMContentLoaded', loadStatusDetails);
 
     // === Cancel Token ===
     const cancelTokenBtn = document.getElementById('cancelTokenBtn');
@@ -604,46 +634,6 @@ if (statusPage) {
             }
         });
     }
-
-    // === Countdown Timer ===
-    async function loadETR() {
-        try {
-            const res = await fetch('/get_status_details');
-            const data = await res.json();
-
-            if (data.success && data.details.etr_seconds) {
-                let etrSeconds = data.details.etr_seconds;
-
-                function updateETR() {
-                    let hours = Math.floor(etrSeconds / 3600);
-                    let minutes = Math.floor((etrSeconds % 3600) / 60);
-                    let seconds = etrSeconds % 60;
-
-                    document.getElementById("etrTimer").textContent =
-                        `${hours.toString().padStart(2, "0")}:` +
-                        `${minutes.toString().padStart(2, "0")}:` +
-                        `${seconds.toString().padStart(2, "0")}`;
-
-                    if (etrSeconds <= 0) {
-                        document.getElementById("etrMessage").textContent = "It's your turn!";
-                        clearInterval(timerInterval);
-                    }
-
-                    etrSeconds--;
-                }
-
-                updateETR(); // run once immediately
-                let timerInterval = setInterval(updateETR, 1000);
-            } else {
-                document.getElementById("etrMessage").textContent = "No ETR available.";
-            }
-        } catch (err) {
-            console.error("Error fetching ETR:", err);
-            document.getElementById("etrMessage").textContent = "Error fetching ETR.";
-        }
-    }
-
-    loadETR();
 }
 
 // === Logout ===
@@ -660,4 +650,3 @@ if (orgLogoutBtn) {
         window.location.href = '/org/logout';
     });
 }
-

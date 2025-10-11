@@ -72,7 +72,7 @@ def verify_otp():
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified, t.type
+        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified, t.type, t.id as token_id
         FROM otp_verification otp
         JOIN customer c ON otp.customer_id = c.id
         JOIN token t ON c.token_id = t.id
@@ -104,14 +104,27 @@ def verify_otp():
     #Save token in session
     session['verified_token'] = token_value
 
-    if record['type'] is None:
-        cursor.close()
-        conn.close()
-        return jsonify({"success": True, "action": "choose_type"})
-    else:
-        cursor.close()
-        conn.close()
+    token_id = record['token_id']
+
+    query_check = """
+        (SELECT token_id FROM billing WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM complaint WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM kyc WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM appointment WHERE token_id = %s AND is_booked = 1)
+    """
+    cursor.execute(query_check, (token_id, token_id, token_id, token_id))
+    existing_queue_or_appointment = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if existing_queue_or_appointment:
         return jsonify({"success": True, "action": "redirect_status", "message": "OTP verified, access granted."})
+    else:
+        return jsonify({"success": True, "action": "choose_type", "service_id": record['type']})
     
 @otp_bp.before_request
 def cleanup_expired_otps():

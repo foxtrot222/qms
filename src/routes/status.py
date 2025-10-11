@@ -33,17 +33,28 @@ def get_status_details():
         if not details:
             return jsonify({"success": False, "error": "Invalid token."})
 
-        if details['type'] == 'walkin':
-            cursor.execute("SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM walkin WHERE token_id = %s", (details['token_id'],))
-            walkin_details = cursor.fetchone()
-            if walkin_details:
-                details.update(walkin_details)
-        elif details['type'] == 'appointment':
+        if details['type'] == 'appointment':
             cursor.execute("SELECT TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE token_id = %s", (details['token_id'],))
             appointment_details = cursor.fetchone()
             if appointment_details:
                 details.update(appointment_details)
             details['status'] = 'Confirmed'
+        else:
+            # It's a walk-in, so the type is the service_id
+            try:
+                service_id = int(details['type'])
+                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                service_record = cursor.fetchone()
+                
+                if service_record:
+                    table_name = service_record['name'].lower()
+                    cursor.execute(f"SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM {table_name} WHERE token_id = %s", (details['token_id'],))
+                    walkin_details = cursor.fetchone()
+                    if walkin_details:
+                        details.update(walkin_details)
+            except (ValueError, TypeError):
+                # Handle cases where type is not a valid service_id
+                pass
 
     except Exception as e:
         print(f"Error fetching status details: {e}")

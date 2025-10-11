@@ -55,7 +55,7 @@
                     <!-- Top-Left: ETR Clock -->
                     <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center border h-48 md:h-auto">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Estimated Time Remaining</h2>
-                        <div id="etrTimer" class="text-5xl md:text-6xl font-bold text-blue-600">15:00</div>
+                        <div id="etrTimer" class="text-5xl md:text-6xl font-bold text-blue-600">00:00</div>
                         <p id="etrMessage" class="text-gray-600 mt-2"></p>
                     </div>
 
@@ -75,7 +75,7 @@
                             <div class="flex justify-between"><span class="font-medium text-gray-600">Name:</span> <span id="statusName" class="font-semibold text-gray-900 text-right"></span></div>
                             <div class="flex justify-between"><span class="font-medium text-gray-600">Contact:</span> <span id="statusContact" class="font-semibold text-gray-900 text-right"></span></div>
                             <div class="flex justify-between"><span class="font-medium text-gray-600">Service:</span> <span id="statusService" class="font-semibold text-gray-900 text-right"></span></div>
-                            <div class="flex justify-between"><span class="font-medium text-gray-600">Position:</span> <span id="statusPosition" class="font-semibold text-gray-900 text-right"></span></div>
+                            <div class="flex justify-between"><span class="font-medium text-gray-600">Position:</span> <span id="statusPosition" class="font-semibold text-gray-900 text-right">0</span></div>
                         </div>
                     </div>
 
@@ -117,24 +117,6 @@
                     }
                 } else {
                     alert(data.error);
-                    window.location.href = '/';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("An error occurred while fetching status.");
-            });
-    });
-    </script>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>            document.getElementById("statusPosition").textContent = details.status; // "Confirmed"
-                        document.getElementById("etrMessage").textContent = "Your appointment is at:";
-                    }
-                } else {
-                    alert(data.error);
-                    // Redirect to home if there's an error, e.g. no token
                     window.location.href = '/';
                 }
             })

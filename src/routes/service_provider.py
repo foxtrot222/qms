@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template , request , redirect ,url_for ,flash, jsonify ,session
+from flask import Blueprint, request , jsonify ,session
 from models.db import get_db_connection
 import mysql.connector
 import time

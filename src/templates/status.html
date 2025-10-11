@@ -129,22 +129,4 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-</html>            document.getElementById("statusPosition").textContent = details.status; // "Confirmed"
-                        document.getElementById("etrMessage").textContent = "Your appointment is at:";
-                    }
-                } else {
-                    alert(data.error);
-                    // Redirect to home if there's an error, e.g. no token
-                    window.location.href = '/';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("An error occurred while fetching status.");
-            });
-    });
-    </script>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
 </html>

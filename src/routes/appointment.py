@@ -30,7 +30,16 @@ def join_walkin():
             return jsonify({"success": False, "error": "Invalid token."})
         
         token_id = token_record['id']
-        service_id = int(token_record['type'])
+        token_type = token_record['type']
+
+        if token_type == 'appointment':
+            return jsonify({"success": False, "error": "This token is for an appointment and cannot be used for walk-in."})
+
+        try:
+            service_id = int(token_type)
+        except (ValueError, TypeError):
+            return jsonify({"success": False, "error": "Invalid service type for this token."})
+
 
         # Get table name from service id
         cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))

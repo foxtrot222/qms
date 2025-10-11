@@ -31,6 +31,13 @@ port = get_available_port(start_port)
 # ------------------- Register Blueprints -------------------
 org_register_blueprints(app)
 
+@app.route('/debug-routes')
+def debug_routes():
+    output = []
+    for rule in app.url_map.iter_rules():
+        output.append(f"Endpoint: {rule.endpoint}, Methods: {','.join(rule.methods)}, Rule: {rule.rule}")
+    return "<pre>" + "\n".join(output) + "</pre>"
+
 # ------------------- Run App -------------------
 if __name__ == "__main__":
     print(f"Running Flask app on port {port}")

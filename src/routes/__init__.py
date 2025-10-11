@@ -20,6 +20,6 @@ def register_blueprints(app):
     app.register_blueprint(check_in_bp)
 
 def org_register_blueprints(app):
+    app.register_blueprint(admin_bp)
     app.register_blueprint(service_provider_bp)
     app.register_blueprint(org_bp)
-    app.register_blueprint(admin_bp)

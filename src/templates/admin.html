@@ -40,172 +40,446 @@
   <!-- Main Content -->
   <main class="pt-24 pb-16 container mx-auto px-6 space-y-16">
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-6">
+        {% for category, message in messages %}
+          <div class="p-4 rounded-md {{ 'bg-red-100 text-red-700' if category == 'error' else 'bg-blue-100 text-blue-700' }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <!-- Dashboard Cards -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
         <h3 class="text-sm font-medium text-gray-500">Active Officers</h3>
-        <p class="text-3xl font-bold mt-2">12</p>
+        <p class="text-3xl font-bold mt-2">{{ stats.active_officers if stats else 'N/A' }}</p>
       </div>
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
         <h3 class="text-sm font-medium text-gray-500">Customers Waiting</h3>
-        <p class="text-3xl font-bold mt-2">43</p>
+        <p class="text-3xl font-bold mt-2">{{ stats.customers_waiting if stats else 'N/A' }}</p>
       </div>
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
         <h3 class="text-sm font-medium text-gray-500">Avg. Wait Time</h3>
-        <p class="text-3xl font-bold mt-2">08:21</p>
+        <p class="text-3xl font-bold mt-2">{{ stats.avg_wait_time if stats else 'N/A' }}</p>
       </div>
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
-        <h3 class="text-sm font-medium text-gray-500">Feedback Score</h3>
-        <p class="text-3xl font-bold mt-2">4.6/5</p>
-      </div>
+
     </section>
 
     <!-- User Management -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-700">User Management</h2>
-        <button class="bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors">Add User</button>
+        <button id="addUserBtn" class="bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors">Add User</button>
       </div>
       <div class="bg-white rounded-xl shadow-md overflow-x-auto scrollbar">
         <table class="w-full text-left">
           <thead class="bg-gray-100">
             <tr>
               <th class="p-4 font-semibold">Name</th>
-              <th class="p-4 font-semibold">Role</th>
-              <th class="p-4 font-semibold">Email</th>
-              <th class="p-4 font-semibold">Status</th>
+              <th class="p-4 font-semibold">Officer ID</th>
+              <th class="p-4 font-semibold">Service ID</th>
               <th class="p-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-4">Jane Doe</td>
-              <td class="p-4">Service Provider</td>
-              <td class="p-4">jane.d@example.com</td>
-              <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Active</span></td>
-              <td class="p-4 space-x-2"><button class="text-blue-600 hover:underline">Edit</button><button class="text-red-600 hover:underline">Deactivate</button></td>
-            </tr>
+            {% if users %}
+              {% for user in users %}
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-4">{{ user.name }}</td>
+                  <td class="p-4">{{ user.officerID }}</td>
+                  <td class="p-4">{{ user.service_id }}</td>
+                  <td class="p-4">
+                    <a href="{{ url_for('admin.revoke_user', user_id=user.id) }}" class="text-yellow-600 hover:underline mr-2">Revoke</a>
+                    <a href="#" class="text-blue-600 hover:underline mr-2 edit-user-btn" data-user-id="{{ user.id }}">Edit</a>
+                    <a href="{{ url_for('admin.delete_user', user_id=user.id) }}" class="text-red-600 hover:underline">Delete</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="4" class="p-4 text-center text-gray-500">No users found.</td></tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
     </section>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="add-user-modal-content">
+            <button id="closeAddUserModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New User</h2>
+            <form id="addUserForm" class="space-y-4" method="POST" action="{{ url_for('admin.add_user') }}">
+                <div>
+                    <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="userName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="officerID" class="block text-sm font-medium text-gray-700 mb-1">Officer ID</label>
+                    <input type="text" id="officerID" name="officerID" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="userPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="userPassword" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="userServiceId" class="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                    <select id="userServiceId" name="service_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                        {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Add User</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="edit-user-modal-content">
+            <button id="closeEditUserModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Edit User</h2>
+            <form id="editUserForm" class="space-y-4" method="POST" action="{{ url_for('admin.update_user') }}">
+                <input type="hidden" id="editUserId" name="id">
+                <div>
+                    <label for="editUserName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="editUserName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="editOfficerID" class="block text-sm font-medium text-gray-700 mb-1">Officer ID</label>
+                    <input type="text" id="editOfficerID" name="officerID" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="editUserPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password (optional)</label>
+                    <input type="password" id="editUserPassword" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="editUserServiceId" class="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                    <select id="editUserServiceId" name="service_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                        {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Update User</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Service Management -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-700">Service Management</h2>
-        <button class="bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors">Add Service</button>
+        <button id="addServiceBtn" class="bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors">Add Service</button>
       </div>
       <div class="bg-white rounded-xl shadow-md overflow-x-auto scrollbar">
         <table class="w-full text-left">
           <thead class="bg-gray-100">
             <tr>
+              <th class="p-4 font-semibold">Service ID</th>
               <th class="p-4 font-semibold">Service Name</th>
-              <th class="p-4 font-semibold">Description</th>
-              <th class="p-4 font-semibold">Status</th>
               <th class="p-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-4 font-medium">Billing</td>
-              <td class="p-4 text-sm text-gray-600">Handles all payment and billing inquiries.</td>
-              <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Active</span></td>
-              <td class="p-4 space-x-2"><button class="text-blue-600 hover:underline">Edit</button><button class="text-gray-600 hover:underline">Archive</button></td>
-            </tr>
+            {% if services %}
+              {% for service in services %}
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-4 font-medium">{{ service.id }}</td>
+                  <td class="p-4 font-medium">{{ service.name }}</td>
+                  <td class="p-4">
+                    <a href="#" class="text-blue-600 hover:underline mr-2 edit-service-btn" data-service-id="{{ service.id }}">Edit</a>
+                    <a href="{{ url_for('admin.delete_service', service_id=service.id) }}" class="text-red-600 hover:underline">Delete</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="3" class="p-4 text-center text-gray-500">No services found.</td></tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Audit Log -->
-    <section>
-      <h2 class="text-2xl font-bold text-gray-700 mb-6">System Audit Log</h2>
-      <div class="bg-white rounded-xl shadow-md overflow-x-auto scrollbar">
-        <table class="w-full text-left">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="p-4 font-semibold">Timestamp</th>
-              <th class="p-4 font-semibold">User</th>
-              <th class="p-4 font-semibold">Action</th>
-              <th class="p-4 font-semibold">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-4 text-sm text-gray-600">2025-10-05 14:30:15</td>
-              <td class="p-4 font-medium">admin@qms.com</td>
-              <td class="p-4"><span class="px-2 py-1 text-xs font-mono bg-gray-200 text-gray-800 rounded">LOGIN</span></td>
-              <td class="p-4 text-sm text-gray-600">Successful login from IP 192.168.1.1</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <!-- Add Service Modal -->
+    <div id="addServiceModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="add-service-modal-content">
+            <button id="closeAddServiceModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Service</h2>
+            <form id="addServiceForm" class="space-y-4" method="POST" action="{{ url_for('admin.add_service') }}">
+                <div>
+                    <label for="serviceName" class="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+                    <input type="text" id="serviceName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Add Service</button>
+            </form>
+        </div>
+    </div>
 
+    <!-- Edit Service Modal -->
+    <div id="editServiceModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-95 opacity-0" id="edit-service-modal-content">
+            <button id="closeEditServiceModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Edit Service</h2>
+            <form id="editServiceForm" class="space-y-4" method="POST" action="{{ url_for('admin.update_service') }}">
+                <input type="hidden" id="editServiceId" name="id">
+                <div>
+                    <label for="editServiceName" class="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+                    <input type="text" id="editServiceName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold rounded-lg px-4 py-3 mt-4 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-105">Update Service</button>
+            </form>
+        </div>
+    </div>
+
+    
     <!-- Settings Panel -->
     <section>
       <h2 class="text-2xl font-bold text-gray-700 mb-6">System Settings</h2>
       <div class="bg-white rounded-xl shadow-md p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Operating Hours</label>
-          <input type="text" class="w-full          placeholder="Mon–Fri: 9:00 AM – 6:00 PM" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Define Officer Skill Sets</label>
-          <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="e.g., Billing Officer → Billing, Dispute Resolution"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Role Permissions</label>
-          <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Select Role</option>
-            <option value="Manager">Manager</option>
-            <option value="Service Provider">Service Provider</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Data Backup Frequency</label>
-          <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="manual">Manual Only</option>
-          </select>
-        </div>
-
-        <div>
-          <button class="bg-red-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-red-700 transition-colors">Trigger Emergency Alert</button>
-        </div>
+        <form action="{{ url_for('admin.update_settings') }}" method="POST" class="space-y-4">
+          <div>
+            <label for="lateness-factor" class="block text-sm font-medium text-gray-700 mb-2">Lateness Placement Factor: <span id="lateness-value" class="font-bold text-blue-600">{{ stats.lateness_factor if stats else 0.5 }}</span></label>
+            <p class="text-xs text-gray-500 mb-2">Controls where a late customer is placed in the queue. 0 is most lenient (front of the line), 1 is strictest (back of the line).</p>
+            <input type="range" id="lateness-factor" name="lateness_factor" min="0" max="1" step="0.1" value="{{ stats.lateness_factor if stats else 0.5 }}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          </div>
+          <div>
+            <label for="latitude" class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+            <input type="text" id="latitude" name="latitude" value="{{ stats.latitude if stats else '' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 23.0225">
+          </div>
+          <div>
+            <label for="longitude" class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+            <input type="text" id="longitude" name="longitude" value="{{ stats.longitude if stats else '' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 72.5714">
+          </div>
+          <div class="text-right">
+            <button type="submit" class="bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors">Save Settings</button>
+          </div>
+        </form>
+        <script>
+          const latenessFactor = document.getElementById('lateness-factor');
+          const latenessValue = document.getElementById('lateness-value');
+          latenessFactor.addEventListener('input', () => {
+            latenessValue.textContent = latenessFactor.value;
+          });
+        </script>
       </div>
     </section>
 
-    <!-- Feedback Summary -->
-    <section>
-      <h2 class="text-2xl font-bold text-gray-700 mb-6">Feedback Summary</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Average Rating</h3>
-          <p class="text-3xl font-bold text-blue-600">4.6 / 5</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Total Responses</h3>
-          <p class="text-3xl font-bold text-green-600">1,245</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Positive Feedback</h3>
-          <p class="text-3xl font-bold text-purple-600">92%</p>
-        </div>
-      </div>
-    </section>
+    <script>
+        const addUserBtn = document.getElementById('addUserBtn');
+        const addUserModal = document.getElementById('addUserModal');
+        const closeAddUserModalBtn = document.getElementById('closeAddUserModalBtn');
+        const addUserModalContent = document.getElementById('add-user-modal-content');
 
-    <!-- Footer -->
-    <footer class="mt-16 text-center text-sm text-gray-500">
-      &copy; 2025 QMS Admin Panel. All rights reserved.
-    </footer>
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => {
+                addUserModal.classList.remove('hidden');
+                setTimeout(() => {
+                    addUserModal.style.opacity = '1';
+                    addUserModalContent.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            });
+        }
 
-  </main>
+        if (closeAddUserModalBtn) {
+            closeAddUserModalBtn.addEventListener('click', () => {
+                addUserModalContent.classList.add('scale-95', 'opacity-0');
+                addUserModal.style.opacity = '0';
+                setTimeout(() => addUserModal.classList.add('hidden'), 300);
+            });
+        }
+
+        if (addUserModal) {
+            addUserModal.addEventListener('click', (e) => {
+                if (e.target === addUserModal) {
+                    addUserModalContent.classList.add('scale-95', 'opacity-0');
+                    addUserModal.style.opacity = '0';
+                    setTimeout(() => addUserModal.classList.add('hidden'), 300);
+                }
+            });
+        }
+
+        const addServiceBtn = document.getElementById('addServiceBtn');
+        const addServiceModal = document.getElementById('addServiceModal');
+        const closeAddServiceModalBtn = document.getElementById('closeAddServiceModalBtn');
+        const addServiceModalContent = document.getElementById('add-service-modal-content');
+
+        if (addServiceBtn) {
+            addServiceBtn.addEventListener('click', () => {
+                addServiceModal.classList.remove('hidden');
+                setTimeout(() => {
+                    addServiceModal.style.opacity = '1';
+                    addServiceModalContent.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            });
+        }
+
+        if (closeAddServiceModalBtn) {
+            closeAddServiceModalBtn.addEventListener('click', () => {
+                addServiceModalContent.classList.add('scale-95', 'opacity-0');
+                addServiceModal.style.opacity = '0';
+                setTimeout(() => addServiceModal.classList.add('hidden'), 300);
+            });
+        }
+
+        if (addServiceModal) {
+            addServiceModal.addEventListener('click', (e) => {
+                if (e.target === addServiceModal) {
+                    addServiceModalContent.classList.add('scale-95', 'opacity-0');
+                    addServiceModal.style.opacity = '0';
+                    setTimeout(() => addServiceModal.classList.add('hidden'), 300);
+                }
+            });
+        }
+
+
+
+        // Edit User Modal Logic
+        const editUserModal = document.getElementById('editUserModal');
+        const closeEditUserModalBtn = document.getElementById('closeEditUserModalBtn');
+        const editUserModalContent = document.getElementById('edit-user-modal-content');
+        const editUserForm = document.getElementById('editUserForm');
+
+        function openEditUserModal() {
+            editUserModal.classList.remove('hidden');
+            setTimeout(() => {
+                editUserModal.style.opacity = '1';
+                editUserModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeEditUserModal() {
+            editUserModalContent.classList.add('scale-95', 'opacity-0');
+            editUserModal.style.opacity = '0';
+            setTimeout(() => editUserModal.classList.add('hidden'), 300);
+        }
+
+        if (closeEditUserModalBtn) {
+            closeEditUserModalBtn.addEventListener('click', closeEditUserModal);
+        }
+        if (editUserModal) {
+            editUserModal.addEventListener('click', (e) => {
+                if (e.target === editUserModal) {
+                    closeEditUserModal();
+                }
+            });
+        }
+
+        // Event delegation for Edit User buttons
+        const editUserButtons = document.querySelectorAll('.edit-user-btn');
+        console.log('Found Edit User buttons:', editUserButtons.length);
+        editUserButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('Edit User button clicked.');
+                const userId = e.target.dataset.userId; // Extract user_id from data-user-id
+                console.log('User ID:', userId);
+                try {
+                    console.log(`Fetching user data for ID: ${userId}`);
+                    const response = await fetch(`/admin/users/${userId}/get`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.success) {
+                        console.log('User data fetched successfully:', data.user);
+                        document.getElementById('editUserId').value = data.user.id;
+                        document.getElementById('editUserName').value = data.user.name;
+                        document.getElementById('editOfficerID').value = data.user.officerID;
+                        document.getElementById('editUserServiceId').value = data.user.service_id;
+                        openEditUserModal();
+                        console.log('Edit User modal opened.');
+                    } else {
+                        alert(`Error: ${data.error}`);
+                        console.error('Error from server:', data.error);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                    alert('An error occurred while fetching user data.');
+                }
+            });
+        });
+
+        // Edit Service Modal Logic
+        const editServiceModal = document.getElementById('editServiceModal');
+        const closeEditServiceModalBtn = document.getElementById('closeEditServiceModalBtn');
+        const editServiceModalContent = document.getElementById('edit-service-modal-content');
+        const editServiceForm = document.getElementById('editServiceForm');
+
+        function openEditServiceModal() {
+            editServiceModal.classList.remove('hidden');
+            setTimeout(() => {
+                editServiceModal.style.opacity = '1';
+                editServiceModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+            console.log('Edit Service modal opened.');
+        }
+
+        function closeEditServiceModal() {
+            editServiceModalContent.classList.add('scale-95', 'opacity-0');
+            editServiceModal.style.opacity = '0';
+            setTimeout(() => editServiceModal.classList.add('hidden'), 300);
+            console.log('Edit Service modal closed.');
+        }
+
+        if (closeEditServiceModalBtn) {
+            closeEditServiceModalBtn.addEventListener('click', closeEditServiceModal);
+        }
+        if (editServiceModal) {
+            editServiceModal.addEventListener('click', (e) => {
+                if (e.target === editServiceModal) {
+                    closeEditServiceModal();
+                }
+            });
+        }
+
+        // Event delegation for Edit Service buttons
+        const editServiceButtons = document.querySelectorAll('.edit-service-btn');
+        console.log('Found Edit Service buttons:', editServiceButtons.length);
+        editServiceButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('Edit Service button clicked.');
+                const serviceId = e.target.dataset.serviceId; // Extract service_id from data-service-id
+                console.log('Service ID:', serviceId);
+                try {
+                    console.log(`Fetching service data for ID: ${serviceId}`);
+                    const response = await fetch(`/admin/services/${serviceId}/get`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.success) {
+                        console.log('Service data fetched successfully:', data.service);
+                        document.getElementById('editServiceId').value = data.service.id;
+                        document.getElementById('editServiceName').value = data.service.name;
+                        openEditServiceModal();
+                        console.log('Edit Service modal opened.');
+                    } else {
+                        alert(`Error: ${data.error}`);
+                        console.error('Error from server:', data.error);
+                    }
+                } catch (error) {
+                    console.error('Error fetching service data:', error);
+                    alert('An error occurred while fetching service data.');
+                }
+            });
+        });
+
+</script>
+
+</main>
 </body>
-</html>
+</html>  

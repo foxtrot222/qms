@@ -6,6 +6,7 @@ from .service_provider import service_provider_bp
 from .main import main_bp
 from .organization import org_bp
 from .auth import auth_bp
+from .check_in import check_in_bp
 
 def register_blueprints(app):
     app.register_blueprint(token_bp)
@@ -15,6 +16,7 @@ def register_blueprints(app):
     app.register_blueprint(main_bp)
     app.register_blueprint(service_provider_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(check_in_bp)
 
 def org_register_blueprints(app):
     app.register_blueprint(service_provider_bp)

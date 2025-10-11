@@ -593,6 +593,59 @@ if (statusPage) {
         });
     }
 
+    // === Check-in Logic ===
+    const checkInBtn = document.getElementById('checkInBtn');
+    if (checkInBtn) {
+        checkInBtn.addEventListener('click', () => {
+            checkInBtn.disabled = true;
+            checkInBtn.textContent = 'Checking in...';
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                checkInBtn.disabled = false;
+                checkInBtn.textContent = 'Check-in Now';
+                return;
+            }
+
+            function success(position) {
+                const latitude  = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                fetch('/check_in', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude, longitude })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        checkInBtn.textContent = 'Checked-in Successfully!';
+                        checkInBtn.classList.replace('bg-green-500', 'bg-green-600');
+                        checkInBtn.classList.remove('hover:bg-green-600');
+                    } else {
+                        alert(`Check-in failed: ${data.error}`);
+                        checkInBtn.disabled = false;
+                        checkInBtn.textContent = 'Check-in Now';
+                    }
+                })
+                .catch(err => {
+                    console.error('Check-in error:', err);
+                    alert('An error occurred during check-in.');
+                    checkInBtn.disabled = false;
+                    checkInBtn.textContent = 'Check-in Now';
+                });
+            }
+
+            function error() {
+                alert('Unable to retrieve your location.');
+                checkInBtn.disabled = false;
+                checkInBtn.textContent = 'Check-in Now';
+            }
+
+            navigator.geolocation.getCurrentPosition(success, error);
+        });
+    }
+
     // === Map Modal ===
     const viewMapBtn = document.getElementById('viewMapBtn');
     const mapModal = document.getElementById('mapModal');

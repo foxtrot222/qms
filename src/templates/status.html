@@ -101,53 +101,7 @@
     <div id="mapModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="map-modal-content"><button id="closeMapModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-white/50 rounded-full p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button><h2 class="text-xl font-bold mb-4 text-gray-800">Office Layout</h2><div class="bg-gray-200 rounded-md h-96 w-full flex items-center justify-center"><img src="{{ url_for('static', filename='officemap.png') }}" alt="Office Map" class="max-w-full max-h-full rounded-md"></div></div>
     </div>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        fetch('/get_status_details')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const details = data.details;
-                    document.getElementById("statusName").textContent = details.name;
-                    document.getElementById("statusContact").textContent = details.contact || "-";
-                    document.getElementById("statusService").textContent = details.service || "-";
 
-                    if (details.type === 'walkin') {
-                        document.getElementById("etrTimer").textContent = details.ETR || "Calculating...";
-                        document.getElementById("statusPosition").textContent = details.position;
-                        document.getElementById("etrMessage").textContent = "Your position in queue:";
-                    } else if (details.type === 'appointment') {
-                        document.getElementById("etrTimer").textContent = details.time_slot;
-                        document.getElementById("statusPosition").textContent = details.status; // "Confirmed"
-                        document.getElementById("etrMessage").textContent = "Your appointment is at:";
-                    }
-                } else {
-                    alert(data.error);
-                    window.location.href = '/';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("An error occurred while fetching status.");
-            });
-
-        // Check-in button handler
-        const checkInBtn = document.getElementById('checkInBtn');
-        if (checkInBtn) {
-            checkInBtn.addEventListener('click', () => {
-                checkInBtn.textContent = 'Checked-in Successfully!';
-                checkInBtn.classList.replace('bg-green-500', 'bg-green-600');
-                checkInBtn.classList.remove('hover:bg-green-600');
-                checkInBtn.disabled = true;
-                
-                // You can add API call here to update check-in status
-                // fetch('/checkin', { method: 'POST' })
-                //     .then(res => res.json())
-                //     .then(data => { /* handle response */ });
-            });
-        }
-    });
-    </script>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

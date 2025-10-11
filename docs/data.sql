@@ -42,7 +42,34 @@ CREATE TABLE `admin` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+/*Clean Database*/
+SET FOREIGN_KEY_CHECKS = 0;
 
+-- If the tables exist, empty them (keeps structure intact)
+TRUNCATE TABLE token;
+TRUNCATE TABLE walkin;
+TRUNCATE TABLE billing;
+TRUNCATE TABLE complaint;
+TRUNCATE TABLE kyc;
+TRUNCATE TABLE admin;
+
+-- Reset AUTO_INCREMENT counters
+ALTER TABLE token AUTO_INCREMENT = 1;
+ALTER TABLE walkin AUTO_INCREMENT = 1;
+ALTER TABLE billing AUTO_INCREMENT = 1;
+ALTER TABLE complaint AUTO_INCREMENT = 1;
+ALTER TABLE kyc AUTO_INCREMENT = 1;
+ALTER TABLE admin AUTO_INCREMENT = 1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+/*Add admin table*/
+CREATE TABLE IF NOT EXISTS admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    lateness_factor DECIMAL(5, 2) DEFAULT 0.00,
+    location VARCHAR(255)
+);
 --
 -- Dumping data for table `admin`
 --
@@ -51,7 +78,18 @@ LOCK TABLES `admin` WRITE;
 /*!40000 ALTER TABLE `admin` DISABLE KEYS */;
 /*!40000 ALTER TABLE `admin` ENABLE KEYS */;
 UNLOCK TABLES;
+/*Clone walkin table for billing, complaint, kyc*/
+DROP TABLE IF EXISTS billing;
+DROP TABLE IF EXISTS complaint;
+DROP TABLE IF EXISTS kyc;
 
+CREATE TABLE billing LIKE walkin;
+CREATE TABLE complaint LIKE walkin;
+CREATE TABLE kyc LIKE walkin;
+/*Remove enum and change to something feasible in `token.type`*/
+ALTER TABLE token
+    -- You may need to drop constraints first depending on DB
+    MODIFY COLUMN `type` VARCHAR(50) NOT NULL;
 --
 -- Table structure for table `appointment`
 --

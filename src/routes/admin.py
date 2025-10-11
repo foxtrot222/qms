@@ -24,19 +24,16 @@ def admin_login():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM admin WHERE name=%s", (adminId,))
         admin = cursor.fetchone()
-        print("Admin found:", admin)
-        print("Entered Password: ",adminPassword)
         if admin and (admin['password']== adminPassword):
             cursor.close()
 
             session['admin_id'] = admin['id']
             session['adminname'] = admin['name']
-            print('Entered Password is Correct.')
             return jsonify({"success": True, "redirect": "/admin"})
         else:
             cursor.close()
             return jsonify({"success": False, "error": "Invalid ID or password."})
-        print(admin)
+
     except mysql.connector.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})

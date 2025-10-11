@@ -472,9 +472,75 @@ if (appointmentModal) {
     });
 }
 
+// === Estimated Waiting Time of new customer in walk-in line ===
+async function updateEstimatedWaitTime() {
+    try {
+        const response = await fetch('/estimated_wait_time');
+        const data = await response.json();
+
+        if (data.success) {
+            const waitElem = document.getElementById('estimatedWaitTime');
+            const timeStr = data.estimated_wait_time || "00:00:00";
+
+            // Convert "HH:MM:SS" -> total minutes
+            const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+            const totalMinutes = hours * 60 + minutes + Math.round(seconds / 60);
+
+            if (waitElem) {
+                if (totalMinutes > 0) {
+                    waitElem.textContent = `~${totalMinutes} Mins`;
+                } else {
+                    waitElem.textContent = 'No Wait';
+                }
+            }
+        } else {
+            console.error("Error fetching wait time:", data.error);
+        }
+    } catch (error) {
+        console.error("Error fetching wait time:", error);
+    }
+}
+
+
+
 // === Status Page Logic ===
 const statusPage = document.getElementById('statusPage');
 if (statusPage) {
+    // === Customer Details ===
+    // Function to fetch and display customer details
+    async function loadCustomerDetails() {
+        try {
+            const response = await fetch('/get_customer_details');
+            const data = await response.json();
+
+            if (data.success && data.details) {
+                const details = data.details;
+
+                // Populate customer details
+                document.getElementById('statusName').textContent = details.name || 'N/A';
+                document.getElementById('statusContact').textContent = details.contact || 'N/A';
+                document.getElementById('statusService').textContent = details.service || 'N/A';
+                document.getElementById('statusPosition').textContent = details.position ?? '0';
+
+                // Optional: show extra info if you want
+                if (details.type === 'walkin' && details.ETR) {
+                    console.log(`Estimated Time Remaining: ${details.ETR}`);
+                } else if (details.type === 'appointment' && details.time_slot) {
+                    console.log(`Appointment Time: ${details.time_slot}`);
+                }
+
+            } else {
+                console.error('Failed to load customer details:', data.error || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+        }
+    }
+
+    // Run when page is ready
+    document.addEventListener('DOMContentLoaded', loadCustomerDetails);
+
+
     // === Cancel Token ===
     const cancelTokenBtn = document.getElementById('cancelTokenBtn');
     if (cancelTokenBtn) {

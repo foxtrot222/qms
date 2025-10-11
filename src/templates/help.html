@@ -1,155 +1,105 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QMS - Help</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="bg-gray-50 text-gray-800">
+{% block content %}
+<!-- Help Page Section -->
+<main id="helpPage" class="flex-grow container mx-auto px-6 pt-32 pb-16">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                How can we <span class="text-blue-600">help you?</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Find answers to common questions and learn how to use QMS effectively
+            </p>
+        </div>
 
-    <!-- Container for the entire page -->
-    <div class="min-h-screen flex flex-col">
-
-        <!-- Header and Navigation Bar -->
-        <header class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-20">
-            <nav class="container mx-auto px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <!-- Website Title -->
-                    <div class="text-2xl font-bold text-blue-600">
-                        <a href="/" id="homeNavBtn">QMS</a>
-                    </div>
-                    <!-- Desktop Navigation Links -->
-                    <div class="hidden md:flex items-center space-x-8">
-                        <a href="/" id="homeLinkDesktop" class="text-gray-600 hover:text-blue-600 transition duration-300">Home</a>
-                        <a href="/about" id="aboutNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">About</a>
-                        <a href="/help" id="helpNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Help</a>
-                        <a href="/contact" id="contactNavBtn" class="text-gray-600 hover:text-blue-600 transition duration-300">Contact</a>
-                        <a href="/status" id="statusNavBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
-                    </div>
-                    <!-- Mobile Menu Button -->
-                    <div class="md:hidden">
-                        <button id="mobileMenuBtn" class="text-gray-600 focus:outline-none">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                 <!-- Mobile Menu -->
-                <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
-                    <a href="/" id="homeLinkMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Home</a>
-                    <a href="/about" id="aboutNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">About</a>
-                    <a href="/help" id="helpNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Help</a>
-                    <a href="/contact" id="contactNavBtnMobile" class="block text-gray-600 hover:text-blue-600 transition duration-300 py-2">Contact</a>
-                    <a href="/status" id="statusNavBtnMobile" class="block bg-blue-500 text-white text-center px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Status</a>
-                </div>
-            </nav>
-        </header>
-
-        <!-- Help Page Section -->
-        <main id="helpPage" class="flex-grow container mx-auto px-6 pt-32 pb-16">
-            <div class="max-w-4xl mx-auto">
-                <div class="text-center mb-16">
-                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
-                        How can we <span class="text-blue-600">help you?</span>
-                    </h1>
-                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Find answers to common questions and learn how to use QMS effectively
+        <!-- FAQ Section -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
+            <div class="space-y-6">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I generate a token?</h3>
+                    <p class="text-gray-600">
+                        Click on the "Generate Token" button on the homepage, fill in your details including name, service type, and contact information. You'll receive your token via SMS or email based on your preference.
                     </p>
                 </div>
-
-                <!-- FAQ Section -->
-                <div class="mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
-                    <div class="space-y-6">
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I generate a token?</h3>
-                            <p class="text-gray-600">
-                                Click on the "Generate Token" button on the homepage, fill in your details including name, service type, and contact information. You'll receive your token via SMS or email based on your preference.
-                            </p>
-                        </div>
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I check my queue status?</h3>
-                            <p class="text-gray-600">
-                                Use the "Status" button in the navigation or "Already have a token?" on the homepage. Enter your token number and the OTP sent to your registered contact to view your current position and estimated waiting time.
-                            </p>
-                        </div>
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">What if I miss my turn?</h3>
-                            <p class="text-gray-600">
-                                Don't worry! You can check-in using the status page even if you're running late. The system will automatically adjust your position based on current queue status.
-                            </p>
-                        </div>
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Can I book an appointment in advance?</h3>
-                            <p class="text-gray-600">
-                                Yes! When generating a token, you'll have the option to either join the current queue or schedule an appointment for the next available slot.
-                            </p>
-                        </div>
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Is there priority service for senior citizens?</h3>
-                            <p class="text-gray-600">
-                                Absolutely! When generating your token, you can select "Senior Citizen" or "Person with Disability" for priority queue placement.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- How to Use Section -->
-                <div class="mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">How to Use QMS</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="text-2xl font-bold text-blue-600">1</span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Generate Token</h3>
-                            <p class="text-gray-600 text-sm">Fill in your details and select your preferred service</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="text-2xl font-bold text-green-600">2</span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Receive Notification</h3>
-                            <p class="text-gray-600 text-sm">Get your token via SMS or email with queue details</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="text-2xl font-bold text-yellow-600">3</span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Track Status</h3>
-                            <p class="text-gray-600 text-sm">Monitor your position and estimated wait time</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="text-2xl font-bold text-purple-600">4</span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Get Served</h3>
-                            <p class="text-gray-600 text-sm">Arrive when notified and enjoy quick service</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Support Section -->
-                <div class="bg-blue-50 rounded-2xl p-8 text-center">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Need More Help?</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Our support team is here to assist you with any questions or technical issues.
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">How do I check my queue status?</h3>
+                    <p class="text-gray-600">
+                        Use the "Status" button in the navigation or "Already have a token?" on the homepage. Enter your token number and the OTP sent to your registered contact to view your current position and estimated waiting time.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 transition duration-300">
-                            Contact Support
-                        </button>
-                        <button class="bg-white text-blue-600 font-semibold rounded-lg px-6 py-3 border-2 border-blue-600 hover:bg-blue-50 transition duration-300">
-                            Live Chat
-                        </button>
-                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">What if I miss my turn?</h3>
+                    <p class="text-gray-600">
+                        Don't worry! You can check-in using the status page even if you're running late. The system will automatically adjust your position based on current queue status.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Can I book an appointment in advance?</h3>
+                    <p class="text-gray-600">
+                        Yes! When generating a token, you'll have the option to either join the current queue or schedule an appointment for the next available slot.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Is there priority service for senior citizens?</h3>
+                    <p class="text-gray-600">
+                        Absolutely! When generating your token, you can select "Senior Citizen" or "Person with Disability" for priority queue placement.
+                    </p>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- How to Use Section -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">How to Use QMS</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-blue-600">1</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Generate Token</h3>
+                    <p class="text-gray-600 text-sm">Fill in your details and select your preferred service</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-green-600">2</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Receive Notification</h3>
+                    <p class="text-gray-600 text-sm">Get your token via SMS or email with queue details</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-yellow-600">3</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Track Status</h3>
+                    <p class="text-gray-600 text-sm">Monitor your position and estimated wait time</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">4</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Get Served</h3>
+                    <p class="text-gray-600 text-sm">Arrive when notified and enjoy quick service</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div class="bg-blue-50 rounded-2xl p-8 text-center">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Need More Help?</h2>
+            <p class="text-lg text-gray-600 mb-6">
+                Our support team is here to assist you with any questions or technical issues.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 transition duration-300">
+                    Contact Support
+                </button>
+                <button class="bg-white text-blue-600 font-semibold rounded-lg px-6 py-3 border-2 border-blue-600 hover:bg-blue-50 transition duration-300">
+                    Live Chat
+                </button>
+            </div>
+        </div>
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+</main>
+{% endblock %}

@@ -37,3 +37,9 @@ def admin_login():
     except mysql.connector.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
+
+@admin_bp.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_id', None)
+    session.pop('adminname', None)
+    return redirect(url_for('org.organization'))

@@ -153,6 +153,38 @@ def call_next():
 
     return jsonify({"success": True})
 
+@service_provider_bp.route("/mark_late", methods=["POST"])
+def mark_late():
+    data = request.get_json()
+    token_id = data.get("token_id")
+    W_L = 0.5  # Hybrid policy (0.5 = middle); you can fetch this from config table
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Get total queue length
+        cursor.execute("SELECT COUNT(*) AS nqueue FROM tokens WHERE status='waiting'")
+        nqueue = cursor.fetchone()["nqueue"]
+
+        # Calculate new position
+        new_pos = round(1 + W_L * nqueue)
+
+        # Mark customer as late
+        cursor.execute("UPDATE tokens SET status='late', late_position=%s WHERE id=%s", (new_pos, token_id))
+        conn.commit()
+
+        return jsonify({"success": True, "new_position": new_pos})
+
+    except Exception as e:
+        print("Mark late error:", e)
+        conn.rollback()
+        return jsonify({"success": False, "error": "Database error"})
+
+    finally:
+        cursor.close()
+        conn.close()
+
 @service_provider_bp.route("/get_transfer_services")
 def get_transfer_services():
     service_id = session.get('service_id')

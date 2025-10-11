@@ -513,6 +513,40 @@ if (dashboardPage) {
             }
         });
     }
+    document.addEventListener("DOMContentLoaded", () => {
+        const markLateBtn = document.getElementById("markLateBtn");
+
+        markLateBtn.addEventListener("click", async () => {
+            const currentTokenId = localStorage.getItem("currentTokenId"); // or however you track it
+
+            if (!currentTokenId) {
+                alert("No active customer to mark late!");
+                return;
+            }
+
+            if (!confirm("Mark current customer as late?")) return;
+
+            try {
+                const res = await fetch("/mark_late", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token_id: currentTokenId })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    alert(`Customer marked late. New position: ${data.new_position}`);
+                    location.reload(); // refresh queue display
+                } else {
+                    alert(data.error || "Failed to mark late.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error.");
+            }
+        });
+    });
 
     // Transfer Modal Logic (already implemented)
     const transferBtn = document.getElementById('transferBtn');

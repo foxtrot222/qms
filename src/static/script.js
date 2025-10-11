@@ -306,6 +306,81 @@ if (accessDashboardBtn) {
     }
 }
 
+// === Admin Login ===
+document.addEventListener("DOMContentLoaded", () => {
+    const adminLoginBtn = document.getElementById("adminLoginBtn");
+    const adminLoginModal = document.getElementById("adminLoginModal");
+    const closeAdminLoginModalBtn = document.getElementById("closeAdminLoginModalBtn");
+    const modalContent = document.getElementById("admin-login-modal-content");
+    const adminLoginForm = document.getElementById("adminLoginForm");
+    const adminLoginError = document.getElementById("adminLoginError");
+
+    // Show modal
+    adminLoginBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        adminLoginModal.classList.remove("hidden");
+        setTimeout(() => {
+            modalContent.classList.remove("scale-95", "opacity-0");
+            modalContent.classList.add("scale-100", "opacity-100");
+        }, 10);
+    });
+
+    // Close modal
+    const closeModal = () => {
+        modalContent.classList.add("scale-95", "opacity-0");
+        setTimeout(() => {
+            adminLoginModal.classList.add("hidden");
+        }, 200);
+    };
+
+    closeAdminLoginModalBtn.addEventListener("click", closeModal);
+
+    // Close when clicking outside modal content
+    adminLoginModal.addEventListener("click", (e) => {
+        if (e.target === adminLoginModal) closeModal();
+    });
+
+    // Handle form submit (AJAX)
+    adminLoginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(adminLoginForm);
+        const adminId = formData.get("adminId");
+        const adminPassword = formData.get("adminPassword");
+
+        adminLoginError.textContent = "";
+        adminLoginError.classList.add("hidden");
+
+        try {
+            const response = await fetch("/adminlogin", {
+                method: "POST",
+                body: new URLSearchParams({
+                    adminID: adminId,
+                    adminPassword: adminPassword
+                }),
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Redirect to admin dashboard
+                window.location.href = data.redirect;
+            } else {
+                // Show error
+                adminLoginError.textContent = data.error || "Login failed.";
+                adminLoginError.classList.remove("hidden");
+            }
+        } catch (err) {
+            adminLoginError.textContent = "Network error. Please try again.";
+            adminLoginError.classList.remove("hidden");
+        }
+    });
+});
+
+
 // === Dashboard Page Logic ===
 const dashboardPage = document.getElementById('dashboardPage');
 if (dashboardPage) {

@@ -9,23 +9,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-gray-50 text-gray-800">
-
     <!-- Container for the entire page -->
     <div class="min-h-screen flex flex-col">
-
         <!-- Officer Dashboard Section -->
         <main id="dashboardPage" class="flex-grow container mx-auto px-6 pt-24 pb-16">
             <!-- Dashboard Header -->
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-4">
-    <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ officer_name }}</h1>
-        <p class="text-gray-600">Officer ID: {{ officer_id }}</p>
-    </div>
-    <button id="orgLogoutBtn" class="mt-3 sm:mt-0 w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-2 hover:bg-gray-300 transition-colors flex items-center justify-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-        Logout
-    </button>
-</div>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ officer_name }}</h1>
+                    <p class="text-gray-600">Officer ID: {{ officer_id }}</p>
+                </div>
+                <button id="orgLogoutBtn" class="mt-3 sm:mt-0 w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold rounded-lg px-4 py-2 hover:bg-gray-300 transition-colors flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Logout
+                </button>
+            </div>
+            
             <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full h-full flex flex-col" style="min-height: 80vh;">
                 <!-- Top Section: Timer and Queue -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 border-b pb-6 mb-6">
@@ -33,34 +32,155 @@
                     <div class="bg-gray-50 p-6 rounded-lg text-center flex flex-col justify-center items-center border border-gray-200">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Current Service Time</h2>
                         <div id="customerTimer" class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">00:00</div>
-                        
                     </div>
+                    
                     <!-- Right: Queue Status -->
                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Queue Status</h2>
                         <div class="mb-4">
                             <span class="font-semibold text-gray-700">Now Serving:</span>
-                            <span id="nowServingToken" class="text-lg md:text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md ml-2"></span>
+                            <span id="nowServingToken" class="text-lg md:text-xl font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-md ml-2">---</span>
                         </div>
                         <ul id="queueList" class="space-y-2 h-40 overflow-y-auto pr-2">
+                            <!-- Queue items will be dynamically loaded here -->
                         </ul>
                     </div>
                 </div>
                 
-                <!-- Middle Section: Action Buttons -->
-                <div class="flex-grow flex items-center justify-center py-6">
-                     <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        <button id="completeServiceBtn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Complete Service</button>
+                <!-- Middle Section: Primary Action Buttons -->
+                <div class="flex-grow flex items-center justify-center py-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
+                        <!-- Call Next Customer -->
+                        <button id="callNextBtn" class="bg-green-500 text-white font-semibold rounded-lg px-6 py-4 text-base hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                            Call Next
+                        </button>
                         
+                        <!-- Mark Late -->
+                        <button id="markLateBtn" class="bg-yellow-500 text-white font-semibold rounded-lg px-6 py-4 text-base hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Late
+                        </button>
                         
+                        <!-- Transfer -->
+                        <button id="transferBtn" class="bg-teal-500 text-white font-semibold rounded-lg px-6 py-4 text-base hover:bg-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            Transfer
+                        </button>
+                        
+                        <!-- Complete Service -->
+                        <button id="completeServiceBtn" class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-4 text-base hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Complete
+                        </button>
                     </div>
                 </div>
-        
                 
+                <!-- Bottom Section: Additional Actions -->
+                <div class="border-t pt-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                        <button id="noShowBtn" class="bg-slate-600 text-white font-semibold rounded-lg p-3 text-sm hover:bg-slate-700 transition shadow">No-show</button>
+                        <button id="rescheduleBtn" class="bg-purple-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-purple-600 transition shadow">Reschedule</button>
+                        <button id="holdBtn" class="bg-orange-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-orange-600 transition shadow">Hold</button>
+                        <button id="priorityBtn" class="bg-pink-500 text-white font-semibold rounded-lg p-3 text-sm hover:bg-pink-600 transition shadow">Priority</button>
+                        <button id="emergencyBtn" class="bg-red-600 text-white font-semibold rounded-lg p-3 text-sm hover:bg-red-700 transition shadow col-span-2 md:col-span-3 lg:col-span-1">Emergency</button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
-
+    
+    <script>
+        // Timer functionality
+        let timerInterval;
+        let seconds = 0;
+        
+        function formatTime(sec) {
+            const minutes = Math.floor(sec / 60).toString().padStart(2, '0');
+            const secondsValue = (sec % 60).toString().padStart(2, '0');
+            return `${minutes}:${secondsValue}`;
+        }
+        
+        function startCustomerTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            seconds = 0;
+            document.getElementById('customerTimer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('customerTimer').textContent = formatTime(seconds);
+            }, 1000);
+        }
+        
+        // Call Next Customer
+        document.getElementById('callNextBtn').addEventListener('click', () => {
+            // Add your API call here
+            startCustomerTimer();
+            console.log('Calling next customer...');
+        });
+        
+        // Mark Late
+        document.getElementById('markLateBtn').addEventListener('click', () => {
+            // Add your API call here
+            console.log('Marking customer as late...');
+        });
+        
+        // Transfer
+        document.getElementById('transferBtn').addEventListener('click', () => {
+            if (confirm('Transfer current customer to another officer?')) {
+                // Add your API call here
+                console.log('Transferring customer...');
+            }
+        });
+        
+        // Complete Service
+        document.getElementById('completeServiceBtn').addEventListener('click', () => {
+            // Add your API call here
+            if (timerInterval) clearInterval(timerInterval);
+            console.log('Service completed');
+        });
+        
+        // Additional action buttons
+        document.getElementById('noShowBtn').addEventListener('click', () => {
+            console.log('Marking as no-show...');
+        });
+        
+        document.getElementById('rescheduleBtn').addEventListener('click', () => {
+            console.log('Rescheduling...');
+        });
+        
+        document.getElementById('holdBtn').addEventListener('click', () => {
+            console.log('Putting on hold...');
+        });
+        
+        document.getElementById('priorityBtn').addEventListener('click', () => {
+            console.log('Setting as priority...');
+        });
+        
+        document.getElementById('emergencyBtn').addEventListener('click', () => {
+            if (confirm('Trigger emergency alert?')) {
+                console.log('Emergency alert triggered!');
+            }
+        });
+        
+        // Logout
+        document.getElementById('orgLogoutBtn').addEventListener('click', () => {
+            window.location.href = '/logout';
+        });
+        
+        // Start timer on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            startCustomerTimer();
+        });
+    </script>
+    
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

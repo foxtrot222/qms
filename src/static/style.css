@@ -11,3 +11,14 @@ body {
         stroke-dashoffset: 0;
     }
 }
+.scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.scrollbar::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+}
+.scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}

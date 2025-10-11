@@ -948,3 +948,206 @@ if (orgLogoutBtn) {
         window.location.href = '/org/logout';
     });
 }
+const latenessFactor = document.getElementById('lateness-factor');
+const latenessValue = document.getElementById('lateness-value');
+latenessFactor.addEventListener('input', () => {
+  latenessValue.textContent = latenessFactor.value;
+});
+
+const addUserBtn = document.getElementById('addUserBtn');
+const addUserModal = document.getElementById('addUserModal');
+const closeAddUserModalBtn = document.getElementById('closeAddUserModalBtn');
+const addUserModalContent = document.getElementById('add-user-modal-content');
+
+if (addUserBtn) {
+    addUserBtn.addEventListener('click', () => {
+        addUserModal.classList.remove('hidden');
+        setTimeout(() => {
+            addUserModal.style.opacity = '1';
+            addUserModalContent.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    });
+}
+
+if (closeAddUserModalBtn) {
+    closeAddUserModalBtn.addEventListener('click', () => {
+        addUserModalContent.classList.add('scale-95', 'opacity-0');
+        addUserModal.style.opacity = '0';
+        setTimeout(() => addUserModal.classList.add('hidden'), 300);
+    });
+}
+
+if (addUserModal) {
+    addUserModal.addEventListener('click', (e) => {
+        if (e.target === addUserModal) {
+            addUserModalContent.classList.add('scale-95', 'opacity-0');
+            addUserModal.style.opacity = '0';
+            setTimeout(() => addUserModal.classList.add('hidden'), 300);
+        }
+    });
+}
+
+const addServiceBtn = document.getElementById('addServiceBtn');
+const addServiceModal = document.getElementById('addServiceModal');
+const closeAddServiceModalBtn = document.getElementById('closeAddServiceModalBtn');
+const addServiceModalContent = document.getElementById('add-service-modal-content');
+
+if (addServiceBtn) {
+    addServiceBtn.addEventListener('click', () => {
+        addServiceModal.classList.remove('hidden');
+        setTimeout(() => {
+            addServiceModal.style.opacity = '1';
+            addServiceModalContent.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    });
+}
+
+if (closeAddServiceModalBtn) {
+    closeAddServiceModalBtn.addEventListener('click', () => {
+        addServiceModalContent.classList.add('scale-95', 'opacity-0');
+        addServiceModal.style.opacity = '0';
+        setTimeout(() => addServiceModal.classList.add('hidden'), 300);
+    });
+}
+
+if (addServiceModal) {
+    addServiceModal.addEventListener('click', (e) => {
+        if (e.target === addServiceModal) {
+            addServiceModalContent.classList.add('scale-95', 'opacity-0');
+            addServiceModal.style.opacity = '0';
+            setTimeout(() => addServiceModal.classList.add('hidden'), 300);
+        }
+    });
+}
+
+// Edit User Modal Logic
+const editUserModal = document.getElementById('editUserModal');
+const closeEditUserModalBtn = document.getElementById('closeEditUserModalBtn');
+const editUserModalContent = document.getElementById('edit-user-modal-content');
+const editUserForm = document.getElementById('editUserForm');
+
+function openEditUserModal() {
+    editUserModal.classList.remove('hidden');
+    setTimeout(() => {
+        editUserModal.style.opacity = '1';
+        editUserModalContent.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+
+function closeEditUserModal() {
+    editUserModalContent.classList.add('scale-95', 'opacity-0');
+    editUserModal.style.opacity = '0';
+    setTimeout(() => editUserModal.classList.add('hidden'), 300);
+}
+
+if (closeEditUserModalBtn) {
+    closeEditUserModalBtn.addEventListener('click', closeEditUserModal);
+}
+if (editUserModal) {
+    editUserModal.addEventListener('click', (e) => {
+        if (e.target === editUserModal) {
+            closeEditUserModal();
+        }
+    });
+}
+
+// Event delegation for Edit User buttons
+const editUserButtons = document.querySelectorAll('.edit-user-btn');
+console.log('Found Edit User buttons:', editUserButtons.length);
+editUserButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        console.log('Edit User button clicked.');
+        const userId = e.target.dataset.userId; // Extract user_id from data-user-id
+        console.log('User ID:', userId);
+        try {
+            console.log(`Fetching user data for ID: ${userId}`);
+            const response = await fetch(`/admin/users/${userId}/get`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.success) {
+                console.log('User data fetched successfully:', data.user);
+                document.getElementById('editUserId').value = data.user.id;
+                document.getElementById('editUserName').value = data.user.name;
+                document.getElementById('editOfficerID').value = data.user.officerID;
+                document.getElementById('editUserServiceId').value = data.user.service_id;
+                openEditUserModal();
+                console.log('Edit User modal opened.');
+            } else {
+                alert(`Error: ${data.error}`);
+                console.error('Error from server:', data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            alert('An error occurred while fetching user data.');
+        }
+    });
+});
+
+// Edit Service Modal Logic
+const editServiceModal = document.getElementById('editServiceModal');
+const closeEditServiceModalBtn = document.getElementById('closeEditServiceModalBtn');
+const editServiceModalContent = document.getElementById('edit-service-modal-content');
+const editServiceForm = document.getElementById('editServiceForm');
+
+function openEditServiceModal() {
+    editServiceModal.classList.remove('hidden');
+    setTimeout(() => {
+        editServiceModal.style.opacity = '1';
+        editServiceModalContent.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+    console.log('Edit Service modal opened.');
+}
+
+function closeEditServiceModal() {
+    editServiceModalContent.classList.add('scale-95', 'opacity-0');
+    editServiceModal.style.opacity = '0';
+    setTimeout(() => editServiceModal.classList.add('hidden'), 300);
+    console.log('Edit Service modal closed.');
+}
+
+if (closeEditServiceModalBtn) {
+    closeEditServiceModalBtn.addEventListener('click', closeEditServiceModal);
+}
+if (editServiceModal) {
+    editServiceModal.addEventListener('click', (e) => {
+        if (e.target === editServiceModal) {
+            closeEditServiceModal();
+        }
+    });
+}
+
+// Event delegation for Edit Service buttons
+const editServiceButtons = document.querySelectorAll('.edit-service-btn');
+console.log('Found Edit Service buttons:', editServiceButtons.length);
+editServiceButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        console.log('Edit Service button clicked.');
+        const serviceId = e.target.dataset.serviceId; // Extract service_id from data-service-id
+        console.log('Service ID:', serviceId);
+        try {
+            console.log(`Fetching service data for ID: ${serviceId}`);
+            const response = await fetch(`/admin/services/${serviceId}/get`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.success) {
+                console.log('Service data fetched successfully:', data.service);
+                document.getElementById('editServiceId').value = data.service.id;
+                document.getElementById('editServiceName').value = data.service.name;
+                openEditServiceModal();
+                console.log('Edit Service modal opened.');
+            } else {
+                alert(`Error: ${data.error}`);
+                console.error('Error from server:', data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching service data:', error);
+            alert('An error occurred while fetching service data.');
+        }
+    });
+});

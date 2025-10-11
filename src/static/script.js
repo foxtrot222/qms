@@ -310,14 +310,20 @@ if (accessDashboardBtn) {
 const dashboardPage = document.getElementById('dashboardPage');
 if (dashboardPage) {
     const customerTimerEl = document.getElementById('customerTimer');
-    const customerCountEl = document.getElementById('customerCount');
     const nowServingToken = document.getElementById('nowServingToken');
     const queueList = document.getElementById('queueList');
     const completeServiceBtn = document.getElementById('completeServiceBtn');
+    const callNextBtn = document.getElementById('callNextBtn');
+    const customerCountEl = document.getElementById('customerCount');
+    const avgServiceTimeEl = document.getElementById('avgServiceTime');
     let seconds = 0;
 
-    function startCustomerTimer() {
+    function stopCustomerTimer() {
         if (etrTimerInterval) clearInterval(etrTimerInterval);
+    }
+
+    function startCustomerTimer() {
+        stopCustomerTimer();
         seconds = 0;
         if (customerTimerEl) customerTimerEl.textContent = '00:00';
         etrTimerInterval = setInterval(() => {
@@ -328,39 +334,66 @@ if (dashboardPage) {
         }, 1000);
     }
 
+    async function loadDashboardStats() {
+        try {
+            const response = await fetch('/get_dashboard_stats');
+            const data = await response.json();
+            if (data.success) {
+                customerCountEl.textContent = data.stats.customer_count;
+                avgServiceTimeEl.textContent = data.stats.avg_time;
+            } else {
+                console.error('Failed to load stats:', data.error);
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
     async function loadQueue() {
         try {
             const response = await fetch('/get_queue');
             const data = await response.json();
             if (data.success) {
-                if(queueList) queueList.innerHTML = '';
+                queueList.innerHTML = '';
                 const servingNow = data.queue.find(customer => customer.position === 0);
                 if (servingNow) {
-                    if(nowServingToken) nowServingToken.textContent = servingNow.token_value;
+                    nowServingToken.textContent = servingNow.token_value;
                 } else {
-                    if(nowServingToken) nowServingToken.textContent = '---';
+                    nowServingToken.textContent = '---';
                 }
                 const inQueue = data.queue.filter(customer => customer.position > 0);
+                if (inQueue.length === 0) {
+                    queueList.innerHTML = '<p class="text-gray-500">Queue is empty.</p>';
+                }
                 inQueue.forEach(customer => {
-                    const li = document.createElement('li');
-                    li.className = 'flex justify-between items-center bg-white p-2 rounded-md shadow-sm border border-gray-200';
-                    const tokenSpan = document.createElement('span');
-                    tokenSpan.className = 'font-medium text-gray-700';
-                    tokenSpan.textContent = customer.token_value;
-                    const statusSpan = document.createElement('span');
-                    statusSpan.className = 'text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full';
-                    statusSpan.textContent = 'IN LINE';
-                    li.appendChild(tokenSpan);
-                    li.appendChild(statusSpan);
-                    if(queueList) queueList.appendChild(li);
+                    const itemHTML = `
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md shadow-sm border gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xl font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-md">${customer.token_value}</span>
+                                <div>
+                                    <p class="font-semibold text-gray-800">${customer.customer_name}</p>
+                                    <p class="text-sm text-gray-500">Contact ID: ${customer.customer_email}</p>
+                                </div>
+                            </div>
+                             <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded-full w-24 text-center">IN LINE</span>
+                             </div>
+                        </div>
+                    `;
+                    queueList.insertAdjacentHTML('beforeend', itemHTML);
                 });
-                if(customerCountEl) customerCountEl.textContent = inQueue.length;
             } else {
                 console.error('Failed to load queue:', data.error);
+                queueList.innerHTML = '<p class="text-red-500">Could not load queue.</p>';
             }
         } catch (error) {
             console.error('Error loading queue:', error);
         }
+    }
+
+    function refreshDashboard() {
+        loadQueue();
+        loadDashboardStats();
     }
 
     if (completeServiceBtn) {
@@ -374,11 +407,10 @@ if (dashboardPage) {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    loadQueue();
-                    startCustomerTimer();
+                    stopCustomerTimer();
+                    refreshDashboard();
                 } else {
-                    console.error('Failed to complete service:', data.error);
-                    alert('Failed to complete service.');
+                    alert(`Failed to complete service: ${data.error}`);
                 }
             } catch (error) {
                 console.error('Error completing service:', error);
@@ -387,7 +419,110 @@ if (dashboardPage) {
         });
     }
 
-    loadQueue();
+    if (callNextBtn) {
+        callNextBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/call_next', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    refreshDashboard();
+                    startCustomerTimer();
+                } else {
+                    alert(`Failed to call next customer: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error calling next customer:', error);
+                alert('An error occurred while calling the next customer.');
+            }
+        });
+    }
+
+    // Transfer Modal Logic (already implemented)
+    const transferBtn = document.getElementById('transferBtn');
+    const transferModal = document.getElementById('transferModal');
+    const closeTransferModalBtn = document.getElementById('closeTransferModalBtn');
+    const transferServiceSelect = document.getElementById('transferService');
+    const confirmTransferBtn = document.getElementById('confirmTransferBtn');
+    const transferModalContent = document.getElementById('transfer-modal-content');
+
+    function closeTransferModal() {
+        transferModalContent.classList.add('scale-95', 'opacity-0');
+        transferModal.style.opacity = '0';
+        setTimeout(() => transferModal.classList.add('hidden'), 300);
+    }
+
+    async function openTransferModal() {
+        try {
+            const response = await fetch('/get_transfer_services');
+            const data = await response.json();
+            if (data.success) {
+                transferServiceSelect.innerHTML = '';
+                if (data.services.length > 0) {
+                    data.services.forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.id;
+                        option.textContent = service.name;
+                        transferServiceSelect.appendChild(option);
+                    });
+                    transferModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        transferModal.style.opacity = '1';
+                        transferModalContent.classList.remove('scale-95', 'opacity-0');
+                    }, 10);
+                } else {
+                    alert("No other services available to transfer to.");
+                }
+            } else {
+                alert(`Error fetching services: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error opening transfer modal:', error);
+            alert('Could not open transfer modal.');
+        }
+    }
+
+    if (transferBtn) {
+        transferBtn.addEventListener('click', openTransferModal);
+    }
+    if (closeTransferModalBtn) {
+        closeTransferModalBtn.addEventListener('click', closeTransferModal);
+    }
+    if (transferModal) {
+        transferModal.addEventListener('click', (e) => { if (e.target === transferModal) closeTransferModal(); });
+    }
+    if (confirmTransferBtn) {
+        confirmTransferBtn.addEventListener('click', async () => {
+            const destination_service_id = transferServiceSelect.value;
+            if (!destination_service_id) {
+                alert("Please select a service to transfer to.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/transfer_customer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ destination_service_id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Customer transferred successfully!');
+                    closeTransferModal();
+                    refreshDashboard();
+                } else {
+                    alert(`Transfer failed: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error transferring customer:', error);
+                alert('An error occurred during the transfer.');
+            }
+        });
+    }
+
+    // Initial Load
+    refreshDashboard();
     startCustomerTimer();
 }
 

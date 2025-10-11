@@ -392,6 +392,7 @@ if (dashboardPage) {
     const customerCountEl = document.getElementById('customerCount');
     const avgServiceTimeEl = document.getElementById('avgServiceTime');
     let seconds = 0;
+    let servingNowTokenId = null;
 
     function stopCustomerTimer() {
         if (etrTimerInterval) clearInterval(etrTimerInterval);
@@ -433,8 +434,10 @@ if (dashboardPage) {
                 const servingNow = data.queue.find(customer => customer.position === 0);
                 if (servingNow) {
                     nowServingToken.textContent = servingNow.token_value;
+                    servingNowTokenId = servingNow.token_id;
                 } else {
                     nowServingToken.textContent = '---';
+                    servingNowTokenId = null;
                 }
                 const inQueue = data.queue.filter(customer => customer.position > 0);
                 if (inQueue.length === 0) {
@@ -513,13 +516,11 @@ if (dashboardPage) {
             }
         });
     }
-    document.addEventListener("DOMContentLoaded", () => {
-        const markLateBtn = document.getElementById("markLateBtn");
 
+    const markLateBtn = document.getElementById("markLateBtn");
+    if (markLateBtn) {
         markLateBtn.addEventListener("click", async () => {
-            const currentTokenId = localStorage.getItem("currentTokenId"); // or however you track it
-
-            if (!currentTokenId) {
+            if (!servingNowTokenId) {
                 alert("No active customer to mark late!");
                 return;
             }
@@ -530,14 +531,14 @@ if (dashboardPage) {
                 const res = await fetch("/mark_late", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ token_id: currentTokenId })
+                    body: JSON.stringify({ token_id: servingNowTokenId })
                 });
 
                 const data = await res.json();
 
                 if (data.success) {
                     alert(`Customer marked late. New position: ${data.new_position}`);
-                    location.reload(); // refresh queue display
+                    refreshDashboard();
                 } else {
                     alert(data.error || "Failed to mark late.");
                 }
@@ -546,7 +547,7 @@ if (dashboardPage) {
                 alert("Server error.");
             }
         });
-    });
+    }
 
     // Transfer Modal Logic (already implemented)
     const transferBtn = document.getElementById('transferBtn');

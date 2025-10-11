@@ -22,6 +22,7 @@ def get_queue():
         query = f"""
             SELECT
                 q.position,
+                t.id AS token_id,
                 t.value AS token_value,
                 c.name AS customer_name,
                 c.email AS customer_email
@@ -157,29 +158,70 @@ def call_next():
 def mark_late():
     data = request.get_json()
     token_id = data.get("token_id")
-    W_L = 0.5  # Hybrid policy (0.5 = middle); you can fetch this from config table
+    table_name = session.get('table_name')
+
+    if not table_name or not token_id:
+        return jsonify({"success": False, "error": "Missing required data."})
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Get total queue length
-        cursor.execute("SELECT COUNT(*) AS nqueue FROM tokens WHERE status='waiting'")
-        nqueue = cursor.fetchone()["nqueue"]
+        # Get Lateness Factor (W_L)
+        cursor.execute("SELECT factor FROM admin ORDER BY id LIMIT 1")
+        admin_config = cursor.fetchone()
+        factor = admin_config.get('factor') if admin_config else None
+        w_l = float(factor) if factor is not None else 0.5
 
-        # Calculate new position
-        new_pos = round(1 + W_L * nqueue)
+        # Get Queue Length (N_queue) - number of people waiting
+        cursor.execute(f"SELECT COUNT(*) as n_queue FROM {table_name} WHERE position > 0")
+        n_queue = cursor.fetchone()['n_queue']
 
-        # Mark customer as late
-        cursor.execute("UPDATE tokens SET status='late', late_position=%s WHERE id=%s", (new_pos, token_id))
+        # Calculate New Position using the formula P_new = 1 + W_L * N_queue
+        new_pos = round(1 + w_l * n_queue)
+
+        # Cap new_pos to be at the end of the line (position n_queue)
+        if new_pos > n_queue:
+            new_pos = n_queue
+
+        # Get the token_id of the customer at position 0 to ensure it matches
+        cursor.execute(f"SELECT token_id FROM {table_name} WHERE position = 0 LIMIT 1")
+        late_customer = cursor.fetchone()
+        if not late_customer or late_customer['token_id'] != token_id:
+            return jsonify({"success": False, "error": "Token mismatch or no customer being served."})
+        
+        # Update positions atomically using a CASE statement
+        update_query = f"""
+            UPDATE {table_name}
+            SET position = CASE
+                WHEN token_id = %s THEN %s
+                WHEN position > 0 AND position <= %s THEN position - 1
+                ELSE position
+            END
+        """
+        cursor.execute(update_query, (token_id, new_pos, new_pos))
+
+        # Recalculate all ETRs for the updated queue
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = float(avg_time_result['avg_time'] or 180)
+
+        cursor.execute(f"SELECT id, position FROM {table_name} ORDER BY position")
+        full_queue = cursor.fetchall()
+
+        for person in full_queue:
+            etr_in_seconds = person['position'] * avg_service_time
+            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+
         conn.commit()
 
         return jsonify({"success": True, "new_position": new_pos})
 
     except Exception as e:
-        print("Mark late error:", e)
         conn.rollback()
-        return jsonify({"success": False, "error": "Database error"})
+        logging.error(f"An unexpected error occurred in mark_late: {e}")
+        return jsonify({"success": False, "error": "Database error occurred."})
 
     finally:
         cursor.close()

@@ -1,9 +1,39 @@
 from flask import Blueprint, request , jsonify ,session
 from models.db import get_db_connection
-import mysql.connector
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
 import time
 import logging
+
+load_dotenv()
+
 service_provider_bp=Blueprint("service_provider",__name__)
+
+def send_completion_email(recipient_email, service_time):
+    """Send an email notification when a service is completed."""
+    sender = os.getenv('SENDER_EMAIL')
+    sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+
+    message = Mail(
+        from_email=sender,
+        to_emails=recipient_email,
+        subject="Service Completed Successfully",
+        html_content=f"""
+        <h3>Service Completed</h3>
+        <p>Your service has been completed successfully.</p>
+        <p><strong>Service Time:</strong> {service_time}</p>
+        <p>Thank you for choosing our service!</p>
+        """
+    )
+
+    try:
+        sg.send(message)
+        print(f"Email sent to {recipient_email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
 
 @service_provider_bp.route("/get_queue")
 def get_queue():
@@ -89,21 +119,28 @@ def complete_service():
 
     try:
         service_time_seconds = int(request.form.get('service_time', 0))
-        if service_time_seconds > 1: # Log only realistic times
-            service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+
+        if service_time_seconds > 1:
             cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
 
         # Find and delete the customer being served
-        cursor.execute(f"SELECT token_id FROM {table_name} WHERE position = 0 LIMIT 1")
+        cursor.execute(f"SELECT token_id, email FROM {table_name} WHERE position = 0 LIMIT 1")
         serving = cursor.fetchone()
 
         if serving:
             token_id_to_delete = serving['token_id']
+            recipient_email = serving.get('email')  # make sure email column exists
+
             cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id_to_delete,))
             cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
             cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
         
         conn.commit()
+
+        # --- Send Email After Successful Commit ---
+        if serving and recipient_email:
+            send_completion_email(recipient_email, service_time_formatted)
 
     except Exception as e:
         conn.rollback()
@@ -114,6 +151,7 @@ def complete_service():
         conn.close()
 
     return jsonify({"success": True})
+
 
 @service_provider_bp.route("/call_next", methods=['POST'])
 def call_next():

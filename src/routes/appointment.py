@@ -6,7 +6,7 @@ appointment_bp=Blueprint('appointment',__name__)
 @appointment_bp.route('/get_available_slots', methods=['GET'])
 def get_available_slots():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
     cursor.execute("SELECT id, TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE is_booked = 0 ORDER BY time_slot")
     slots = cursor.fetchall()
     cursor.close()
@@ -21,7 +21,7 @@ def join_walkin():
         return jsonify({"success": False, "error": "Token is required."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
 
     try:
         cursor.execute("SELECT id, type FROM token WHERE value = %s", (token_value,))
@@ -93,7 +93,7 @@ def book_appointment():
         return jsonify({"success": False, "error": "Token and slot are required."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
 
     try:
         cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))

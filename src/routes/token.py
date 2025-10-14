@@ -8,33 +8,42 @@ token_bp = Blueprint('token', __name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def generate_next_token():
-    """Generates the next token based on the last token in the database."""
+def generate_next_token(service_id):
+    """Generates the next token based on the last token in the database and service name."""
     conn = get_db_connection()
     if not conn:
         logging.warning("No DB connection — returning default token A00")
         return 'A00'
     try:
         with conn.cursor(dictionary=True) as cursor:
+            # Get service name
+            cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+            service_record = cursor.fetchone()
+            service_name = service_record['name'] if service_record else 'General'
+
+            # Generate token logic
             cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
             last_token_record = cursor.fetchone()
-        conn.close()
 
-        if not last_token_record:
-            return 'A00'
+            if not last_token_record:
+                return f'A00-{service_name}'
 
-        last_token = last_token_record['value']
-        letter, number = last_token[0], int(last_token[1:])
-        if number < 99:
-            number += 1
-        else:
-            number = 0
-            letter = chr(ord(letter) + 1) if letter != 'Z' else 'A'
-        return f"{letter}{number:02d}"
+            last_token = last_token_record['value'].split('-')[0]
+            letter, number = last_token[0], int(last_token[1:])
+            if number < 99:
+                number += 1
+            else:
+                number = 0
+                letter = chr(ord(letter) + 1) if letter != 'Z' else 'A'
+            
+            return f"{letter}{number:02d}-{service_name}"
 
     except mysql.connector.Error as err:
         logging.error(f"Database query for last token failed: {err}")
-        return 'A00'
+        return f'A00-General'
+    finally:
+        if conn.is_connected():
+            conn.close()
 
 # Generate Token
 @token_bp.route("/generate_token", methods=['POST'])
@@ -56,7 +65,7 @@ def generate_token_route():
         customer_id = cursor.lastrowid
 
         # Generate Token
-        new_token_value = generate_next_token()
+        new_token_value = generate_next_token(service_id)
         cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_id, service_id))
         token_id = cursor.lastrowid
         cursor.execute("UPDATE customer SET token_id=%s WHERE id=%s", (token_id, customer_id))

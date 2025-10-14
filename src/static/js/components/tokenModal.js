@@ -8,7 +8,27 @@ export function initTokenModal() {
     const modalContent = document.getElementById('modal-content');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const tokenForm = document.getElementById('tokenForm');
+    const emailOption = document.getElementById('emailOption');
+    const consumerIdOption = document.getElementById('consumerIdOption');
+    const emailInputContainer = document.getElementById('emailInputContainer');
+    const consumerIdInputContainer = document.getElementById('consumerIdInputContainer');
     const serviceSelect = document.getElementById('service');
+
+    if (emailOption && consumerIdOption) {
+        emailOption.addEventListener('change', () => {
+            emailInputContainer.classList.remove('hidden');
+            consumerIdInputContainer.classList.add('hidden');
+            document.getElementById('emailAddress').required = true;
+            document.getElementById('consumerId').required = false;
+        });
+
+        consumerIdOption.addEventListener('change', () => {
+            consumerIdInputContainer.classList.remove('hidden');
+            emailInputContainer.classList.add('hidden');
+            document.getElementById('consumerId').required = true;
+            document.getElementById('emailAddress').required = false;
+        });
+    }
 
     async function loadServices() {
         try {
@@ -44,9 +64,15 @@ export function initTokenModal() {
         setTimeout(() => tokenModal.classList.add('hidden'), 300);
     };
 
-    generateTokenBtn.addEventListener('click', (e) => { e.preventDefault(); openTokenModal(); });
+    generateTokenBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openTokenModal();
+    });
+
     closeModalBtn.addEventListener('click', closeTokenModal);
-    tokenModal.addEventListener('click', (e) => { if (e.target === tokenModal) closeTokenModal(); });
+    tokenModal.addEventListener('click', (e) => {
+        if (e.target === tokenModal) closeTokenModal();
+    });
 
     tokenForm.addEventListener('submit', async (e) => {
         e.preventDefault();

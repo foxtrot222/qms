@@ -1,17 +1,39 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <!-- Main Content Section -->
 <main id="homePage" class="flex-grow container mx-auto px-6 pt-32 pb-16 flex items-center">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        
+
         <!-- Left Column: Illustration -->
         <div class="flex justify-center items-center">
             <div class="w-full max-w-md lg:max-w-none">
-                <!-- SVG Vector Illustration of people in a queue -->
+                <!-- SVG Illustration -->
                 <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="floorGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e0e7ff; stop-opacity:1" /><stop offset="100%" style="stop-color:#ffffff; stop-opacity:0" /></linearGradient></defs>
-                    <path d="M 0 110 C 50 120, 150 120, 200 110 L 200 120 L 0 120 Z" fill="url(#floorGradient)"/><g transform="translate(150, 60)"><circle cx="0" cy="-15" r="8" fill="#4f46e5"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#c7d2fe"/></g><g transform="translate(110, 65)" opacity="0.8"><circle cx="0" cy="-15" r="8" fill="#6366f1"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/></g><g transform="translate(70, 70)" opacity="0.6"><circle cx="0" cy="-15" r="8" fill="#818cf8"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/></g><g transform="translate(30, 75)" opacity="0.4"><circle cx="0" cy="-15" r="8" fill="#a5b4fc"/><path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#eef2ff"/></g><path class="hero-illustration-path" d="M 30 110 Q 90 95, 150 110" stroke="#4f46e5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="floorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0e7ff; stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffffff; stop-opacity:0" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 0 110 C 50 120, 150 120, 200 110 L 200 120 L 0 120 Z" fill="url(#floorGradient)"/>
+                    <g transform="translate(150, 60)">
+                        <circle cx="0" cy="-15" r="8" fill="#4f46e5"/>
+                        <path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#c7d2fe"/>
+                    </g>
+                    <g transform="translate(110, 65)" opacity="0.8">
+                        <circle cx="0" cy="-15" r="8" fill="#6366f1"/>
+                        <path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/>
+                    </g>
+                    <g transform="translate(70, 70)" opacity="0.6">
+                        <circle cx="0" cy="-15" r="8" fill="#818cf8"/>
+                        <path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#e0e7ff"/>
+                    </g>
+                    <g transform="translate(30, 75)" opacity="0.4">
+                        <circle cx="0" cy="-15" r="8" fill="#a5b4fc"/>
+                        <path d="M -12 0 C -12 20, 12 20, 12 0 Z" fill="#eef2ff"/>
+                    </g>
+                    <path class="hero-illustration-path" d="M 30 110 Q 90 95, 150 110" stroke="#4f46e5" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </svg>
             </div>
         </div>
@@ -29,6 +51,8 @@
                 <a href="#" id="checkStatusBtn" class="w-full sm:w-auto inline-block bg-gray-200 text-gray-800 font-semibold text-center rounded-lg px-8 py-4 text-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-200 transition duration-300">Already have a token?</a>
             </div>
         </div>
+
     </div>
 </main>
+
 {% endblock %}

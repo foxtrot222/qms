@@ -29,7 +29,11 @@
                     <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg text-center flex flex-col justify-center items-center border border-gray-200">
                         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Current Service Time</h2>
                         <div id="customerTimer" class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">00:00</div>
-                        <button id="callNextBtn" class="w-full bg-blue-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-md">Call Next Customer</button>
+                        <button id="callNextBtn" class="w-full bg-blue-500 text-white font-semibold rounded-lg px-4 py-3 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-md mb-3">Call Next Customer</button>
+                        <button id="openConsumerSearchBtn" style="width: 100%; background-color: #8B5CF6; color: white; font-weight: 600; border-radius: 8px; padding: 12px 16px; border: none; cursor: pointer; transition: all 0.3s; transform: scale(1); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" onmouseover="this.style.backgroundColor='#7C3AED'; this.style.transform='scale(1.05)';" onmouseout="this.style.backgroundColor='#8B5CF6'; this.style.transform='scale(1)';">
+                            <svg style="width: 20px; height: 20px; display: inline-block; margin-right: 8px; vertical-align: middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Search Customer
+                        </button>
                     </div>
                     <!-- Right: Queue Stats -->
                     <div class="lg:col-span-2 bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -92,6 +96,193 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
+
+    <!-- Consumer Number Search Modal -->
+    <div id="consumerSearchModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 60; justify-content: center; align-items: center; padding: 16px;">
+        <div style="background-color: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); padding: 32px; width: 100%; max-width: 500px; position: relative; animation: slideIn 0.3s ease-out;">
+            <button id="closeConsumerSearchBtn" style="position: absolute; top: 16px; right: 16px; color: #9CA3AF; background: none; border: none; cursor: pointer; padding: 4px; transition: color 0.2s;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9CA3AF'">
+                <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1F2937;">Search Customer</h2>
+            
+            <!-- Search Type Toggle -->
+            <div style="display: flex; gap: 8px; margin-bottom: 20px; background-color: #F3F4F6; padding: 4px; border-radius: 8px;">
+                <button id="searchByEmailBtn" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; background-color: #3B82F6; color: white; transition: all 0.2s;">
+                    Email
+                </button>
+                <button id="searchByConsumerBtn" style="flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; background-color: transparent; color: #6B7280; transition: all 0.2s;">
+                    Consumer Number
+                </button>
+            </div>
+
+            <!-- Email Search -->
+            <div id="emailSearchSection" style="display: block;">
+                <label for="customerEmailSearch" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Customer Email</label>
+                <input type="email" id="customerEmailSearch" placeholder="Enter customer email" style="width: 100%; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; margin-bottom: 16px; font-size: 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#D1D5DB'">
+            </div>
+
+            <!-- Consumer Number Search -->
+            <div id="consumerNumberSearchSection" style="display: none;">
+                <label for="customerConsumerSearch" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Consumer Number</label>
+                <input type="text" id="customerConsumerSearch" placeholder="Enter consumer number" style="width: 100%; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; margin-bottom: 16px; font-size: 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#D1D5DB'">
+            </div>
+
+            <button id="searchCustomerBtn" style="width: 100%; background-color: #3B82F6; color: white; font-weight: 600; border-radius: 8px; padding: 12px 16px; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);" onmouseover="this.style.backgroundColor='#2563EB'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.15)'" onmouseout="this.style.backgroundColor='#3B82F6'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)'">
+                Search & Call Customer
+            </button>
+
+            <div id="searchResultMessage" style="margin-top: 16px; padding: 12px; border-radius: 6px; display: none; font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        // Consumer Search Modal functionality
+        const consumerSearchModal = document.getElementById('consumerSearchModal');
+        const openConsumerSearchBtn = document.getElementById('openConsumerSearchBtn');
+        const closeConsumerSearchBtn = document.getElementById('closeConsumerSearchBtn');
+        const searchByEmailBtn = document.getElementById('searchByEmailBtn');
+        const searchByConsumerBtn = document.getElementById('searchByConsumerBtn');
+        const emailSearchSection = document.getElementById('emailSearchSection');
+        const consumerNumberSearchSection = document.getElementById('consumerNumberSearchSection');
+        const searchCustomerBtn = document.getElementById('searchCustomerBtn');
+        const searchResultMessage = document.getElementById('searchResultMessage');
+        
+        let currentSearchType = 'email';
+
+        // Open modal
+        openConsumerSearchBtn.addEventListener('click', () => {
+            consumerSearchModal.style.display = 'flex';
+        });
+
+        // Close modal
+        closeConsumerSearchBtn.addEventListener('click', () => {
+            consumerSearchModal.style.display = 'none';
+            resetSearchModal();
+        });
+
+        // Close on outside click
+        consumerSearchModal.addEventListener('click', (e) => {
+            if (e.target === consumerSearchModal) {
+                consumerSearchModal.style.display = 'none';
+                resetSearchModal();
+            }
+        });
+
+        // Toggle search type - Email
+        searchByEmailBtn.addEventListener('click', () => {
+            currentSearchType = 'email';
+            searchByEmailBtn.style.backgroundColor = '#3B82F6';
+            searchByEmailBtn.style.color = 'white';
+            searchByConsumerBtn.style.backgroundColor = 'transparent';
+            searchByConsumerBtn.style.color = '#6B7280';
+            emailSearchSection.style.display = 'block';
+            consumerNumberSearchSection.style.display = 'none';
+            searchResultMessage.style.display = 'none';
+        });
+
+        // Toggle search type - Consumer Number
+        searchByConsumerBtn.addEventListener('click', () => {
+            currentSearchType = 'consumer';
+            searchByConsumerBtn.style.backgroundColor = '#3B82F6';
+            searchByConsumerBtn.style.color = 'white';
+            searchByEmailBtn.style.backgroundColor = 'transparent';
+            searchByEmailBtn.style.color = '#6B7280';
+            consumerNumberSearchSection.style.display = 'block';
+            emailSearchSection.style.display = 'none';
+            searchResultMessage.style.display = 'none';
+        });
+
+        // Search customer
+        searchCustomerBtn.addEventListener('click', async () => {
+            const searchValue = currentSearchType === 'email' 
+                ? document.getElementById('customerEmailSearch').value.trim()
+                : document.getElementById('customerConsumerSearch').value.trim();
+
+            if (!searchValue) {
+                showSearchMessage('Please enter a ' + (currentSearchType === 'email' ? 'email' : 'consumer number'), 'error');
+                return;
+            }
+
+            // Show loading state
+            searchCustomerBtn.textContent = 'Searching...';
+            searchCustomerBtn.disabled = true;
+
+            try {
+                // Make API call to search and call customer
+                const response = await fetch('/api/search-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        searchType: currentSearchType,
+                        searchValue: searchValue
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSearchMessage('Customer found and called successfully!', 'success');
+                    setTimeout(() => {
+                        consumerSearchModal.style.display = 'none';
+                        resetSearchModal();
+                        // Refresh the dashboard
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showSearchMessage(data.message || 'Customer not found', 'error');
+                }
+            } catch (error) {
+                showSearchMessage('Error searching customer. Please try again.', 'error');
+                console.error('Search error:', error);
+            } finally {
+                searchCustomerBtn.textContent = 'Search & Call Customer';
+                searchCustomerBtn.disabled = false;
+            }
+        });
+
+        function showSearchMessage(message, type) {
+            searchResultMessage.textContent = message;
+            searchResultMessage.style.display = 'block';
+            if (type === 'success') {
+                searchResultMessage.style.backgroundColor = '#D1FAE5';
+                searchResultMessage.style.color = '#065F46';
+                searchResultMessage.style.border = '1px solid #A7F3D0';
+            } else {
+                searchResultMessage.style.backgroundColor = '#FEE2E2';
+                searchResultMessage.style.color = '#991B1B';
+                searchResultMessage.style.border = '1px solid #FECACA';
+            }
+        }
+
+        function resetSearchModal() {
+            document.getElementById('customerEmailSearch').value = '';
+            document.getElementById('customerConsumerSearch').value = '';
+            searchResultMessage.style.display = 'none';
+            currentSearchType = 'email';
+            searchByEmailBtn.style.backgroundColor = '#3B82F6';
+            searchByEmailBtn.style.color = 'white';
+            searchByConsumerBtn.style.backgroundColor = 'transparent';
+            searchByConsumerBtn.style.color = '#6B7280';
+            emailSearchSection.style.display = 'block';
+            consumerNumberSearchSection.style.display = 'none';
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='js/dashboardPage.js') }}" type="module"></script>
 </body>
 </html>

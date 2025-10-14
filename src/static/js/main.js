@@ -1,3 +1,4 @@
+import { api } from './api.js';
 import { initMobileMenu, initLogoutButtons } from './ui.js';
 import { initTokenModal } from './components/tokenModal.js';
 import { initStatusModal } from './components/statusModal.js';
@@ -7,6 +8,7 @@ import { initDashboardPage } from './pages/dashboardPage.js';
 import { initAdminPage } from './pages/adminPage.js';
 import { initOrganizationPage } from './pages/organizationPage.js';
 
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize components that are on every page
     initMobileMenu();
@@ -14,14 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize components for the main/home page
     if (document.getElementById('homePage')) {
-        initTokenModal();
-        initStatusModal();
-        initChoiceModal();
+        initTokenModal(api);
+        initStatusModal(api);
+        initChoiceModal(api);
     }
 
     // Initialize page-specific logic
-    initStatusPage();
-    initDashboardPage();
-    initAdminPage();
-    initOrganizationPage();
+    initStatusPage(api);
+    initDashboardPage(api);
+    initAdminPage(api);
+    initOrganizationPage(api);
 });

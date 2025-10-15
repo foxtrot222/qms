@@ -30,10 +30,10 @@ FROM_NAME=<Your From Name>
 
 1.  Make sure you have a MySQL server running.
 2.  Create a new database with the name you specified in the `.env` file.
-3.  Import the database schema and data from the `docs/data.sql` file using the following command:
+3.  Import the database schema and data from the `data.sql` file using the following command:
 
     ```bash
-    mysql -u <Your Database User> -p <Your Database Name> < docs/data.sql
+    mysql -u <Your Database User> -p <Your Database Name> < data.sql
     ```
 
 ## Running the Application

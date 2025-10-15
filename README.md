@@ -1,3 +1,7 @@
+> **⚠️ WARNING**
+>
+> "**The working code for this project is available with the tag `v1.1`. Please note that most of the code was created with the assistance of large language models (LLMs). As such, this project is for demonstration and educational purposes only. **Do not use this application in a real-world environment where it could impact people or business operations.** The code may have limitations, security vulnerabilities, or other issues that make it unsuitable for production use.**"
+
 # Queue Management System
 
 A Project For Vikas Saptah Hackathon 2025

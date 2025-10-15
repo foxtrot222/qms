@@ -25,7 +25,17 @@ def generate_next_token():
             return 'A00'
 
         last_token = last_token_record['value']
-        letter, number = last_token[0], int(last_token[1:])
+        letter = last_token[0]
+
+        # Extract only digits after the first character
+        number_part = ""
+        for ch in last_token[1:]:
+            if ch.isdigit():
+                number_part += ch
+            else:
+                break
+
+        number = int(number_part)
         if number < 99:
             number += 1
         else:
@@ -49,7 +59,7 @@ def generate_token_route():
 
     try:
         name = request.form.get("name")
-        consumer_id = request.form.get("consumerId") or request.form.get("consumerID")
+        consumer_id = request.form.get("consumerId")
         email = request.form.get("emailAddress")
         service_id = request.form.get("service")
 
@@ -58,8 +68,8 @@ def generate_token_route():
         
         cursor = conn.cursor(dictionary=True)
 
-        # ✅ Step 1: Resolve email using consumer ID if provided
-        if not email and consumer_id:
+        # Step 1: Resolve email using consumer ID if provided
+        if (not email) and consumer_id:
             cursor.execute("SELECT email FROM consumer WHERE consumer_id = %s", (consumer_id,))
             result = cursor.fetchone()
             if result and result.get("email"):
@@ -67,30 +77,32 @@ def generate_token_route():
             else:
                 return jsonify({"success": False, "error": "Invalid Consumer ID or email not linked."})
 
-        # ✅ Step 2: Ensure at least one identifier exists
-        if not email and not consumer_id:
+        # Step 2: Ensure at least one identifier exists
+        if (not email) and (not consumer_id):
             return jsonify({"success": False, "error": "Either email or consumer ID is required."})
 
-        # ✅ Step 3: Insert into customer table
+        # Step 3: Insert into customer table
         cursor.execute("""
             INSERT INTO customer (name, consumer_id, email, service_id)
             VALUES (%s, %s, %s, %s)
         """, (name, consumer_id, email, service_id))
         customer_id = cursor.lastrowid
 
-        # ✅ Step 4: Generate next token
-        new_token_value = generate_next_token()
+        # Step 4: Generate next token
+        cursor.execute('SELECT s.name as service_name FROM service s JOIN customer c ON s.id=c.service_id WHERE s.id=%s LIMIT 1;',(service_id,))
+        service_name=cursor.fetchone()
+        new_token_value = generate_next_token()+'-'+service_name['service_name']
         cursor.execute("""
-            INSERT INTO token (value, customer_id, consumer_id, type)
-            VALUES (%s, %s, %s, %s)
-        """, (new_token_value, customer_id, consumer_id, service_id))
+            INSERT INTO token (value, customer_id, type)
+            VALUES (%s, %s, %s)
+        """, (new_token_value, customer_id,service_id))
         token_id = cursor.lastrowid
 
-        # ✅ Step 5: Update customer with token ID
+        # Step 5: Update customer with token ID
         cursor.execute("UPDATE customer SET token_id = %s WHERE id = %s", (token_id, customer_id))
         conn.commit()
 
-        # ✅ Step 6: Send token email (if email available)
+        # Step 6: Send token email (if email available)
         if email:
             try:
                 send_token_email(email, new_token_value)

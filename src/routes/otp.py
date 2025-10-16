@@ -17,13 +17,13 @@ def request_otp():
     token = data.get('token')
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     cursor.execute("""
         SELECT c.id AS customer_id, c.email
         FROM customer c
         JOIN token t ON c.token_id = t.id
-        WHERE t.value=%s
+        WHERE t.value = ?
     """, (token,))
     customer = cursor.fetchone()
 
@@ -33,7 +33,7 @@ def request_otp():
     # Check for existing OTP not expired
     cursor.execute("""
         SELECT * FROM otp_verification
-        WHERE customer_id=%s AND verified=FALSE AND expires_at > NOW()
+        WHERE customer_id = ? AND verified=FALSE AND expires_at > datetime('now')
         ORDER BY id DESC LIMIT 1
     """, (customer['customer_id'],))
     existing_otp = cursor.fetchone()
@@ -45,7 +45,7 @@ def request_otp():
         otp_code = generate_otp()
         expires_at = datetime.now() + timedelta(minutes=5)
         cursor.execute(
-            "INSERT INTO otp_verification (customer_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+            "INSERT INTO otp_verification (customer_id, otp_code, expires_at) VALUES (?, ?, ?)",
             (customer['customer_id'], otp_code, expires_at)
         )
         conn.commit()
@@ -69,14 +69,14 @@ def verify_otp():
     otp = data.get('otp')
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     cursor.execute("""
         SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified, t.type, t.id as token_id
         FROM otp_verification otp
         JOIN customer c ON otp.customer_id = c.id
         JOIN token t ON c.token_id = t.id
-        WHERE t.value=%s AND otp.otp_code=%s
+        WHERE t.value = ? AND otp.otp_code = ?
         ORDER BY otp.id DESC LIMIT 1
     """, (token_value, otp))
 
@@ -98,7 +98,7 @@ def verify_otp():
         return jsonify({"success": False, "error": "OTP expired."})
 
     # OTP is correct → delete it
-    cursor.execute("DELETE FROM otp_verification WHERE id=%s", (record['id'],))
+    cursor.execute("DELETE FROM otp_verification WHERE id = ?", (record['id'],))
     conn.commit()
 
     #Save token in session
@@ -107,13 +107,13 @@ def verify_otp():
     token_id = record['token_id']
 
     query_check = """
-        (SELECT token_id FROM billing WHERE token_id = %s)
+        (SELECT token_id FROM billing WHERE token_id = ?)
         UNION ALL
-        (SELECT token_id FROM complaint WHERE token_id = %s)
+        (SELECT token_id FROM complaint WHERE token_id = ?)
         UNION ALL
-        (SELECT token_id FROM kyc WHERE token_id = %s)
+        (SELECT token_id FROM kyc WHERE token_id = ?)
         UNION ALL
-        (SELECT token_id FROM appointment WHERE token_id = %s AND is_booked = 1)
+        (SELECT token_id FROM appointment WHERE token_id = ? AND is_booked = 1)
     """
     cursor.execute(query_check, (token_id, token_id, token_id, token_id))
     existing_queue_or_appointment = cursor.fetchone()
@@ -133,7 +133,7 @@ def cleanup_expired_otps():
         conn = get_db_connection()
         if conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM otp_verification WHERE expires_at < NOW()")
+            cursor.execute("DELETE FROM otp_verification WHERE expires_at < datetime('now')")
             conn.commit()
             cursor.close()
             conn.close()

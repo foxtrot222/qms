@@ -1,0 +1,1623 @@
+from flask import Blueprint,render_template,flash,redirect,url_for,session,request,jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
+from models.db import get_db_connection
+import sqlite3
+import time
+
+admin_bp=Blueprint('admin',__name__)
+
+# ... (existing routes)
+
+@admin_bp.route('/admin/users/add', methods=['POST'])
+def add_user():
+    name = request.form.get('name')
+    officer_id = request.form.get('officerID')
+    password = request.form.get('password')
+    service_id = request.form.get('service_id')
+
+    if not all([name, officer_id, password, service_id]):
+        flash("All fields are required to add a user.", "error")
+        return redirect(url_for('admin.admin'))
+
+    hashed_password = generate_password_hash(password)
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO service_provider (name, officerID, password, service_id) VALUES (%s, %s, %s, %s)",
+            (name, officer_id, hashed_password, service_id)
+        )
+        conn.commit()
+        flash(f"User {name} added successfully!", "success")
+    except sqlite3.Error as e:
+        conn.rollback()
+        flash(f"Failed to add user: {e}", "error")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in add_user(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/users/revoke/<int:user_id>')
+def revoke_user(user_id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE service_provider SET service_id = 0 WHERE id = %s", (user_id,))
+        conn.commit()
+        flash(f"User {user_id} revoked successfully!", "success")
+    except sqlite3.Error as e:
+        conn.rollback()
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in revoke_user(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/users/<int:user_id>/get', methods=['GET'])
+def get_user_data(user_id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name, officerID, service_id FROM service_provider WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        if user:
+            return jsonify({"success": True, "user": user})
+        else:
+            return jsonify({"success": False, "error": "User not found."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+@admin_bp.route('/admin/users/update', methods=['POST'])
+def update_user():
+    user_id = request.form.get('id')
+    name = request.form.get('name')
+    officer_id = request.form.get('officerID')
+    service_id = request.form.get('service_id')
+    password = request.form.get('password') # Get the new password
+
+    if not all([user_id, name, officer_id, service_id]):
+        flash("All fields are required to update a user (except password).", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        update_query = "UPDATE service_provider SET name = %s, officerID = %s, service_id = %s"
+        params = [name, officer_id, service_id]
+
+        if password: # If a new password is provided, hash and include it in the update
+            hashed_password = generate_password_hash(password)
+            update_query += ", password = %s"
+            params.append(hashed_password)
+        
+        update_query += " WHERE id = %s"
+        params.append(user_id)
+
+        cursor.execute(update_query, tuple(params))
+        conn.commit()
+        flash(f"User {name} updated successfully!", "success")
+    except sqlite3.Error as e:
+        conn.rollback()
+        flash(f"Failed to update user: {e}", "error")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in update_user(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/users/edit/<int:user_id>')
+def edit_user(user_id):
+    flash(f"Edit user {user_id} - functionality not yet implemented.", "info")
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/users/delete/<int:user_id>')
+def delete_user(user_id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM service_provider WHERE id = %s", (user_id,))
+        conn.commit()
+        flash(f"User {user_id} deleted successfully!", "success")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in delete_user(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/services/delete/<int:service_id>')
+def delete_service(service_id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        # Get the service name before deleting the service entry
+        cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+        service_name_result = cursor.fetchone()
+
+        if service_name_result:
+            service_name = service_name_result[0] # Access by index
+            service_table_name = service_name.lower()
+
+            # Before deleting the service, update any service_providers associated with it
+            cursor.execute("UPDATE service_provider SET service_id = 0 WHERE service_id = %s", (service_id,))
+            cursor.execute("DELETE FROM service WHERE id = %s", (service_id,))
+            conn.commit()
+
+            # Drop the corresponding service queue table
+            drop_table_sql = f"DROP TABLE IF EXISTS `{service_table_name}`"
+            cursor.execute(drop_table_sql)
+            conn.commit()
+
+            flash(f"Service {service_name} deleted successfully and table '{service_table_name}' dropped!", "success")
+        else:
+            flash(f"Service with ID {service_id} not found.", "error")
+    except sqlite3.Error as e:
+        conn.rollback()
+        flash(f"Failed to delete service: {e}", "error")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in delete_service(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/services/<int:service_id>/get', methods=['GET'])
+def get_service_data(service_id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name FROM service WHERE id = %s", (service_id,))
+        service = cursor.fetchone()
+        if service:
+            return jsonify({"success": True, "service": service})
+        else:
+            return jsonify({"success": False, "error": "Service not found."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+@admin_bp.route('/admin/services/update', methods=['POST'])
+def update_service():
+    service_id = request.form.get('id')
+    service_name = request.form.get('name')
+
+    if not all([service_id, service_name]):
+        flash("Service ID and name are required to update a service.", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE service SET name = %s WHERE id = %s",
+            (service_name, service_id)
+        )
+        conn.commit()
+        flash(f"Service {service_name} updated successfully!", "success")
+    except sqlite3.Error as e:
+        conn.rollback()
+        flash(f"Failed to update service: {e}", "error")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in update_service(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/services/edit/<int:service_id>')
+def edit_service(service_id):
+    flash(f"Edit service {service_id} - functionality not yet implemented.", "info")
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/services/add', methods=['POST'])
+def add_service():
+    service_name = request.form.get('name')
+
+    if not service_name:
+        flash("Service name is required to add a service.", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO service (name) VALUES (%s)", (service_name,))
+        conn.commit()
+
+        # Create a new table for the service queue
+        service_table_name = service_name.lower()
+        create_table_sql = f"""CREATE TABLE `{service_table_name}` (
+            `id` int unsigned NOT NULL AUTO_INCREMENT,
+            `position` tinyint unsigned NOT NULL,
+            `token_id` int unsigned NOT NULL,
+            `ETR` time DEFAULT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `fk_token` (`token_id`),
+            CONSTRAINT `fk_{service_table_name}_token` FOREIGN KEY (`token_id`) REFERENCES `token` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"""
+        cursor.execute(create_table_sql)
+        conn.commit()
+
+        flash(f"Service '{service_name}' added successfully and table '{service_table_name}' created!", "success")
+    except sqlite3.Error as e:
+        conn.rollback()
+        flash(f"Failed to add service: {e}", "error")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in add_service(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin')
+def admin():
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return render_template('admin.html', stats=None)
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Active Officers
+        cursor.execute("SELECT COUNT(*) as count FROM service_provider")
+        active_officers = cursor.fetchone()['count']
+
+        # Get all service tables
+        cursor.execute("SELECT name FROM service")
+        services = cursor.fetchall()
+        service_tables = [service['name'].lower() for service in services]
+
+        # 2. Customers Waiting & 3. Avg. Wait Time
+        total_waiting = 0
+        total_etr_seconds = 0
+
+        for table in service_tables:
+            try:
+                cursor.execute(f"SELECT COUNT(*) as count, SUM(TIME_TO_SEC(ETR)) FROM {table} WHERE position > 0")
+                result = cursor.fetchone()
+                if result:
+                    total_waiting += result.get('count', 0)
+                    if result.get('total_etr'):
+                        total_etr_seconds += float(result['total_etr'])
+            except sqlite3.Error:
+                # Table might not exist, ignore.
+                pass
+
+        cursor.execute("SELECT factor, latitude, longitude FROM admin ORDER BY id LIMIT 1")
+        admin_settings = cursor.fetchone()
+        lateness_factor = admin_settings['factor'] if admin_settings else 0.5
+        latitude = admin_settings['latitude'] if admin_settings else 0.0
+        longitude = admin_settings['longitude'] if admin_settings else 0.0
+
+        # Get avg service time from logs, similar to get_dashboard_stats
+        cursor.execute("SELECT TIME_FORMAT(SEC_TO_TIME(AVG(TIME_TO_SEC(log))), '%i:%s') as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_wait_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else "00:00"
+
+        stats = {
+            'active_officers': active_officers,
+            'customers_waiting': total_waiting,
+            'avg_wait_time': avg_wait_time,
+            'lateness_factor': lateness_factor,
+            'latitude': latitude,
+            'longitude': longitude
+        }
+
+        # Fetch users (service providers)
+        cursor.execute("SELECT id, name, officerID, service_id FROM service_provider")
+        users = cursor.fetchall()
+
+        # Fetch services
+        cursor.execute("SELECT id, name FROM service")
+        services = cursor.fetchall()
+
+        return render_template('admin.html', stats=stats, users=users, services=services)
+
+    except Exception as e:
+        flash(f"An error occurred: {e}", "error")
+        return render_template('admin.html', stats=None)
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+@admin_bp.route('/adminlogin',methods=['POST'])
+def admin_login():
+    conn=get_db_connection()
+    if not conn:
+        flash("Database connection failed. Please try again later.")
+        return redirect(url_for("admin.login"))
+    adminId=request.form.get('adminID')
+    adminPassword=request.form.get('adminPassword')
+    if not adminId or not adminPassword:
+        return jsonify({"success": False, "error": "Provide both ID and password."})
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM admin WHERE name=%s", (adminId,))
+        admin = cursor.fetchone()
+        if admin and (admin['password']== adminPassword):
+            cursor.close()
+
+            session['admin_id'] = admin['id']
+            session['adminname'] = admin['name']
+            return jsonify({"success": True, "redirect": "/admin"})
+        else:
+            cursor.close()
+            return jsonify({"success": False, "error": "Invalid ID or password."})
+
+    except sqlite3.Error as err:
+        print("Database query failed:", err)
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+@admin_bp.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_id', None)
+    session.pop('adminname', None)
+    return redirect(url_for('org.organization'))
+
+@admin_bp.route('/admin/settings/update', methods=['POST'])
+def update_settings():
+    new_factor = request.form.get('lateness_factor')
+    new_latitude = request.form.get('latitude')
+    new_longitude = request.form.get('longitude')
+
+    if new_factor is None or new_latitude is None or new_longitude is None:
+        flash("Missing form data.", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        # Updates the settings for the first admin entry.
+        cursor.execute("UPDATE admin SET factor = %s, latitude = %s, longitude = %s ORDER BY id LIMIT 1", (float(new_factor), float(new_latitude), float(new_longitude)))
+        conn.commit()
+        flash("Settings updated successfully!", "success")
+    except Exception as e:
+        conn.rollback()
+        print(f"An unexpected error occurred in update_settings(): {e}")
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+    
+    return redirect(url_for('admin.admin'))
+from flask import Blueprint , request , jsonify
+from models.db import get_db_connection
+import time
+appointment_bp=Blueprint('appointment',__name__)
+
+@appointment_bp.route('/get_available_slots', methods=['GET'])
+def get_available_slots():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor.execute("SELECT id, TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE is_booked = 0 ORDER BY time_slot")
+    slots = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True, "slots": slots})
+
+@appointment_bp.route('/join_walkin', methods=['POST'])
+def join_walkin():
+    data = request.get_json()
+    token_value = data.get('token')
+    if not token_value:
+        return jsonify({"success": False, "error": "Token is required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+
+    try:
+        cursor.execute("SELECT id, type FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+        if not token_record:
+            return jsonify({"success": False, "error": "Invalid token."})
+        
+        token_id = token_record['id']
+        token_type = token_record['type']
+
+        if token_type == 'appointment':
+            return jsonify({"success": False, "error": "This token is for an appointment and cannot be used for walk-in."})
+
+        try:
+            service_id = int(token_type)
+        except (ValueError, TypeError):
+            return jsonify({"success": False, "error": "Invalid service type for this token."})
+
+
+        # Get table name from service id
+        cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+        service_record = cursor.fetchone()
+        if not service_record:
+            return jsonify({"success": False, "error": "Invalid service for token."})
+        
+        table_name = service_record['name'].lower()
+
+        if not table_name:
+            return jsonify({"success": False, "error": "Invalid service type for token."})
+
+        # Calculate average service time from logs (defaults to 3 minutes if no logs)
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time_decimal = avg_time_result['avg_time'] if avg_time_result['avg_time'] else 180
+        avg_service_time = float(avg_service_time_decimal)
+
+        # Determine position in the specific queue
+        cursor.execute(f"SELECT id FROM {table_name} WHERE position = 0")
+        serving_now = cursor.fetchone()
+        if not serving_now:
+            next_pos = 0
+        else:
+            cursor.execute(f"SELECT MAX(position) as max_pos FROM {table_name}")
+            max_pos_record = cursor.fetchone()
+            next_pos = (max_pos_record['max_pos'] or 0) + 1
+
+        # Calculate ETR
+        etr_in_seconds = next_pos * avg_service_time
+        etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+
+        # Insert into the specific service table
+        cursor.execute(f"INSERT INTO {table_name} (token_id, position, ETR) VALUES (%s, %s, %s)", (token_id, next_pos, etr_formatted))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "message": "Successfully joined walk-in queue."})
+
+@appointment_bp.route('/book_appointment', methods=['POST'])
+def book_appointment():
+    data = request.get_json()
+    token_value = data.get('token')
+    slot_id = data.get('slot_id')
+    if not token_value or not slot_id:
+        return jsonify({"success": False, "error": "Token and slot are required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+
+    try:
+        cursor.execute("SELECT id FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+        if not token_record:
+            return jsonify({"success": False, "error": "Invalid token."})
+        token_id = token_record['id']
+
+        cursor.execute("SELECT is_booked FROM appointment WHERE id = %s FOR UPDATE", (slot_id,))
+        slot_record = cursor.fetchone()
+        if not slot_record:
+            return jsonify({"success": False, "error": "Invalid slot."})
+        if slot_record['is_booked']:
+            conn.rollback()
+            return jsonify({"success": False, "error": "Slot already taken."})
+        
+        cursor.execute("UPDATE appointment SET is_booked = 1, token_id = %s WHERE id = %s", (token_id, slot_id))
+        cursor.execute("UPDATE token SET type = 'appointment' WHERE id = %s", (token_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "message": "Appointment booked successfully."})
+from flask import Blueprint, jsonify, request
+import sqlite3
+import time
+from models.db import get_db_connection
+
+auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/estimated_wait_time')
+def estimated_wait_time():
+    service_id = request.args.get('service_id')
+    if not service_id:
+        return jsonify({"success": False, "error": "Service ID is required."})
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get table name from service_id
+        cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+        service = cursor.fetchone()
+        if not service:
+            cursor.close()
+            conn.close()
+            return jsonify({"success": False, "error": "Invalid service ID."})
+        table_name = service['name'].lower()
+
+        # Get average service time from logs
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = float(avg_time_result['avg_time']) if avg_time_result and avg_time_result['avg_time'] else 180.0
+
+        # Get current queue length
+        cursor.execute(f"SELECT COUNT(*) as queue_length FROM {table_name}")
+        queue_length = cursor.fetchone()['queue_length']
+
+        # Calculate estimated wait time
+        total_wait_seconds = queue_length * avg_service_time
+        estimated_time = time.strftime('%H:%M:%S', time.gmtime(total_wait_seconds))
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "estimated_wait_time": estimated_time
+        })
+
+    except sqlite3.Error as e:
+        # Log the error for debugging
+        print(f"Database error in estimated_wait_time: {e}")
+        return jsonify({"success": False, "error": f"Database error: {str(e)}"})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Unexpected error in estimated_wait_time: {e}")
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"})
+from flask import Blueprint, request, jsonify, session
+from models.db import get_db_connection
+from math import radians, sin, cos, sqrt, atan2
+
+check_in_bp = Blueprint('check_in', __name__)
+
+def haversine(lat1, lon1, lat2, lon2):
+    # Convert degrees to radians
+    R = 6371  # Earth radius in kilometers
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+
+    a = sin(dLat / 2)**2 + cos(lat1) * cos(lat2) * sin(dLon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    distance = R * c
+    return distance
+
+@check_in_bp.route('/check_in', methods=['POST'])
+def check_in():
+    data = request.get_json()
+    user_lat = data.get('latitude')
+    user_lon = data.get('longitude')
+
+    if not user_lat or not user_lon:
+        return jsonify({"success": False, "error": "Location data is required."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Assuming one organization, fetch its location
+        cursor.execute("SELECT latitude, longitude, factor FROM admin ORDER BY id LIMIT 1")
+        org = cursor.fetchone()
+        if not org or not org['latitude'] or not org['longitude']:
+            return jsonify({"success": False, "error": "Organization location not configured."})
+
+        distance = haversine(user_lat, user_lon, org['latitude'], org['longitude'])
+        
+        # factor is the vicinity radius in kilometers
+        vicinity = org['factor'] if org['factor'] else 0.5 # default 500 meters
+
+        if distance <= vicinity:
+            # Here you could also update the database to mark the user as checked-in
+            return jsonify({"success": True, "message": "Check-in successful!"})
+        else:
+            return jsonify({"success": False, "error": f"You are too far from the location. Distance: {distance:.2f} km"})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+from flask import Blueprint, render_template, session, redirect, url_for
+
+main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/')
+def index():
+    return render_template('index.html')
+
+@main_bp.route('/about')
+def about():
+    return render_template('about.html')
+
+@main_bp.route('/help')
+def help():
+    return render_template('help.html')
+
+@main_bp.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@main_bp.route('/user/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main.index'))
+from models.db import get_db_connection
+import sqlite3
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from werkzeug.security import check_password_hash
+import logging
+
+# Blueprint setup
+org_bp = Blueprint('org', __name__)
+
+# Filter out static logs
+class NoStaticFilter(logging.Filter):
+    def filter(self, record):
+        return '/static/' not in record.getMessage()
+
+log = logging.getLogger('werkzeug')
+log.addFilter(NoStaticFilter())
+
+
+# ------------------------------
+# Home (Organization Landing Page)
+# ------------------------------
+@org_bp.route('/')
+def organization():
+    return render_template('organization.html')
+
+
+# ------------------------------
+# Officer Dashboard
+# ------------------------------
+@org_bp.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        flash("Please log in to access the dashboard.", "warning")
+        return redirect(url_for('org.organization'))
+
+    officer_name = session.get('username')
+    officer_id = session.get('officer_id_string')
+    return render_template('dashboard.html', officer_name=officer_name, officer_id=officer_id)
+
+
+# ------------------------------
+# Officer Login
+# ------------------------------
+@org_bp.route('/login', methods=['POST'])
+def login():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed. Please try again later."})
+
+    officer_id = request.form.get('officerId')
+    officer_password = request.form.get('officerPassword')
+
+    if not officer_id or not officer_password:
+        return jsonify({"success": False, "error": "Provide both ID and password."})
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM service_provider WHERE officerID=%s", (officer_id,))
+        officer = cursor.fetchone()
+
+        if officer and check_password_hash(officer['password'], officer_password):
+            # Fetch related service name
+            cursor.execute("SELECT name FROM service WHERE id = %s", (officer['service_id'],))
+            service_record = cursor.fetchone()
+            table_name = service_record['name'].lower() if service_record else None
+
+            # Store session
+            session['user_id'] = officer['id']
+            session['username'] = officer['name']
+            session['officer_id_string'] = officer['officerID']
+            session['service_id'] = officer['service_id']
+            session['table_name'] = table_name
+
+            cursor.close()
+            return jsonify({"success": True, "redirect": "/dashboard", "officerName": officer['name']})
+        else:
+            cursor.close()
+            return jsonify({"success": False, "error": "Invalid ID or password."})
+    except sqlite3.Error as err:
+        print("Database query failed:", err)
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+
+# ------------------------------
+# Admin Login
+# ------------------------------
+@org_bp.route('/adminlogin', methods=['POST'])
+def admin_login():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed. Please try again later."})
+
+    admin_id = request.form.get('adminID')
+    admin_password = request.form.get('adminPassword')
+
+    if not admin_id or not admin_password:
+        return jsonify({"success": False, "error": "Provide both ID and password."})
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM admin WHERE adminID=%s", (admin_id,))
+        admin = cursor.fetchone()
+
+        if admin and check_password_hash(admin['password'], admin_password):
+            # Store session
+            session['admin_id'] = admin['id']
+            session['admin_name'] = admin['name']
+
+            cursor.close()
+            return jsonify({"success": True, "redirect": "/admin/dashboard", "adminName": admin['name']})
+        else:
+            cursor.close()
+            return jsonify({"success": False, "error": "Invalid ID or password."})
+    except sqlite3.Error as err:
+        print("Database query failed:", err)
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+
+# ------------------------------
+# Logout (for both officer & admin)
+# ------------------------------
+@org_bp.route('/org/logout')
+def logout():
+    session.clear()
+    flash("Logged out successfully.", "success")
+    return redirect(url_for('org.organization'))
+from flask import Blueprint, request , jsonify ,session
+from models.db import get_db_connection
+from utils.email_utils import send_otp_email
+from datetime import datetime, timedelta
+import random
+
+def generate_otp(length=6):
+    """Generates a numeric OTP of given length."""
+    return ''.join(str(random.randint(0, 9)) for _ in range(length))
+
+otp_bp=Blueprint('otp',__name__)
+
+# Request OTP
+@otp_bp.route("/request_otp", methods=['POST'])
+def request_otp():
+    data = request.get_json()
+    token = data.get('token')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT c.id AS customer_id, c.email
+        FROM customer c
+        JOIN token t ON c.token_id = t.id
+        WHERE t.value=%s
+    """, (token,))
+    customer = cursor.fetchone()
+
+    if not customer:
+        return jsonify({"success": False, "error": "Invalid token."})
+
+    # Check for existing OTP not expired
+    cursor.execute("""
+        SELECT * FROM otp_verification
+        WHERE customer_id=%s AND verified=FALSE AND expires_at > NOW()
+        ORDER BY id DESC LIMIT 1
+    """, (customer['customer_id'],))
+    existing_otp = cursor.fetchone()
+
+    if existing_otp:
+        otp_code = existing_otp['otp_code']
+        expires_at = existing_otp['expires_at']
+    else:
+        otp_code = generate_otp()
+        expires_at = datetime.now() + timedelta(minutes=5)
+        cursor.execute(
+            "INSERT INTO otp_verification (customer_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+            (customer['customer_id'], otp_code, expires_at)
+        )
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    try:
+        send_otp_email(customer['email'], otp_code)
+    except Exception as e:
+        print("Failed to send OTP email:", e)
+
+    return jsonify({"success": True, "message": "OTP sent to your email."})
+
+
+# Verify OTP
+@otp_bp.route("/verify_otp", methods=['POST'])
+def verify_otp():
+    data = request.get_json()
+    token_value = data.get('token')
+    otp = data.get('otp')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT otp.id, otp.customer_id, otp.expires_at, otp.verified, t.type, t.id as token_id
+        FROM otp_verification otp
+        JOIN customer c ON otp.customer_id = c.id
+        JOIN token t ON c.token_id = t.id
+        WHERE t.value=%s AND otp.otp_code=%s
+        ORDER BY otp.id DESC LIMIT 1
+    """, (token_value, otp))
+
+    record = cursor.fetchone()
+
+    if not record:
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False, "error": "Wrong OTP. Please try again."})
+
+    if record['verified']:
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False, "error": "OTP already used."})
+
+    if record['expires_at'] < datetime.now():
+        cursor.close()
+        conn.close()
+        return jsonify({"success": False, "error": "OTP expired."})
+
+    # OTP is correct → delete it
+    cursor.execute("DELETE FROM otp_verification WHERE id=%s", (record['id'],))
+    conn.commit()
+
+    #Save token in session
+    session['verified_token'] = token_value
+
+    token_id = record['token_id']
+
+    query_check = """
+        (SELECT token_id FROM billing WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM complaint WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM kyc WHERE token_id = %s)
+        UNION ALL
+        (SELECT token_id FROM appointment WHERE token_id = %s AND is_booked = 1)
+    """
+    cursor.execute(query_check, (token_id, token_id, token_id, token_id))
+    existing_queue_or_appointment = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if existing_queue_or_appointment:
+        return jsonify({"success": True, "action": "redirect_status", "message": "OTP verified, access granted."})
+    else:
+        return jsonify({"success": True, "action": "choose_type", "service_id": record['type']})
+    
+@otp_bp.before_request
+def cleanup_expired_otps():
+    """Automatically deletes expired OTPs before each request."""
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM otp_verification WHERE expires_at < NOW()")
+            conn.commit()
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        print("Failed to cleanup expired OTPs:", e)
+from flask import Blueprint, request , jsonify ,session
+from models.db import get_db_connection
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+import time
+import logging
+
+load_dotenv()
+
+service_provider_bp=Blueprint("service_provider",__name__)
+
+def send_completion_email(recipient_email, service_time):
+    """Send an email notification when a service is completed."""
+    sender = os.getenv('SENDER_EMAIL')
+    sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+
+    message = Mail(
+        from_email=sender,
+        to_emails=recipient_email,
+        subject="Service Completed Successfully",
+        html_content=f"""
+        <h3>Service Completed</h3>
+        <p>Your service has been completed successfully.</p>
+        <p><strong>Service Time:</strong> {service_time}</p>
+        <p>Thank you for choosing our service!</p>
+        """
+    )
+
+    try:
+        sg.send(message)
+        print(f"Email sent to {recipient_email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+
+@service_provider_bp.route("/get_queue")
+def get_queue():
+    logging.info("Attempting to fetch queue data.")
+    table_name = session.get('table_name')
+    if not table_name:
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"success": False, "error": "Database connection failed."})
+        
+        cursor = conn.cursor(dictionary=True)
+        
+        query = f"""
+            SELECT
+                q.position,
+                t.id AS token_id,
+                t.value AS token_value,
+                c.name AS customer_name,
+                c.email AS customer_email
+            FROM
+                {table_name} q
+            JOIN
+                token t ON q.token_id = t.id
+            JOIN
+                customer c ON t.customer_id = c.id
+            ORDER BY
+                q.position;
+        """
+        cursor.execute(query)
+        queue = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"success": True, "queue": queue})
+
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in get_queue: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred."})
+
+@service_provider_bp.route("/get_dashboard_stats")
+def get_dashboard_stats():
+    table_name = session.get('table_name')
+    if not table_name:
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Get queue length (customers in line, not including the one being served)
+        cursor.execute(f"SELECT COUNT(*) as count FROM {table_name} WHERE position > 0")
+        customer_count = cursor.fetchone()['count']
+
+        # Get avg service time
+        cursor.execute("SELECT TIME_FORMAT(SEC_TO_TIME(AVG(TIME_TO_SEC(log))), '%i:%s') as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else "00:00"
+
+        cursor.close()
+        conn.close()
+        return jsonify({
+            "success": True,
+            "stats": {
+                "customer_count": customer_count,
+                "avg_time": avg_time
+            }
+        })
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in get_dashboard_stats: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+@service_provider_bp.route("/complete_service", methods=['POST'])
+def complete_service():
+    logging.info("Attempting to complete a service.")
+    table_name = session.get('table_name')
+    if not table_name:
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        service_time_seconds = int(request.form.get('service_time', 0))
+        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
+
+        if service_time_seconds > 1:
+            cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
+
+        # Find and delete the customer being served
+        cursor.execute(f"SELECT token_id, email FROM {table_name} WHERE position = 0 LIMIT 1")
+        serving = cursor.fetchone()
+
+        if serving:
+            token_id_to_delete = serving['token_id']
+            recipient_email = serving.get('email')  # make sure email column exists
+
+            cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id_to_delete,))
+            cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
+            cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
+        
+        conn.commit()
+
+        # --- Send Email After Successful Commit ---
+        if serving and recipient_email:
+            send_completion_email(recipient_email, service_time_formatted)
+
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"An unexpected error occurred in complete_service: {e}")
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True})
+
+
+@service_provider_bp.route("/call_next", methods=['POST'])
+def call_next():
+    logging.info("Attempting to call next customer.")
+    table_name = session.get('table_name')
+    if not table_name:
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Shift the entire queue up
+        cursor.execute(f"UPDATE {table_name} SET position = position - 1 WHERE position > 0")
+
+        # Recalculate all ETRs for the remaining queue
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = float(avg_time_result['avg_time'] or 180)
+
+        cursor.execute(f"SELECT id, position FROM {table_name} ORDER BY position")
+        remaining_queue = cursor.fetchall()
+
+        for person in remaining_queue:
+            etr_in_seconds = person['position'] * avg_service_time
+            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"An unexpected error occurred in call_next: {e}")
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True})
+
+@service_provider_bp.route("/mark_late", methods=["POST"])
+def mark_late():
+    data = request.get_json()
+    token_id = data.get("token_id")
+    table_name = session.get('table_name')
+
+    if not table_name or not token_id:
+        return jsonify({"success": False, "error": "Missing required data."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Get Lateness Factor (W_L)
+        cursor.execute("SELECT factor FROM admin ORDER BY id LIMIT 1")
+        admin_config = cursor.fetchone()
+        factor = admin_config.get('factor') if admin_config else None
+        w_l = float(factor) if factor is not None else 0.5
+
+        # Get Queue Length (N_queue) - number of people waiting
+        cursor.execute(f"SELECT COUNT(*) as n_queue FROM {table_name} WHERE position > 0")
+        n_queue = cursor.fetchone()['n_queue']
+
+        # Calculate New Position using the formula P_new = 1 + W_L * N_queue
+        new_pos = round(1 + w_l * n_queue)
+
+        # Cap new_pos to be at the end of the line (position n_queue)
+        if new_pos > n_queue:
+            new_pos = n_queue
+
+        # Get the token_id of the customer at position 0 to ensure it matches
+        cursor.execute(f"SELECT token_id FROM {table_name} WHERE position = 0 LIMIT 1")
+        late_customer = cursor.fetchone()
+        if not late_customer or late_customer['token_id'] != token_id:
+            return jsonify({"success": False, "error": "Token mismatch or no customer being served."})
+        
+        # Update positions atomically using a CASE statement
+        update_query = f"""
+            UPDATE {table_name}
+            SET position = CASE
+                WHEN token_id = %s THEN %s
+                WHEN position > 0 AND position <= %s THEN position - 1
+                ELSE position
+            END
+        """
+        cursor.execute(update_query, (token_id, new_pos, new_pos))
+
+        # Recalculate all ETRs for the updated queue
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = float(avg_time_result['avg_time'] or 180)
+
+        cursor.execute(f"SELECT id, position FROM {table_name} ORDER BY position")
+        full_queue = cursor.fetchall()
+
+        for person in full_queue:
+            etr_in_seconds = person['position'] * avg_service_time
+            etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+
+        conn.commit()
+
+        return jsonify({"success": True, "new_position": new_pos})
+
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"An unexpected error occurred in mark_late: {e}")
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@service_provider_bp.route("/get_transfer_services")
+def get_transfer_services():
+    service_id = session.get('service_id')
+    if not service_id:
+        return jsonify({"success": False, "error": "User not associated with a valid service."})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name FROM service WHERE id != %s ORDER BY name", (service_id,))
+        services = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "services": services})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@service_provider_bp.route("/transfer_customer", methods=['POST'])
+def transfer_customer():
+    destination_service_id = request.json.get('destination_service_id')
+    source_table_name = session.get('table_name')
+
+    if not destination_service_id or not source_table_name:
+        return jsonify({"success": False, "error": "Missing required data for transfer."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Get the token of the customer being served
+        cursor.execute(f"SELECT token_id FROM {source_table_name} WHERE position = 0 LIMIT 1")
+        serving = cursor.fetchone()
+        if not serving:
+            return jsonify({"success": False, "error": "No customer is currently being served."})
+        
+        token_id_to_transfer = serving['token_id']
+
+        # Get destination table name
+        cursor.execute("SELECT name FROM service WHERE id = %s", (destination_service_id,))
+        service_record = cursor.fetchone()
+        if not service_record:
+            return jsonify({"success": False, "error": "Invalid destination service."})
+        destination_table_name = service_record['name'].lower()
+
+        # Start transaction
+        # 1. Delete from source table
+        cursor.execute(f"DELETE FROM {source_table_name} WHERE token_id = %s", (token_id_to_transfer,))
+
+        # 2. Update customer's service_id and token type
+        cursor.execute("UPDATE customer c JOIN token t ON c.token_id = t.id SET c.service_id = %s WHERE t.id = %s", (destination_service_id, token_id_to_transfer))
+        cursor.execute("UPDATE token SET type = %s WHERE id = %s", (destination_service_id, token_id_to_transfer))
+
+        # 3. Insert into destination table
+        # Calculate average service time for the destination queue (or global)
+        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        avg_time_result = cursor.fetchone()
+        avg_service_time = float(avg_time_result['avg_time'] or 180)
+
+        # Determine next position in the destination queue
+        cursor.execute(f"SELECT COUNT(*) as queue_length FROM {destination_table_name}")
+        queue_length = cursor.fetchone()['queue_length']
+        next_pos = queue_length
+
+        # Calculate ETR for the new person
+        etr_in_seconds = next_pos * avg_service_time
+        etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
+
+        cursor.execute(f"INSERT INTO {destination_table_name} (token_id, position, ETR) VALUES (%s, %s, %s)", (token_id_to_transfer, next_pos, etr_formatted))
+
+        conn.commit()
+        
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"An unexpected error occurred during transfer: {e}")
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "message": "Customer transferred successfully."})
+from flask import Blueprint,render_template , redirect ,url_for ,flash, jsonify ,session
+from models.db import get_db_connection
+import sqlite3
+
+status_bp=Blueprint('status',__name__)
+
+@status_bp.route('/status')
+def status_page():
+    if 'verified_token' not in session:
+        flash("Please verify your token first.", "error")
+        return redirect(url_for('home'))
+    return render_template('status.html')
+
+@status_bp.route('/get_status_details')
+def get_status_details():
+    token_value = session.get('verified_token')
+    if not token_value:
+        return jsonify({"success": False, "error": "No verified token in session."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT c.name, c.email AS contact, s.name AS service, t.type, t.id as token_id
+            FROM customer c
+            JOIN token t ON c.token_id = t.id
+            JOIN service s ON c.service_id = s.id
+            WHERE t.value = %s
+        """, (token_value,))
+        details = cursor.fetchone()
+
+        if not details:
+            return jsonify({"success": False, "error": "Invalid token."})
+
+        if details['type'] == 'appointment':
+            cursor.execute("SELECT TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE token_id = %s", (details['token_id'],))
+            appointment_details = cursor.fetchone()
+            if appointment_details:
+                details.update(appointment_details)
+            details['status'] = 'Confirmed'
+        else:
+            # It's a walk-in, so the type is the service_id
+            try:
+                service_id = int(details['type'])
+                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                service_record = cursor.fetchone()
+                
+                if service_record:
+                    table_name = service_record['name'].lower()
+                    cursor.execute(f"SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM {table_name} WHERE token_id = %s", (details['token_id'],))
+                    walkin_details = cursor.fetchone()
+                    if walkin_details:
+                        details.update(walkin_details)
+            except (ValueError, TypeError):
+                # Handle cases where type is not a valid service_id
+                pass
+
+    except Exception as e:
+        print(f"Error fetching status details: {e}")
+        return jsonify({"success": False, "error": "An error occurred while fetching details."})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify({"success": True, "details": details})
+
+# Get Services
+@status_bp.route("/get_services")
+def get_services():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name FROM service ORDER BY name")
+        services = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({"success": True, "services": services})
+    except sqlite3.Error as err:
+        print("Database query failed:", err)
+        return jsonify({"success": False, "error": "Database error occurred."})
+from flask import Blueprint, request, jsonify, session
+import sqlite3
+import logging
+from utils.email_utils import send_token_email
+from models.db import get_db_connection
+
+token_bp = Blueprint('token', __name__)
+logging.basicConfig(level=logging.INFO)
+
+
+def generate_next_token():
+    """Generates the next token based on the last token in the database."""
+    conn = get_db_connection()
+    if not conn:
+        logging.warning("No DB connection — returning default token A00")
+        return 'A00'
+
+    try:
+        with conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
+            last_token_record = cursor.fetchone()
+        conn.close()
+
+        if not last_token_record:
+            return 'A00'
+
+        last_token = last_token_record['value']
+        letter = last_token[0]
+
+        # Extract only digits after the first character
+        number_part = ""
+        for ch in last_token[1:]:
+            if ch.isdigit():
+                number_part += ch
+            else:
+                break
+
+        number = int(number_part)
+        if number < 99:
+            number += 1
+        else:
+            number = 0
+            letter = chr(ord(letter) + 1) if letter != 'Z' else 'A'
+        return f"{letter}{number:02d}"
+
+    except sqlite3.Error as err:
+        logging.error(f"Database query for last token failed: {err}")
+        return 'A00'
+
+
+# ------------------------------------------------------------------
+# 🎟️ Generate Token Route
+# ------------------------------------------------------------------
+@token_bp.route("/generate_token", methods=["POST"])
+def generate_token_route():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+
+    try:
+        name = request.form.get("name")
+        consumer_id = request.form.get("consumerId")
+        email = request.form.get("emailAddress")
+        service_id = request.form.get("service")
+
+        if not name or not service_id:
+            return jsonify({"success": False, "error": "Missing required fields (name/service_id)."})
+        
+        cursor = conn.cursor(dictionary=True)
+
+        # Step 1: Resolve email using consumer ID if provided
+        if (not email) and consumer_id:
+            cursor.execute("SELECT email FROM consumer WHERE consumer_id = %s", (consumer_id,))
+            result = cursor.fetchone()
+            if result and result.get("email"):
+                email = result["email"]
+            else:
+                return jsonify({"success": False, "error": "Invalid Consumer ID or email not linked."})
+
+        # Step 2: Ensure at least one identifier exists
+        if (not email) and (not consumer_id):
+            return jsonify({"success": False, "error": "Either email or consumer ID is required."})
+
+        # Step 3: Insert into customer table
+        cursor.execute("""
+            INSERT INTO customer (name, consumer_id, email, service_id)
+            VALUES (%s, %s, %s, %s)
+        """, (name, consumer_id, email, service_id))
+        customer_id = cursor.lastrowid
+
+        # Step 4: Generate next token
+        cursor.execute('SELECT s.name as service_name FROM service s JOIN customer c ON s.id=c.service_id WHERE s.id=%s LIMIT 1;',(service_id,))
+        service_name=cursor.fetchone()
+        new_token_value = generate_next_token()+'-'+service_name['service_name']
+        cursor.execute("""
+            INSERT INTO token (value, customer_id, type)
+            VALUES (%s, %s, %s)
+        """, (new_token_value, customer_id,service_id))
+        token_id = cursor.lastrowid
+
+        # Step 5: Update customer with token ID
+        cursor.execute("UPDATE customer SET token_id = %s WHERE id = %s", (token_id, customer_id))
+        conn.commit()
+
+        # Step 6: Send token email (if email available)
+        if email:
+            try:
+                send_token_email(email, new_token_value)
+            except Exception as e:
+                logging.error(f"Failed to send token email: {e}")
+
+        return jsonify({"success": True, "token": new_token_value})
+
+    except sqlite3.Error as err:
+        conn.rollback()
+        logging.error(f"Database query failed: {err}")
+        return jsonify({"success": False, "error": "Database error occurred."})
+
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
+# ------------------------------------------------------------------
+# ❌ Cancel Token Route
+# ------------------------------------------------------------------
+@token_bp.route("/cancel_token", methods=["POST"])
+def cancel_token():
+    token_value = session.get("verified_token")
+    if not token_value:
+        return jsonify({"success": False, "error": "No verified token in session."})
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT id, type FROM token WHERE value = %s", (token_value,))
+        token_record = cursor.fetchone()
+
+        if not token_record:
+            session.clear()
+            return jsonify({"success": True, "message": "Token already cancelled."})
+        
+        token_id = token_record["id"]
+        service_id_str = token_record["type"]
+
+        # 🧾 Delete from service queue if walk-in
+        if service_id_str and service_id_str != "appointment":
+            try:
+                service_id = int(service_id_str)
+                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                service_record = cursor.fetchone()
+                if service_record:
+                    table_name = service_record["name"].lower()
+                    cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id,))
+            except (ValueError, TypeError):
+                pass  # Not a numeric service id
+
+        # 🗓️ Unbook appointment if needed
+        cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id,))
+        
+        # 🧹 Delete the token (cascade removes customer)
+        cursor.execute("DELETE FROM token WHERE id = %s", (token_id,))
+        
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"Error cancelling token: {e}")
+        return jsonify({"success": False, "error": "An error occurred while cancelling the token."})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    session.clear()
+    return jsonify({"success": True, "message": "Token cancelled successfully."})
+from .token import token_bp
+from .otp import otp_bp
+from .status import status_bp
+from .appointment import appointment_bp
+from .service_provider import service_provider_bp
+from .main import main_bp
+from .organization import org_bp
+from .auth import auth_bp
+from .check_in import check_in_bp
+from .admin import admin_bp
+
+def register_blueprints(app):
+    app.register_blueprint(token_bp)
+    app.register_blueprint(otp_bp)
+    app.register_blueprint(status_bp)
+    app.register_blueprint(appointment_bp)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(service_provider_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(check_in_bp)
+
+def org_register_blueprints(app):
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(service_provider_bp)
+    app.register_blueprint(org_bp)

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-import mysql.connector
+import sqlite3
 import logging
 from utils.email_utils import send_token_email
 from models.db import get_db_connection
@@ -16,7 +16,7 @@ def generate_next_token():
         return 'A00'
 
     try:
-        with conn.cursor(dictionary=True) as cursor:
+        with conn.cursor() as cursor:
             cursor.execute("SELECT value FROM token ORDER BY id DESC LIMIT 1")
             last_token_record = cursor.fetchone()
         conn.close()
@@ -43,7 +43,7 @@ def generate_next_token():
             letter = chr(ord(letter) + 1) if letter != 'Z' else 'A'
         return f"{letter}{number:02d}"
 
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         logging.error(f"Database query for last token failed: {err}")
         return 'A00'
 
@@ -66,11 +66,11 @@ def generate_token_route():
         if not name or not service_id:
             return jsonify({"success": False, "error": "Missing required fields (name/service_id)."})
         
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
         # Step 1: Resolve email using consumer ID if provided
         if (not email) and consumer_id:
-            cursor.execute("SELECT email FROM consumer WHERE consumer_id = %s", (consumer_id,))
+            cursor.execute("SELECT email FROM consumer WHERE consumer_id = ?", (consumer_id,))
             result = cursor.fetchone()
             if result and result.get("email"):
                 email = result["email"]
@@ -84,22 +84,22 @@ def generate_token_route():
         # Step 3: Insert into customer table
         cursor.execute("""
             INSERT INTO customer (name, consumer_id, email, service_id)
-            VALUES (%s, %s, %s, %s)
+            VALUES (?, ?, ?, ?)
         """, (name, consumer_id, email, service_id))
         customer_id = cursor.lastrowid
 
         # Step 4: Generate next token
-        cursor.execute('SELECT s.name as service_name FROM service s JOIN customer c ON s.id=c.service_id WHERE s.id=%s LIMIT 1;',(service_id,))
+        cursor.execute('SELECT s.name as service_name FROM service s JOIN customer c ON s.id=c.service_id WHERE s.id = ? LIMIT 1;',(service_id,))
         service_name=cursor.fetchone()
         new_token_value = generate_next_token()+'-'+service_name['service_name']
         cursor.execute("""
             INSERT INTO token (value, customer_id, type)
-            VALUES (%s, %s, %s)
+            VALUES (?, ?, ?)
         """, (new_token_value, customer_id,service_id))
         token_id = cursor.lastrowid
 
         # Step 5: Update customer with token ID
-        cursor.execute("UPDATE customer SET token_id = %s WHERE id = %s", (token_id, customer_id))
+        cursor.execute("UPDATE customer SET token_id = %s WHERE id = ?", (token_id, customer_id))
         conn.commit()
 
         # Step 6: Send token email (if email available)
@@ -111,13 +111,13 @@ def generate_token_route():
 
         return jsonify({"success": True, "token": new_token_value})
 
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         conn.rollback()
         logging.error(f"Database query failed: {err}")
         return jsonify({"success": False, "error": "Database error occurred."})
 
     finally:
-        if conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -132,10 +132,10 @@ def cancel_token():
         return jsonify({"success": False, "error": "No verified token in session."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT id, type FROM token WHERE value = %s", (token_value,))
+        cursor.execute("SELECT id, type FROM token WHERE value = ?", (token_value,))
         token_record = cursor.fetchone()
 
         if not token_record:
@@ -149,19 +149,19 @@ def cancel_token():
         if service_id_str and service_id_str != "appointment":
             try:
                 service_id = int(service_id_str)
-                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                cursor.execute("SELECT name FROM service WHERE id = ?", (service_id,))
                 service_record = cursor.fetchone()
                 if service_record:
                     table_name = service_record["name"].lower()
-                    cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id,))
+                    cursor.execute(f"DELETE FROM {table_name} WHERE token_id = ?", (token_id,))
             except (ValueError, TypeError):
                 pass  # Not a numeric service id
 
         # 🗓️ Unbook appointment if needed
-        cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id,))
+        cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = ?", (token_id,))
         
         # 🧹 Delete the token (cascade removes customer)
-        cursor.execute("DELETE FROM token WHERE id = %s", (token_id,))
+        cursor.execute("DELETE FROM token WHERE id = ?", (token_id,))
         
         conn.commit()
 

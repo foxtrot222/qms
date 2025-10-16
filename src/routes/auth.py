@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-import mysql.connector
+import sqlite3
 import time
 from models.db import get_db_connection
 
@@ -16,10 +16,10 @@ def estimated_wait_time():
         return jsonify({"success": False, "error": "Database connection failed."})
 
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
         # Get table name from service_id
-        cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+        cursor.execute("SELECT name FROM service WHERE id = ?", (service_id,))
         service = cursor.fetchone()
         if not service:
             cursor.close()
@@ -28,7 +28,7 @@ def estimated_wait_time():
         table_name = service['name'].lower()
 
         # Get average service time from logs
-        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        cursor.execute("SELECT AVG((strftime('%s', log) - strftime('%s', '00:00:00'))) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_service_time = float(avg_time_result['avg_time']) if avg_time_result and avg_time_result['avg_time'] else 180.0
 
@@ -48,7 +48,7 @@ def estimated_wait_time():
             "estimated_wait_time": estimated_time
         })
 
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         # Log the error for debugging
         print(f"Database error in estimated_wait_time: {e}")
         return jsonify({"success": False, "error": f"Database error: {str(e)}"})

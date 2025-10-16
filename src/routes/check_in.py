@@ -27,7 +27,7 @@ def check_in():
         return jsonify({"success": False, "error": "Location data is required."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         # Assuming one organization, fetch its location

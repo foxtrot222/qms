@@ -1,5 +1,6 @@
 from flask import Blueprint, request , jsonify ,session
 from models.db import get_db_connection
+from utils.security import sanitize_table_name
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -43,12 +44,16 @@ def get_queue():
         return jsonify({"success": False, "error": "User not associated with a valid service."})
 
     try:
+        # Validate and sanitize table name to prevent SQL injection
+        safe_table_name = sanitize_table_name(table_name)
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({"success": False, "error": "Database connection failed."})
         
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         
+        # Use sanitized table name (already validated against whitelist)
         query = f"""
             SELECT
                 q.position,
@@ -57,7 +62,7 @@ def get_queue():
                 c.name AS customer_name,
                 c.email AS customer_email
             FROM
-                {table_name} q
+                {safe_table_name} q
             JOIN
                 token t ON q.token_id = t.id
             JOIN
@@ -72,6 +77,9 @@ def get_queue():
 
         return jsonify({"success": True, "queue": queue})
 
+    except ValueError as ve:
+        logging.error(f"Invalid table name: {ve}")
+        return jsonify({"success": False, "error": "Invalid service configuration."})
     except Exception as e:
         logging.error(f"An unexpected error occurred in get_queue: {e}")
         return jsonify({"success": False, "error": "An unexpected error occurred."})
@@ -83,14 +91,14 @@ def get_dashboard_stats():
         return jsonify({"success": False, "error": "User not associated with a valid service."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         # Get queue length (customers in line, not including the one being served)
         cursor.execute(f"SELECT COUNT(*) as count FROM {table_name} WHERE position > 0")
         customer_count = cursor.fetchone()['count']
 
         # Get avg service time
-        cursor.execute("SELECT TIME_FORMAT(SEC_TO_TIME(AVG(TIME_TO_SEC(log))), '%i:%s') as avg_time FROM logs")
+        cursor.execute("SELECT AVG(log) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else "00:00"
 
@@ -115,14 +123,14 @@ def complete_service():
         return jsonify({"success": False, "error": "User not associated with a valid service."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         service_time_seconds = int(request.form.get('service_time', 0))
         service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
 
         if service_time_seconds > 1:
-            cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
+            cursor.execute("INSERT INTO logs (log) VALUES (?)", (service_time_formatted,))
 
         # Find and delete the customer being served
         cursor.execute(f"SELECT token_id, email FROM {table_name} WHERE position = 0 LIMIT 1")
@@ -132,9 +140,9 @@ def complete_service():
             token_id_to_delete = serving['token_id']
             recipient_email = serving.get('email')  # make sure email column exists
 
-            cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id_to_delete,))
-            cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
-            cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
+            cursor.execute(f"DELETE FROM {table_name} WHERE token_id = ?", (token_id_to_delete,))
+            cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = ?", (token_id_to_delete,))
+            cursor.execute("DELETE FROM token WHERE id = ?", (token_id_to_delete,))
         
         conn.commit()
 
@@ -161,14 +169,14 @@ def call_next():
         return jsonify({"success": False, "error": "User not associated with a valid service."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         # Shift the entire queue up
         cursor.execute(f"UPDATE {table_name} SET position = position - 1 WHERE position > 0")
 
         # Recalculate all ETRs for the remaining queue
-        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        cursor.execute("SELECT AVG((strftime('%s', log) - strftime('%s', '00:00:00'))) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_service_time = float(avg_time_result['avg_time'] or 180)
 
@@ -178,7 +186,7 @@ def call_next():
         for person in remaining_queue:
             etr_in_seconds = person['position'] * avg_service_time
             etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
-            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = ?", (etr_formatted, person['id']))
 
         conn.commit()
 
@@ -202,7 +210,7 @@ def mark_late():
         return jsonify({"success": False, "error": "Missing required data."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         # Get Lateness Factor (W_L)
@@ -240,7 +248,7 @@ def mark_late():
         cursor.execute(update_query, (token_id, new_pos, new_pos))
 
         # Recalculate all ETRs for the updated queue
-        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        cursor.execute("SELECT AVG((strftime('%s', log) - strftime('%s', '00:00:00'))) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_service_time = float(avg_time_result['avg_time'] or 180)
 
@@ -250,7 +258,7 @@ def mark_late():
         for person in full_queue:
             etr_in_seconds = person['position'] * avg_service_time
             etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
-            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = %s", (etr_formatted, person['id']))
+            cursor.execute(f"UPDATE {table_name} SET ETR = %s WHERE id = ?", (etr_formatted, person['id']))
 
         conn.commit()
 
@@ -273,7 +281,7 @@ def get_transfer_services():
 
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM service WHERE id != %s ORDER BY name", (service_id,))
         services = cursor.fetchall()
         cursor.close()
@@ -291,7 +299,7 @@ def transfer_customer():
         return jsonify({"success": False, "error": "Missing required data for transfer."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         # Get the token of the customer being served
@@ -303,7 +311,7 @@ def transfer_customer():
         token_id_to_transfer = serving['token_id']
 
         # Get destination table name
-        cursor.execute("SELECT name FROM service WHERE id = %s", (destination_service_id,))
+        cursor.execute("SELECT name FROM service WHERE id = ?", (destination_service_id,))
         service_record = cursor.fetchone()
         if not service_record:
             return jsonify({"success": False, "error": "Invalid destination service."})
@@ -311,15 +319,15 @@ def transfer_customer():
 
         # Start transaction
         # 1. Delete from source table
-        cursor.execute(f"DELETE FROM {source_table_name} WHERE token_id = %s", (token_id_to_transfer,))
+        cursor.execute(f"DELETE FROM {source_table_name} WHERE token_id = ?", (token_id_to_transfer,))
 
         # 2. Update customer's service_id and token type
-        cursor.execute("UPDATE customer c JOIN token t ON c.token_id = t.id SET c.service_id = %s WHERE t.id = %s", (destination_service_id, token_id_to_transfer))
-        cursor.execute("UPDATE token SET type = %s WHERE id = %s", (destination_service_id, token_id_to_transfer))
+        cursor.execute("UPDATE customer c JOIN token t ON c.token_id = t.id SET c.service_id = %s WHERE t.id = ?", (destination_service_id, token_id_to_transfer))
+        cursor.execute("UPDATE token SET type = %s WHERE id = ?", (destination_service_id, token_id_to_transfer))
 
         # 3. Insert into destination table
         # Calculate average service time for the destination queue (or global)
-        cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")
+        cursor.execute("SELECT AVG((strftime('%s', log) - strftime('%s', '00:00:00'))) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_service_time = float(avg_time_result['avg_time'] or 180)
 
@@ -332,7 +340,7 @@ def transfer_customer():
         etr_in_seconds = next_pos * avg_service_time
         etr_formatted = time.strftime('%H:%M:%S', time.gmtime(etr_in_seconds))
 
-        cursor.execute(f"INSERT INTO {destination_table_name} (token_id, position, ETR) VALUES (%s, %s, %s)", (token_id_to_transfer, next_pos, etr_formatted))
+        cursor.execute(f"INSERT INTO {destination_table_name} (token_id, position, ETR) VALUES (?, ?, ?)", (token_id_to_transfer, next_pos, etr_formatted))
 
         conn.commit()
         

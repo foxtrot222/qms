@@ -1,5 +1,5 @@
 from models.db import get_db_connection
-import mysql.connector
+import sqlite3
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from werkzeug.security import check_password_hash
 import logging
@@ -54,7 +54,7 @@ def login():
         return jsonify({"success": False, "error": "Provide both ID and password."})
 
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM service_provider WHERE officerID=%s", (officer_id,))
         officer = cursor.fetchone()
 
@@ -76,7 +76,7 @@ def login():
         else:
             cursor.close()
             return jsonify({"success": False, "error": "Invalid ID or password."})
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
@@ -97,7 +97,7 @@ def admin_login():
         return jsonify({"success": False, "error": "Provide both ID and password."})
 
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM admin WHERE adminID=%s", (admin_id,))
         admin = cursor.fetchone()
 
@@ -111,7 +111,7 @@ def admin_login():
         else:
             cursor.close()
             return jsonify({"success": False, "error": "Invalid ID or password."})
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 

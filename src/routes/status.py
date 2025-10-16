@@ -1,6 +1,6 @@
 from flask import Blueprint,render_template , redirect ,url_for ,flash, jsonify ,session
 from models.db import get_db_connection
-import mysql.connector
+import sqlite3
 
 status_bp=Blueprint('status',__name__)
 
@@ -18,7 +18,7 @@ def get_status_details():
         return jsonify({"success": False, "error": "No verified token in session."})
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    cursor = conn.cursor()
 
     try:
         cursor.execute("""
@@ -26,7 +26,7 @@ def get_status_details():
             FROM customer c
             JOIN token t ON c.token_id = t.id
             JOIN service s ON c.service_id = s.id
-            WHERE t.value = %s
+            WHERE t.value = ?
         """, (token_value,))
         details = cursor.fetchone()
 
@@ -34,7 +34,7 @@ def get_status_details():
             return jsonify({"success": False, "error": "Invalid token."})
 
         if details['type'] == 'appointment':
-            cursor.execute("SELECT TIME_FORMAT(time_slot, '%h:%i %p') as time_slot FROM appointment WHERE token_id = %s", (details['token_id'],))
+            cursor.execute("SELECT strftime('%H:%M', time_slot) as time_slot FROM appointment WHERE token_id = ?", (details['token_id'],))
             appointment_details = cursor.fetchone()
             if appointment_details:
                 details.update(appointment_details)
@@ -43,12 +43,12 @@ def get_status_details():
             # It's a walk-in, so the type is the service_id
             try:
                 service_id = int(details['type'])
-                cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+                cursor.execute("SELECT name FROM service WHERE id = ?", (service_id,))
                 service_record = cursor.fetchone()
                 
                 if service_record:
                     table_name = service_record['name'].lower()
-                    cursor.execute(f"SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM {table_name} WHERE token_id = %s", (details['token_id'],))
+                    cursor.execute(f"SELECT strftime('%H:%M:%S', ETR) as ETR, (strftime('%s', ETR) - strftime('%s', '00:00:00')) as etr_seconds, position FROM {table_name} WHERE token_id = ?", (details['token_id'],))
                     walkin_details = cursor.fetchone()
                     if walkin_details:
                         details.update(walkin_details)
@@ -72,12 +72,12 @@ def get_services():
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed."})
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM service ORDER BY name")
         services = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify({"success": True, "services": services})
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})

@@ -1,7 +1,7 @@
 from flask import Blueprint,render_template,flash,redirect,url_for,session,request,jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 from models.db import get_db_connection
-import mysql.connector
+import sqlite3
 import time
 
 admin_bp=Blueprint('admin',__name__)
@@ -29,12 +29,12 @@ def add_user():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO service_provider (name, officerID, password, service_id) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO service_provider (name, officerID, password, service_id) VALUES (?, ?, ?, ?)",
             (name, officer_id, hashed_password, service_id)
         )
         conn.commit()
         flash(f"User {name} added successfully!", "success")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
         flash(f"Failed to add user: {e}", "error")
     except Exception as e:
@@ -42,7 +42,7 @@ def add_user():
         print(f"An unexpected error occurred in add_user(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -57,17 +57,17 @@ def revoke_user(user_id):
 
     try:
         cursor = conn.cursor()
-        cursor.execute("UPDATE service_provider SET service_id = 0 WHERE id = %s", (user_id,))
+        cursor.execute("UPDATE service_provider SET service_id = 0 WHERE id = ?", (user_id,))
         conn.commit()
         flash(f"User {user_id} revoked successfully!", "success")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
     except Exception as e:
         conn.rollback()
         print(f"An unexpected error occurred in revoke_user(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -79,8 +79,8 @@ def get_user_data(user_id):
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed."})
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, officerID, service_id FROM service_provider WHERE id = %s", (user_id,))
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, officerID, service_id FROM service_provider WHERE id = ?", (user_id,))
         user = cursor.fetchone()
         if user:
             return jsonify({"success": True, "user": user})
@@ -89,7 +89,7 @@ def get_user_data(user_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -120,13 +120,13 @@ def update_user():
             update_query += ", password = %s"
             params.append(hashed_password)
         
-        update_query += " WHERE id = %s"
+        update_query += " WHERE id = ?"
         params.append(user_id)
 
         cursor.execute(update_query, tuple(params))
         conn.commit()
         flash(f"User {name} updated successfully!", "success")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
         flash(f"Failed to update user: {e}", "error")
     except Exception as e:
@@ -134,7 +134,7 @@ def update_user():
         print(f"An unexpected error occurred in update_user(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -154,7 +154,7 @@ def delete_user(user_id):
 
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM service_provider WHERE id = %s", (user_id,))
+        cursor.execute("DELETE FROM service_provider WHERE id = ?", (user_id,))
         conn.commit()
         flash(f"User {user_id} deleted successfully!", "success")
     except Exception as e:
@@ -162,7 +162,7 @@ def delete_user(user_id):
         print(f"An unexpected error occurred in delete_user(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -178,7 +178,7 @@ def delete_service(service_id):
     try:
         cursor = conn.cursor()
         # Get the service name before deleting the service entry
-        cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
+        cursor.execute("SELECT name FROM service WHERE id = ?", (service_id,))
         service_name_result = cursor.fetchone()
 
         if service_name_result:
@@ -186,8 +186,8 @@ def delete_service(service_id):
             service_table_name = service_name.lower()
 
             # Before deleting the service, update any service_providers associated with it
-            cursor.execute("UPDATE service_provider SET service_id = 0 WHERE service_id = %s", (service_id,))
-            cursor.execute("DELETE FROM service WHERE id = %s", (service_id,))
+            cursor.execute("UPDATE service_provider SET service_id = 0 WHERE service_id = ?", (service_id,))
+            cursor.execute("DELETE FROM service WHERE id = ?", (service_id,))
             conn.commit()
 
             # Drop the corresponding service queue table
@@ -198,7 +198,7 @@ def delete_service(service_id):
             flash(f"Service {service_name} deleted successfully and table '{service_table_name}' dropped!", "success")
         else:
             flash(f"Service with ID {service_id} not found.", "error")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
         flash(f"Failed to delete service: {e}", "error")
     except Exception as e:
@@ -206,7 +206,7 @@ def delete_service(service_id):
         print(f"An unexpected error occurred in delete_service(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -218,8 +218,8 @@ def get_service_data(service_id):
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed."})
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name FROM service WHERE id = %s", (service_id,))
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name FROM service WHERE id = ?", (service_id,))
         service = cursor.fetchone()
         if service:
             return jsonify({"success": True, "service": service})
@@ -228,7 +228,7 @@ def get_service_data(service_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -249,12 +249,12 @@ def update_service():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE service SET name = %s WHERE id = %s",
+            "UPDATE service SET name = %s WHERE id = ?",
             (service_name, service_id)
         )
         conn.commit()
         flash(f"Service {service_name} updated successfully!", "success")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
         flash(f"Failed to update service: {e}", "error")
     except Exception as e:
@@ -262,7 +262,7 @@ def update_service():
         print(f"An unexpected error occurred in update_service(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -288,7 +288,7 @@ def add_service():
 
     try:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO service (name) VALUES (%s)", (service_name,))
+        cursor.execute("INSERT INTO service (name) VALUES (?)", (service_name,))
         conn.commit()
 
         # Create a new table for the service queue
@@ -308,7 +308,7 @@ def add_service():
         conn.commit()
 
         flash(f"Service '{service_name}' added successfully and table '{service_table_name}' created!", "success")
-    except mysql.connector.Error as e:
+    except sqlite3.Error as e:
         conn.rollback()
         flash(f"Failed to add service: {e}", "error")
     except Exception as e:
@@ -316,7 +316,7 @@ def add_service():
         print(f"An unexpected error occurred in add_service(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -324,13 +324,18 @@ def add_service():
 
 @admin_bp.route('/admin')
 def admin():
+    # Check if admin is logged in
+    if 'admin_id' not in session:
+        flash("Please log in to access the admin panel.", "warning")
+        return redirect(url_for('org.organization'))
+    
     conn = get_db_connection()
     if not conn:
         flash("Database connection failed.", "error")
         return render_template('admin.html', stats=None)
 
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
         # 1. Active Officers
         cursor.execute("SELECT COUNT(*) as count FROM service_provider")
@@ -347,13 +352,13 @@ def admin():
 
         for table in service_tables:
             try:
-                cursor.execute(f"SELECT COUNT(*) as count, SUM(TIME_TO_SEC(ETR)) FROM {table} WHERE position > 0")
+                cursor.execute(f"SELECT COUNT(*) as count, SUM((strftime('%s', ETR) - strftime('%s', '00:00:00'))) FROM {table} WHERE position > 0")
                 result = cursor.fetchone()
                 if result:
                     total_waiting += result.get('count', 0)
                     if result.get('total_etr'):
                         total_etr_seconds += float(result['total_etr'])
-            except mysql.connector.Error:
+            except sqlite3.Error:
                 # Table might not exist, ignore.
                 pass
 
@@ -364,7 +369,7 @@ def admin():
         longitude = admin_settings['longitude'] if admin_settings else 0.0
 
         # Get avg service time from logs, similar to get_dashboard_stats
-        cursor.execute("SELECT TIME_FORMAT(SEC_TO_TIME(AVG(TIME_TO_SEC(log))), '%i:%s') as avg_time FROM logs")
+        cursor.execute("SELECT AVG(log) as avg_time FROM logs")
         avg_time_result = cursor.fetchone()
         avg_wait_time = avg_time_result['avg_time'] if avg_time_result['avg_time'] else "00:00"
 
@@ -391,7 +396,7 @@ def admin():
         flash(f"An error occurred: {e}", "error")
         return render_template('admin.html', stats=None)
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
 
@@ -407,10 +412,10 @@ def admin_login():
         return jsonify({"success": False, "error": "Provide both ID and password."})
 
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM admin WHERE name=%s", (adminId,))
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM admin WHERE name=?", (adminId,))
         admin = cursor.fetchone()
-        if admin and (admin['password']== adminPassword):
+        if admin and check_password_hash(admin['password'], adminPassword):
             cursor.close()
 
             session['admin_id'] = admin['id']
@@ -420,7 +425,7 @@ def admin_login():
             cursor.close()
             return jsonify({"success": False, "error": "Invalid ID or password."})
 
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         print("Database query failed:", err)
         return jsonify({"success": False, "error": "Database error occurred."})
 
@@ -456,7 +461,7 @@ def update_settings():
         print(f"An unexpected error occurred in update_settings(): {e}")
         flash(f"An unexpected error occurred: {e}", "error")
     finally:
-        if conn and conn.is_connected():
+        if conn:
             cursor.close()
             conn.close()
     

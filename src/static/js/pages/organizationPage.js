@@ -24,17 +24,16 @@ function initLoginModal(buttonId, modalId, closeBtnId, contentId, formId, errorI
         });
     };
 
-
-    // const close = () => {
-    //     content.classList.add('scale-95', 'opacity-0');
-    //     modal.style.opacity = '0';
-    //     setTimeout(() => {
-    //         modal.classList.add('hidden');
-    //         errorEl.classList.add('hidden');
-    //         errorEl.textContent = '';
-    //         form.reset();
-    //     }, 300);
-    // };
+    const close = () => {
+        content.classList.add('scale-95', 'opacity-0');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+            form.reset();
+        }, 300);
+    };
 
     openBtn.addEventListener('click', open);
     closeBtn.addEventListener('click', (e) => { e.preventDefault(); close(); });
@@ -97,4 +96,11 @@ export function initOrganizationPage() {
             return api.adminLogin(body);
         }
     );
+}
+
+// Auto-initialize when loaded directly (not through main.js)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOrganizationPage);
+} else {
+    initOrganizationPage();
 }

@@ -103,6 +103,7 @@ function initMapModal() {
 async function loadStatusDetails() {
     try {
         const data = await api.getStatusDetails();
+        console.log("Fetched data:", data);
         if (!data.success || !data.details) {
             console.error('Failed to load status details:', data.error || 'Unknown error');
             return;
@@ -147,3 +148,7 @@ export function initStatusPage() {
     initCheckIn();
     initMapModal();
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    initStatusPage();
+});

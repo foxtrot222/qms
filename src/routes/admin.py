@@ -390,7 +390,6 @@ def admin():
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
         return render_template('admin.html', stats=None)
-        return render_template('admin.html', stats=None)
     finally:
         if conn and conn.is_connected():
             cursor.close()

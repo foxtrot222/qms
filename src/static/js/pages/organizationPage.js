@@ -11,24 +11,30 @@ function initLoginModal(buttonId, modalId, closeBtnId, contentId, formId, errorI
     if (!openBtn || !modal || !closeBtn || !content || !form || !errorEl) return;
 
     const open = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // stop <a> from navigating away
+
+        // Force cancel any pending navigation (in case href points to a real route)
+        if (openBtn.tagName === 'a') openBtn.setAttribute('href', '#');
+
+        // Now show the modal
         modal.classList.remove('hidden');
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             modal.style.opacity = '1';
             content.classList.remove('scale-95', 'opacity-0');
-        }, 10);
+        });
     };
 
-    const close = () => {
-        content.classList.add('scale-95', 'opacity-0');
-        modal.style.opacity = '0';
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            errorEl.classList.add('hidden');
-            errorEl.textContent = '';
-            form.reset();
-        }, 300);
-    };
+
+    // const close = () => {
+    //     content.classList.add('scale-95', 'opacity-0');
+    //     modal.style.opacity = '0';
+    //     setTimeout(() => {
+    //         modal.classList.add('hidden');
+    //         errorEl.classList.add('hidden');
+    //         errorEl.textContent = '';
+    //         form.reset();
+    //     }, 300);
+    // };
 
     openBtn.addEventListener('click', open);
     closeBtn.addEventListener('click', (e) => { e.preventDefault(); close(); });

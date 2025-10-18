@@ -78,7 +78,7 @@ def generate_token_route():
 
         # Generate Token
         new_token_value = generate_next_token()
-        cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_.lastrowid, service_id))
+        cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_id, service_id))
         token_id = cursor.lastrowid
         cursor.execute("UPDATE customer SET token_id=%s WHERE id=%s", (token_id, customer_id))
 

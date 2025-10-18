@@ -3,7 +3,10 @@ from models.db import get_db_connection
 import mysql.connector
 import time
 import logging
+from utils.email_utils import send_completion_email
+
 service_provider_bp=Blueprint("service_provider",__name__)
+
 
 @service_provider_bp.route("/get_queue")
 def get_queue():
@@ -89,8 +92,8 @@ def complete_service():
 
     try:
         service_time_seconds = int(request.form.get('service_time', 0))
+        service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
         if service_time_seconds > 1: # Log only realistic times
-            service_time_formatted = time.strftime('%H:%M:%S', time.gmtime(service_time_seconds))
             cursor.execute("INSERT INTO logs (log) VALUES (%s)", (service_time_formatted,))
 
         # Find and delete the customer being served
@@ -99,11 +102,19 @@ def complete_service():
 
         if serving:
             token_id_to_delete = serving['token_id']
+            
+            cursor.execute("SELECT email FROM customer WHERE token_id = %s", (token_id_to_delete,))
+            customer_email_record = cursor.fetchone()
+            customer_email = customer_email_record['email'] if customer_email_record else None
+
             cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id_to_delete,))
             cursor.execute("UPDATE appointment SET is_booked = 0, token_id = NULL WHERE token_id = %s", (token_id_to_delete,))
             cursor.execute("DELETE FROM token WHERE id = %s", (token_id_to_delete,))
         
         conn.commit()
+
+        if serving and customer_email:
+            send_completion_email(customer_email, service_time_formatted)
 
     except Exception as e:
         conn.rollback()

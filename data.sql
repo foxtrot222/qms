@@ -31,7 +31,7 @@ CREATE TABLE `Billing` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_token` (`token_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +40,6 @@ CREATE TABLE `Billing` (
 
 LOCK TABLES `Billing` WRITE;
 /*!40000 ALTER TABLE `Billing` DISABLE KEYS */;
-INSERT INTO `Billing` VALUES (1,1,1,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(3,2,3,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(5,3,5,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,4,7,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(9,5,9,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,6,11,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,7,13,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,8,15,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,9,17,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,10,19,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(31,0,111,'00:00:00','2025-10-18 11:17:58','2025-10-18 11:17:58');
 /*!40000 ALTER TABLE `Billing` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -60,7 +59,7 @@ CREATE TABLE `Complaint` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_token` (`token_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,7 +68,6 @@ CREATE TABLE `Complaint` (
 
 LOCK TABLES `Complaint` WRITE;
 /*!40000 ALTER TABLE `Complaint` DISABLE KEYS */;
-INSERT INTO `Complaint` VALUES (1,1,31,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(3,2,33,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(5,3,35,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,4,37,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(9,5,39,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,6,41,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,7,43,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,8,45,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,9,47,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,10,49,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03');
 /*!40000 ALTER TABLE `Complaint` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -89,7 +87,7 @@ CREATE TABLE `KYC` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_token` (`token_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,7 +96,6 @@ CREATE TABLE `KYC` (
 
 LOCK TABLES `KYC` WRITE;
 /*!40000 ALTER TABLE `KYC` DISABLE KEYS */;
-INSERT INTO `KYC` VALUES (1,1,61,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(3,2,63,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(5,3,65,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,4,67,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(9,5,69,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,6,71,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,7,73,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,8,75,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,9,77,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,10,79,NULL,'2025-10-18 10:53:03','2025-10-18 10:53:03');
 /*!40000 ALTER TABLE `KYC` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -156,7 +153,7 @@ CREATE TABLE `admin` (
 
 LOCK TABLES `admin` WRITE;
 /*!40000 ALTER TABLE `admin` DISABLE KEYS */;
-INSERT INTO `admin` VALUES (1,'admin','password',0.6,23.12446,72.54559,'2025-10-13 18:32:38','2025-10-11 13:13:13');
+INSERT INTO `admin` VALUES (1,'admin','scrypt:32768:8:1$Jy3wWgY8PXVVCJOQ$770572106f8cfb72fc01f8dd8effdd3edb3f8369b73350b3dc2cd9d120fc1cebf4b5a6ba0365b21db8e4f9fad5803d40157eb6183caedc85bd2af0dc9cd39240',0.5,23.12446,72.54559,'2025-10-18 14:05:08','2025-10-11 13:13:13');
 /*!40000 ALTER TABLE `admin` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -186,7 +183,7 @@ CREATE TABLE `appointment` (
 
 LOCK TABLES `appointment` WRITE;
 /*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
-INSERT INTO `appointment` VALUES (1,'09:00:00',1,91,'2025-09-28 10:59:04','2025-10-18 10:53:03'),(3,'09:30:00',1,93,'2025-09-28 10:59:04','2025-10-18 10:53:03'),(5,'10:00:00',1,95,'2025-09-28 10:59:04','2025-10-18 10:53:03'),(7,'10:30:00',1,97,'2025-09-28 10:59:04','2025-10-18 10:53:03'),(9,'11:00:00',1,99,'2025-09-28 10:59:04','2025-10-18 10:53:03'),(11,'11:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(13,'12:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(15,'12:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(17,'13:00:00',1,109,'2025-09-28 10:59:04','2025-10-18 11:16:09'),(19,'13:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-13 17:53:09'),(21,'14:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-11 06:55:40'),(23,'14:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-11 06:55:40'),(25,'15:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(27,'15:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(29,'16:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(31,'16:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-13 17:53:09'),(33,'17:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04');
+INSERT INTO `appointment` VALUES (1,'09:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(3,'09:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(5,'10:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(7,'10:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(9,'11:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(11,'11:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(13,'12:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(15,'12:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(17,'13:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 14:23:05'),(19,'13:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-18 13:46:25'),(21,'14:00:00',0,NULL,'2025-09-28 10:59:04','2025-10-11 06:55:40'),(23,'14:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-11 06:55:40'),(25,'15:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(27,'15:30:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(29,'16:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04'),(31,'16:30:00',0,NULL,'2025-09-28 10:59:04','2025-10-13 17:53:09'),(33,'17:00:00',0,NULL,'2025-09-28 10:59:04','2025-09-28 10:59:04');
 /*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -234,7 +231,7 @@ CREATE TABLE `customer` (
   KEY `fk_customer_service` (`service_id`),
   CONSTRAINT `fk_customer_service` FOREIGN KEY (`service_id`) REFERENCES `service` (`id`),
   CONSTRAINT `fk_customer_token` FOREIGN KEY (`token_id`) REFERENCES `token` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -243,7 +240,7 @@ CREATE TABLE `customer` (
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-INSERT INTO `customer` VALUES (1,'John Doe',NULL,'john.doe@example.com',1,1,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(3,'Jane Smith',NULL,'jane.smith@example.com',1,3,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(5,'Peter Jones',NULL,'peter.jones@example.com',1,5,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,'Mary Johnson',NULL,'mary.johnson@example.com',1,7,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(9,'David Williams',NULL,'david.williams@example.com',1,9,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,'Susan Brown',NULL,'susan.brown@example.com',1,11,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,'Michael Davis',NULL,'michael.davis@example.com',1,13,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,'Linda Miller',NULL,'linda.miller@example.com',1,15,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,'Robert Wilson',NULL,'robert.wilson@example.com',1,17,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,'Patricia Moore',NULL,'patricia.moore@example.com',1,19,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(21,'James Taylor',NULL,'james.taylor@example.com',2,31,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(23,'Barbara Anderson',NULL,'barbara.anderson@example.com',2,33,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(25,'Thomas Hernandez',NULL,'thomas.hernandez@example.com',2,35,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(27,'Elizabeth Martin',NULL,'elizabeth.martin@example.com',2,37,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(29,'Christopher Garcia',NULL,'christopher.garcia@example.com',2,39,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(31,'Jessica Rodriguez',NULL,'jessica.rodriguez@example.com',2,41,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(33,'Daniel Martinez',NULL,'daniel.martinez@example.com',2,43,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(35,'Sarah Robinson',NULL,'sarah.robinson@example.com',2,45,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(37,'Matthew Clark',NULL,'matthew.clark@example.com',2,47,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(39,'Karen Lewis',NULL,'karen.lewis@example.com',2,49,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(41,'Paul Walker',NULL,'paul.walker@example.com',3,61,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(43,'Nancy Hall',NULL,'nancy.hall@example.com',3,63,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(45,'Mark Allen',NULL,'mark.allen@example.com',3,65,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(47,'Betty Young',NULL,'betty.young@example.com',3,67,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(49,'Steven King',NULL,'steven.king@example.com',3,69,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(51,'Donna Wright',NULL,'donna.wright@example.com',3,71,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(53,'Andrew Lopez',NULL,'andrew.lopez@example.com',3,73,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(55,'Sandra Hill',NULL,'sandra.hill@example.com',3,75,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(57,'Joshua Scott',NULL,'joshua.scott@example.com',3,77,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(59,'Cynthia Green',NULL,'cynthia.green@example.com',3,79,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(61,'Appointment User 1',NULL,'app1@example.com',NULL,91,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(63,'Appointment User 2',NULL,'app2@example.com',NULL,93,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(65,'Appointment User 3',NULL,'app3@example.com',NULL,95,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(67,'Appointment User 4',NULL,'app4@example.com',NULL,97,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(69,'Appointment User 5',NULL,'app5@example.com',NULL,99,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(77,'Tirth',NULL,'tirthkavathiya@gmail.com',1,109,'2025-10-18 11:11:28','2025-10-18 11:11:28'),(79,'dasda',NULL,'tirthkavathiya@gmail.com',1,111,'2025-10-18 11:17:36','2025-10-18 11:17:36');
+INSERT INTO `customer` VALUES (5,'Peter Jones',NULL,'peter.jones@example.com',1,5,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,'Mary Johnson',NULL,'mary.johnson@example.com',2,7,'2025-10-18 10:53:03','2025-10-18 13:58:49'),(9,'David Williams',NULL,'david.williams@example.com',1,9,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,'Susan Brown',NULL,'susan.brown@example.com',1,11,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,'Michael Davis',NULL,'michael.davis@example.com',1,13,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,'Linda Miller',NULL,'linda.miller@example.com',1,15,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,'Robert Wilson',NULL,'robert.wilson@example.com',1,17,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,'Patricia Moore',NULL,'patricia.moore@example.com',1,19,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(21,'James Taylor',NULL,'james.taylor@example.com',2,31,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(23,'Barbara Anderson',NULL,'barbara.anderson@example.com',2,33,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(25,'Thomas Hernandez',NULL,'thomas.hernandez@example.com',2,35,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(27,'Elizabeth Martin',NULL,'elizabeth.martin@example.com',2,37,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(29,'Christopher Garcia',NULL,'christopher.garcia@example.com',2,39,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(31,'Jessica Rodriguez',NULL,'jessica.rodriguez@example.com',2,41,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(33,'Daniel Martinez',NULL,'daniel.martinez@example.com',2,43,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(35,'Sarah Robinson',NULL,'sarah.robinson@example.com',2,45,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(37,'Matthew Clark',NULL,'matthew.clark@example.com',2,47,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(39,'Karen Lewis',NULL,'karen.lewis@example.com',2,49,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(41,'Paul Walker',NULL,'paul.walker@example.com',3,61,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(43,'Nancy Hall',NULL,'nancy.hall@example.com',3,63,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(45,'Mark Allen',NULL,'mark.allen@example.com',3,65,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(47,'Betty Young',NULL,'betty.young@example.com',3,67,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(49,'Steven King',NULL,'steven.king@example.com',3,69,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(51,'Donna Wright',NULL,'donna.wright@example.com',3,71,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(53,'Andrew Lopez',NULL,'andrew.lopez@example.com',3,73,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(55,'Sandra Hill',NULL,'sandra.hill@example.com',3,75,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(57,'Joshua Scott',NULL,'joshua.scott@example.com',3,77,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(59,'Cynthia Green',NULL,'cynthia.green@example.com',3,79,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(61,'Appointment User 1',NULL,'app1@example.com',NULL,91,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(63,'Appointment User 2',NULL,'app2@example.com',NULL,93,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(65,'Appointment User 3',NULL,'app3@example.com',NULL,95,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(67,'Appointment User 4',NULL,'app4@example.com',NULL,97,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(69,'Appointment User 5',NULL,'app5@example.com',NULL,99,'2025-10-18 10:53:03','2025-10-18 10:53:03'),(77,'Tirth',NULL,'tirthkavathiya@gmail.com',1,109,'2025-10-18 11:11:28','2025-10-18 11:11:28'),(85,'tirth','C4321','tirthkavathiya@gmail.com',1,115,'2025-10-18 13:47:37','2025-10-18 13:47:37'),(87,'tirth',NULL,'tirthkavathiya@gmail.com',2,117,'2025-10-18 13:48:48','2025-10-18 13:48:48'),(89,'sadsa',NULL,'tirthkavathiya@gmail.com',2,119,'2025-10-18 13:55:19','2025-10-18 13:55:19');
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,7 +255,7 @@ CREATE TABLE `logs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `log` time DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -267,7 +264,6 @@ CREATE TABLE `logs` (
 
 LOCK TABLES `logs` WRITE;
 /*!40000 ALTER TABLE `logs` DISABLE KEYS */;
-INSERT INTO `logs` VALUES (1,'00:02:00'),(3,'00:02:15'),(5,'00:02:30'),(7,'00:02:45'),(9,'00:03:00'),(11,'00:03:10'),(13,'00:03:20'),(15,'00:03:30'),(17,'00:03:40'),(19,'00:03:50'),(21,'00:04:00'),(23,'00:04:05'),(25,'00:04:10'),(27,'00:04:15'),(29,'00:04:20'),(31,'00:04:25'),(33,'00:04:30'),(35,'00:04:35'),(37,'00:04:40'),(39,'00:04:45'),(41,'00:04:50'),(43,'00:04:55'),(45,'00:05:00'),(47,'00:02:05'),(49,'00:02:10'),(51,'00:02:20'),(53,'00:02:35'),(55,'00:02:50'),(57,'00:03:05'),(59,'00:03:15'),(61,'00:03:25'),(63,'00:03:35'),(65,'00:03:45'),(67,'00:03:55'),(69,'00:04:05'),(71,'00:04:15'),(73,'00:04:25'),(75,'00:04:35'),(77,'00:04:45'),(79,'00:04:55'),(81,'00:02:25'),(83,'00:02:40'),(85,'00:02:55'),(87,'00:03:05'),(89,'00:03:15'),(91,'00:03:30'),(93,'00:03:45'),(95,'00:04:00'),(97,'00:04:15'),(99,'00:04:30');
 /*!40000 ALTER TABLE `logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -288,7 +284,7 @@ CREATE TABLE `otp_verification` (
   PRIMARY KEY (`id`),
   KEY `customer_id` (`customer_id`),
   CONSTRAINT `otp_verification_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -354,7 +350,7 @@ CREATE TABLE `service_provider` (
 
 LOCK TABLES `service_provider` WRITE;
 /*!40000 ALTER TABLE `service_provider` DISABLE KEYS */;
-INSERT INTO `service_provider` VALUES (37,'Rajiv Kumar',1,'SP001','scrypt:32768:8:1$Vt8hN2A8Tt2JP1b9$405817b5265fa053cd240a49ec01fa006f258bfd9aa39c1ab78c55237cc9188f07498337a89a15dbaadcf113990bc45acdb8402555c3dd3198569b22cb260277','2025-09-26 12:24:36','2025-10-13 18:11:00'),(39,'Anjali Sharma',2,'SP002','scrypt:32768:8:1$ISYhCd66iRejJRSB$bc278a87a1102b655e731612a21e76637c3dd64daf23fe6183a45c09128c4bc57e8bb33c5079f469a7132557f0bd6eb682e193c042053e718cea1b38048ab690','2025-09-26 12:24:36','2025-10-11 08:12:31'),(41,'Suresh Gupta',3,'SP003','scrypt:32768:8:1$PkjKPq3KcN9r4w7I$b232694560ef8649cd702abd46cfe9af83d981a7e5a4ebabd8048c750cf90502a9df1fd3e89bb72ae1741718ea95098b7c11b68caa0f8e6fc0f12340df0b1cfa','2025-09-26 12:24:36','2025-10-12 06:09:35');
+INSERT INTO `service_provider` VALUES (37,'Rajiv Kumar',1,'SP001','scrypt:32768:8:1$Vt8hN2A8Tt2JP1b9$405817b5265fa053cd240a49ec01fa006f258bfd9aa39c1ab78c55237cc9188f07498337a89a15dbaadcf113990bc45acdb8402555c3dd3198569b22cb260277','2025-09-26 12:24:36','2025-10-13 18:11:00'),(39,'Anjali Sharma',2,'SP002','scrypt:32768:8:1$ISYhCd66iRejJRSB$bc278a87a1102b655e731612a21e76637c3dd64daf23fe6183a45c09128c4bc57e8bb33c5079f469a7132557f0bd6eb682e193c042053e718cea1b38048ab690','2025-09-26 12:24:36','2025-10-11 08:12:31'),(41,'Suresh Gupta',2,'SP003','scrypt:32768:8:1$PkjKPq3KcN9r4w7I$b232694560ef8649cd702abd46cfe9af83d981a7e5a4ebabd8048c750cf90502a9df1fd3e89bb72ae1741718ea95098b7c11b68caa0f8e6fc0f12340df0b1cfa','2025-09-26 12:24:36','2025-10-18 14:13:51');
 /*!40000 ALTER TABLE `service_provider` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -375,7 +371,7 @@ CREATE TABLE `token` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `customer_id` (`customer_id`),
   CONSTRAINT `fk_token_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=113 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -384,7 +380,6 @@ CREATE TABLE `token` (
 
 LOCK TABLES `token` WRITE;
 /*!40000 ALTER TABLE `token` DISABLE KEYS */;
-INSERT INTO `token` VALUES (1,'A01',1,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(3,'A03',3,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(5,'A05',5,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(7,'A07',7,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(9,'A09',9,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(11,'A11',11,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(13,'A13',13,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(15,'A15',15,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(17,'A17',17,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(19,'A19',19,'1','2025-10-18 10:53:03','2025-10-18 10:53:03'),(31,'A21',21,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(33,'A23',23,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(35,'A25',25,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(37,'A27',27,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(39,'A29',29,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(41,'A31',31,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(43,'A33',33,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(45,'A35',35,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(47,'A37',37,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(49,'A39',39,'2','2025-10-18 10:53:03','2025-10-18 10:53:03'),(61,'A41',41,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(63,'A43',43,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(65,'A45',45,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(67,'A47',47,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(69,'A49',49,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(71,'A51',51,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(73,'A53',53,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(75,'A55',55,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(77,'A57',57,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(79,'A59',59,'3','2025-10-18 10:53:03','2025-10-18 10:53:03'),(91,'A61',61,'appointment','2025-10-18 10:53:03','2025-10-18 10:53:03'),(93,'A63',63,'appointment','2025-10-18 10:53:03','2025-10-18 10:53:03'),(95,'A65',65,'appointment','2025-10-18 10:53:03','2025-10-18 10:53:03'),(97,'A67',67,'appointment','2025-10-18 10:53:03','2025-10-18 10:53:03'),(99,'A69',69,'appointment','2025-10-18 10:53:03','2025-10-18 10:53:03'),(109,'A70',77,'appointment','2025-10-18 11:11:28','2025-10-18 11:16:09'),(111,'A71',79,'1','2025-10-18 11:17:36','2025-10-18 11:17:36');
 /*!40000 ALTER TABLE `token` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -397,4 +392,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-18 19:03:25
+-- Dump completed on 2025-10-18 19:56:45

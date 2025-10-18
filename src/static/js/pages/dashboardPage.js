@@ -208,4 +208,28 @@ export function initDashboardPage() {
     initTransferModal();
     refreshDashboard();
     startCustomerTimer();
+
+    const openConsumerSearchBtn = document.getElementById('openConsumerSearchBtn');
+    const consumerSearchModal = document.getElementById('consumerSearchModal');
+    const closeConsumerSearchBtn = document.getElementById('closeConsumerSearchBtn');
+
+    if (openConsumerSearchBtn) {
+        openConsumerSearchBtn.addEventListener('click', () => {
+            consumerSearchModal.style.display = 'flex';
+        });
+    }
+
+    if (closeConsumerSearchBtn) {
+        closeConsumerSearchBtn.addEventListener('click', () => {
+            consumerSearchModal.style.display = 'none';
+        });
+    }
+
+    if (consumerSearchModal) {
+        consumerSearchModal.addEventListener('click', (e) => {
+            if (e.target === consumerSearchModal) {
+                consumerSearchModal.style.display = 'none';
+            }
+        });
+    }
 }

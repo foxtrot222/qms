@@ -106,16 +106,22 @@ def verify_otp():
 
     token_id = record['token_id']
 
-    query_check = """
-        (SELECT token_id FROM billing WHERE token_id = %s)
-        UNION ALL
-        (SELECT token_id FROM complaint WHERE token_id = %s)
-        UNION ALL
-        (SELECT token_id FROM kyc WHERE token_id = %s)
-        UNION ALL
-        (SELECT token_id FROM appointment WHERE token_id = %s AND is_booked = 1)
-    """
-    cursor.execute(query_check, (token_id, token_id, token_id, token_id))
+    cursor.execute("SELECT name FROM service")
+    services = cursor.fetchall()
+    
+    query_parts = []
+    params = []
+    for service in services:
+        table_name = service['name']
+        query_parts.append(f"(SELECT token_id FROM {table_name} WHERE token_id = %s)")
+        params.append(token_id)
+
+    query_parts.append("(SELECT token_id FROM appointment WHERE token_id = %s AND is_booked = 1)")
+    params.append(token_id)
+
+    query_check = " UNION ALL ".join(query_parts)
+    
+    cursor.execute(query_check, tuple(params))
     existing_queue_or_appointment = cursor.fetchone()
 
     cursor.close()

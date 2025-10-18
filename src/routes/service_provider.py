@@ -269,7 +269,7 @@ def transfer_customer():
         service_record = cursor.fetchone()
         if not service_record:
             return jsonify({"success": False, "error": "Invalid destination service."})
-        destination_table_name = service_record['name'].lower()
+        destination_table_name = service_record['name']
 
         # Start transaction
         # 1. Delete from source table

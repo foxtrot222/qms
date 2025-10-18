@@ -47,7 +47,7 @@ def join_walkin():
         if not service_record:
             return jsonify({"success": False, "error": "Invalid service for token."})
         
-        table_name = service_record['name'].lower()
+        table_name = service_record['name']
 
         if not table_name:
             return jsonify({"success": False, "error": "Invalid service type for token."})

@@ -44,20 +44,41 @@ def generate_token_route():
         return jsonify({"success": False, "error": "Database connection failed."})
     try:
         name = request.form.get('name')
-        email = request.form.get('emailAddress')
         service_id = request.form.get('service')
+        identification_method = request.form.get('identification')
+        
+        email = None
+        consumer_id = None
 
-        if not name or not email or not service_id:
-            return jsonify({"success": False, "error": "Missing required fields."})
+        if identification_method == 'email':
+            email = request.form.get('emailAddress')
+            if not email:
+                return jsonify({"success": False, "error": "Email is required."})
+        elif identification_method == 'consumerId':
+            consumer_id = request.form.get('consumerId')
+            if not consumer_id:
+                return jsonify({"success": False, "error": "Consumer ID is required."})
+        else:
+            return jsonify({"success": False, "error": "Invalid identification method."})
 
-        cursor = conn.cursor()
+        if not name or not service_id:
+            return jsonify({"success": False, "error": "Name and service are required."})
+
+        cursor = conn.cursor(dictionary=True)
+        if consumer_id:
+            cursor.execute("SELECT email_id FROM consumer WHERE consumer_id = %s", (consumer_id,))
+            result = cursor.fetchone()
+            if not result:
+                return jsonify({"success": False, "error": "Invalid Consumer ID."})
+            email = result['email_id']
+
         # Create Customer
-        cursor.execute("INSERT INTO customer (name, email, service_id) VALUES (%s, %s, %s)", (name, email, service_id))
+        cursor.execute("INSERT INTO customer (name, email, service_id, consumer_id) VALUES (%s, %s, %s, %s)", (name, email, service_id, consumer_id))
         customer_id = cursor.lastrowid
 
         # Generate Token
         new_token_value = generate_next_token()
-        cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_id, service_id))
+        cursor.execute("INSERT INTO token (value, customer_id, type) VALUES (%s, %s, %s)", (new_token_value, customer_.lastrowid, service_id))
         token_id = cursor.lastrowid
         cursor.execute("UPDATE customer SET token_id=%s WHERE id=%s", (token_id, customer_id))
 
@@ -102,7 +123,7 @@ def cancel_token():
                 cursor.execute("SELECT name FROM service WHERE id = %s", (service_id,))
                 service_record = cursor.fetchone()
                 if service_record:
-                    table_name = service_record['name'].lower()
+                    table_name = service_record['name']
                     cursor.execute(f"DELETE FROM {table_name} WHERE token_id = %s", (token_id,))
             except (ValueError, TypeError):
                 pass  # Type is not a valid service ID

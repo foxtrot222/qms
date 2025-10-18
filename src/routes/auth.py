@@ -25,7 +25,7 @@ def estimated_wait_time():
             cursor.close()
             conn.close()
             return jsonify({"success": False, "error": "Invalid service ID."})
-        table_name = service['name'].lower()
+        table_name = service['name']
 
         # Get average service time from logs
         cursor.execute("SELECT AVG(TIME_TO_SEC(log)) as avg_time FROM logs")

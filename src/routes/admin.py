@@ -183,7 +183,7 @@ def delete_service(service_id):
 
         if service_name_result:
             service_name = service_name_result[0] # Access by index
-            service_table_name = service_name.lower()
+            service_table_name = service_name
 
             # Before deleting the service, update any service_providers associated with it
             cursor.execute("UPDATE service_provider SET service_id = 0 WHERE service_id = %s", (service_id,))
@@ -292,7 +292,7 @@ def add_service():
         conn.commit()
 
         # Create a new table for the service queue
-        service_table_name = service_name.lower()
+        service_table_name = service_name
         create_table_sql = f"""CREATE TABLE `{service_table_name}` (
             `id` int unsigned NOT NULL AUTO_INCREMENT,
             `position` tinyint unsigned NOT NULL,
@@ -339,7 +339,7 @@ def admin():
         # Get all service tables
         cursor.execute("SELECT name FROM service")
         services = cursor.fetchall()
-        service_tables = [service['name'].lower() for service in services]
+        service_tables = [service['name'] for service in services]
 
         # 2. Customers Waiting & 3. Avg. Wait Time
         total_waiting = 0

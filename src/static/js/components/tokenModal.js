@@ -9,6 +9,26 @@ export function initTokenModal() {
     const closeModalBtn = document.getElementById('closeModalBtn');
     const tokenForm = document.getElementById('tokenForm');
     const serviceSelect = document.getElementById('service');
+    const emailOption = document.getElementById('emailOption');
+    const consumerIdOption = document.getElementById('consumerIdOption');
+    const emailInputContainer = document.getElementById('emailInputContainer');
+    const consumerIdInputContainer = document.getElementById('consumerIdInputContainer');
+
+    if (emailOption && consumerIdOption) {
+        emailOption.addEventListener('change', () => {
+            emailInputContainer.classList.remove('hidden');
+            consumerIdInputContainer.classList.add('hidden');
+            document.getElementById('emailAddress').required = true;
+            document.getElementById('consumerId').required = false;
+        });
+
+        consumerIdOption.addEventListener('change', () => {
+            consumerIdInputContainer.classList.remove('hidden');
+            emailInputContainer.classList.add('hidden');
+            document.getElementById('consumerId').required = true;
+            document.getElementById('emailAddress').required = false;
+        });
+    }
 
     async function loadServices() {
         try {

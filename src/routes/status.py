@@ -47,7 +47,7 @@ def get_status_details():
                 service_record = cursor.fetchone()
                 
                 if service_record:
-                    table_name = service_record['name'].lower()
+                    table_name = service_record['name']
                     cursor.execute(f"SELECT TIME_FORMAT(ETR, '%H:%i:%S') as ETR, TIME_TO_SEC(ETR) as etr_seconds, position FROM {table_name} WHERE token_id = %s", (details['token_id'],))
                     walkin_details = cursor.fetchone()
                     if walkin_details:

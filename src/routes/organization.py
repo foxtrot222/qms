@@ -39,7 +39,7 @@ def login():
             # Get service details
             cursor.execute("SELECT name FROM service WHERE id = %s", (officer['service_id'],))
             service_record = cursor.fetchone()
-            table_name = service_record['name'].lower() if service_record else None
+            table_name = service_record['name'] if service_record else None
             
             cursor.close()
 

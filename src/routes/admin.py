@@ -385,7 +385,11 @@ def admin():
         cursor.execute("SELECT id, name FROM service")
         services = cursor.fetchall()
 
-        return render_template('admin.html', stats=stats, users=users, services=services)
+        # Fetch consumers
+        cursor.execute("SELECT consumer_id, email_id FROM consumer")
+        consumers = cursor.fetchall()
+
+        return render_template('admin.html', stats=stats, users=users, services=services, consumers=consumers)
 
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
@@ -462,3 +466,110 @@ def update_settings():
             conn.close()
     
     return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/consumers/add', methods=['POST'])
+def add_consumer():
+    consumer_id = request.form.get('consumer_id')
+    email_id = request.form.get('email_id')
+
+    if not all([consumer_id, email_id]):
+        flash("Consumer ID and Email are required.", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO consumer (consumer_id, email_id) VALUES (%s, %s)",
+            (consumer_id, email_id)
+        )
+        conn.commit()
+        flash(f"Consumer {consumer_id} added successfully!", "success")
+    except mysql.connector.Error as e:
+        conn.rollback()
+        flash(f"Failed to add consumer: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/consumers/update', methods=['POST'])
+def update_consumer():
+    original_consumer_id = request.form.get('original_consumer_id')
+    consumer_id = request.form.get('consumer_id')
+    email_id = request.form.get('email_id')
+
+    if not all([original_consumer_id, consumer_id, email_id]):
+        flash("All fields are required to update a consumer.", "error")
+        return redirect(url_for('admin.admin'))
+
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE consumer SET consumer_id = %s, email_id = %s WHERE consumer_id = %s",
+            (consumer_id, email_id, original_consumer_id)
+        )
+        conn.commit()
+        flash(f"Consumer {consumer_id} updated successfully!", "success")
+    except mysql.connector.Error as e:
+        conn.rollback()
+        flash(f"Failed to update consumer: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/consumers/delete/<consumer_id>')
+def delete_consumer(consumer_id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Database connection failed.", "error")
+        return redirect(url_for('admin.admin'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM consumer WHERE consumer_id = %s", (consumer_id,))
+        conn.commit()
+        flash(f"Consumer {consumer_id} deleted successfully!", "success")
+    except Exception as e:
+        conn.rollback()
+        flash(f"An unexpected error occurred: {e}", "error")
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return redirect(url_for('admin.admin'))
+
+@admin_bp.route('/admin/consumers/<consumer_id>/get', methods=['GET'])
+def get_consumer_data(consumer_id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"success": False, "error": "Database connection failed."})
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT consumer_id, email_id FROM consumer WHERE consumer_id = %s", (consumer_id,))
+        consumer = cursor.fetchone()
+        if consumer:
+            return jsonify({"success": True, "consumer": consumer})
+        else:
+            return jsonify({"success": False, "error": "Consumer not found."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()

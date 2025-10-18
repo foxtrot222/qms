@@ -72,4 +72,5 @@ export const api = {
     }),
     getUserData: (userId) => fetchJSON(`/admin/users/${userId}/get`),
     getServiceData: (serviceId) => fetchJSON(`/admin/services/${serviceId}/get`),
+    getConsumerData: (consumerId) => fetchJSON(`/admin/consumers/${consumerId}/get`),
 };

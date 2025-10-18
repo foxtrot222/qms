@@ -97,4 +97,31 @@ export function initAdminPage() {
     initModal('addServiceBtn', 'addServiceModal', 'closeAddServiceModalBtn', 'add-service-modal-content');
     initEditUserModal();
     initEditServiceModal();
+    initModal('addConsumerBtn', 'addConsumerModal', 'closeAddConsumerModalBtn', 'add-consumer-modal-content');
+    initEditConsumerModal();
+}
+
+function initEditConsumerModal() {
+    const modal = initModal(null, 'editConsumerModal', 'closeEditConsumerModalBtn', 'edit-consumer-modal-content');
+    if (!modal) return;
+
+    document.querySelectorAll('.edit-consumer-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const consumerId = e.target.dataset.consumerId;
+            try {
+                const data = await api.getConsumerData(consumerId);
+                if (data.success) {
+                    document.getElementById('editConsumerId').value = data.consumer.consumer_id;
+                    document.getElementById('editConsumerIdInput').value = data.consumer.consumer_id;
+                    document.getElementById('editConsumerEmail').value = data.consumer.email_id;
+                    modal.open();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                alert('An error occurred while fetching consumer data.');
+            }
+        });
+    });
 }

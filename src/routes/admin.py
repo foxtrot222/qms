@@ -411,7 +411,7 @@ def admin_login():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM admin WHERE name=%s", (adminId,))
         admin = cursor.fetchone()
-        if admin and (admin['password']== adminPassword):
+        if admin and check_password_hash(admin['password'], adminPassword):
             cursor.close()
 
             session['admin_id'] = admin['id']

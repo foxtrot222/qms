@@ -11,12 +11,12 @@ function initSettingsSlider() {
 }
 
 function initModal(buttonId, modalId, closeBtnId, modalContentId) {
-    const openBtn = document.getElementById(buttonId);
+    const openBtn = buttonId ? document.getElementById(buttonId) : null;
     const modal = document.getElementById(modalId);
     const closeBtn = document.getElementById(closeBtnId);
     const content = document.getElementById(modalContentId);
 
-    if (!openBtn || !modal || !closeBtn || !content) return;
+    if (!modal || !closeBtn || !content) return;
 
     const open = () => {
         modal.classList.remove('hidden');
@@ -32,7 +32,9 @@ function initModal(buttonId, modalId, closeBtnId, modalContentId) {
         setTimeout(() => modal.classList.add('hidden'), 300);
     };
 
-    openBtn.addEventListener('click', open);
+    if (openBtn) {
+        openBtn.addEventListener('click', open);
+    }
     closeBtn.addEventListener('click', close);
     modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
 
